@@ -23,7 +23,7 @@ class NetParent(nn.Module):
         # device is cpu by default
         self.device = 'cpu'
 
-    def forward(self,x):
+    def forward(self, x):
         raise NotImplementedError
 
     @staticmethod
@@ -59,69 +59,119 @@ class Standardizer(nn.Module):
         self.mu = 0
         self.sigma = 1
         self.fitted = False
+        self.dimensions = None
 
-    def fit(self, x_train):
+    def fit(self, x):
         assert self.training, 'Can not fit while in eval mode. Please set model to training mode'
-        self.mu = x_train.mean(axis=0)
-        self.sigma = x_train.std(axis=0)
-        # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
-        self.sigma[torch.where(self.sigma==0)] = 1e-12
-        self.fitted = True
+        with torch.no_grad():
+            x = self.view_3d_to_2d(x)
+            self.mu = x.mean(axis=0)
+            self.sigma = x.std(axis=0)
+            # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
+            self.sigma[torch.where(self.sigma == 0)] = 1e-12
+            self.fitted = True
 
     def forward(self, x):
         assert self.fitted, 'Standardizer has not been fitted. Please fit to x_train'
-        return (x - self.mu) / self.sigma
+        with torch.no_grad():
+            # Flatten to 2d if needed
+            x = (self.view_3d_to_2d(x) - self.mu) / self.sigma
+            # Return to 3d if needed
+            return self.view_2d_to_3d(x)
 
     def reset_parameters(self, **kwargs):
-        self.mu = 0
-        self.sigma = 0
-        self.fitted = False
+        with torch.no_grad():
+            self.mu = 0
+            self.sigma = 0
+            self.fitted = False
 
+    def view_3d_to_2d(self, x):
+        with torch.no_grad():
+            if len(x.shape) == 3:
+                self.dimensions = (x.shape[0], x.shape[1], x.shape[2])
+                return x.view(-1, x.shape[2])
+            else:
+                return x
+
+    def view_2d_to_3d(self,x):
+        with torch.no_grad():
+            if len(x.shape) == 2 and self.dimensions is not None:
+                return x.view(self.dimensions[0], self.dimensions[1], self.dimensions[2])
+            else:
+                return x
 
 class NNAlign(NetParent):
     """
     This just runs the forward loop and selects the best loss.
     The inputs should be split in the ExpandDataset class with the unfold/transpose/reshape/flatten etc.
+    TODO: implement 2 versions of it, one with the double forward pass, and one with a single + with torch nograd selection to get the argmax
+        If the results are the same, then just keep the network with a single forward pass
+        + implement crossvalidation + nested crossvalidation
     """
+
     def __init__(self, n_hidden, window_size,
-                 activation = nn.ReLU(),
+                 activation=nn.ReLU(), batchnorm=False,
                  dropout=0.0, indel=False):
         super(NNAlign, self).__init__()
         self.matrix_dim = 21 if indel else 20
         self.window_size = window_size
+        self.n_hidden = n_hidden
         self.in_layer = nn.Linear(self.window_size * self.matrix_dim, n_hidden)
         self.out_layer = nn.Linear(n_hidden, 1)
-        self.bn1 = nn.BatchNorm1d(n_hidden)
+        self.batchnorm=batchnorm
+        if batchnorm:
+            self.bn1 = nn.BatchNorm1d(n_hidden)
         self.dropout = nn.Dropout(p=dropout)
         self.act = activation
 
     def forward(self, x):
-        x = self.dropout(self.in_layer(x))
-        # Switch submer-feature dim to batchnorm then switch again to get preds
-        # x = self.bn1(x.transpose(1,2)).transpose(1,2)
-        x = self.act(x)
+        """
+        Here, do a double forward pass to be sure not to compute the gradient when doing any of the steps
+        for the best submer selection
+        :param x:
+        :return:
+        """
+
+        # FIRST FORWARD PASS: best scoring selection, with no grad
+        with torch.no_grad():
+            z = self.in_layer(x)  # Inlayer
+            if self.batchnorm:
+                z = self.bn1(z.view(x.shape[0] * x.shape[1], self.n_hidden)).view(-1, x.shape[1], self.n_hidden)
+            z = self.dropout(z)
+            z = self.act(z)
+            z = self.out_layer(z)  # Out Layer for prediction
+            # NNAlign selecting the max score here
+            max_idx = z.argmax(dim=1).unsqueeze(1).expand(-1, -1, self.window_size * self.matrix_dim)
+            x = torch.gather(x, 1, max_idx).squeeze(1)  # Indexing the best submers
+
+        # SECOND FORWARD PASS: normal prediction, with gradient
+        # Doing a simple no batchnorm no dropout version for now ;
+
+        # Simple fwd pass : in_layer -> BN -> DropOut -> Activation
+        x = self.in_layer(x)
+        if self.batchnorm:
+            x = self.bn1(x)
+        x = self.act(self.dropout(x))
         x = self.out_layer(x)
         return x
 
 
-class FFN(NetParent):
-    def __init__(self, n_in=21, n_hidden=32, n_layers=1, act=nn.ReLU(), dropout=0.0):
-        super(FFN, self).__init__()
-        self.in_layer = nn.Linear(n_in, n_hidden)
-        self.dropout = nn.Dropout(dropout)
-        self.activation = act
-        hidden_layers = [nn.Linear(n_hidden, n_hidden), self.dropout, self.activation] * n_layers
-        self.hidden = nn.Sequential(*hidden_layers)
-        # Either use Softmax with 2D output or Sigmoid with 1D output
-        self.out_layer = nn.Linear(n_hidden, 1)
+class NNAlignWrapper(NetParent):
+    def __init__(self, n_hidden, window_size, activation=nn.ReLU(), batchnorm=False, dropout=0.0, indel=False):
+        super(NNAlignWrapper, self).__init__()
+        self.nnalign = NNAlign(n_hidden, window_size, activation, batchnorm, dropout, indel)
+        self.standardizer = Standardizer()
+
+    def fit_standardizer(self, x):
+        assert self.training, 'Must be in training mode to fit!'
+        with torch.no_grad():
+            self.standardizer.fit(x)
 
     def forward(self, x):
-        if len(x.shape) == 3:
-            x = x.flatten(start_dim=1, end_dim=2)
-        x = self.activation(self.in_layer(x))
-        x = self.hidden(x)
-        out = F.sigmoid(self.out_layer(x))
-        return out
+        with torch.no_grad():
+            x = self.standardizer(x)
+        x = self.nnalign(x)
+        return x
 
     def reset_parameters(self, **kwargs):
         for child in self.children():
@@ -137,7 +187,8 @@ class FFNetPipeline(NetParent):
         super(FFNetPipeline, self).__init__()
         self.standardizer = Standardizer()
         self.input_length = n_in
-        self.ffn = FFN(n_in, n_hidden, n_layers, act, dropout)
+        self.ffn = nn.Linear(1, 1)
+        # self.ffn = FFN(n_in, n_hidden, n_layers, act, dropout)
 
     def forward(self, x):
         # Need to do self.standardizer.fit() somewhere in the nested_kcv function
@@ -156,3 +207,4 @@ class FFNetPipeline(NetParent):
                     child.reset_parameters(**kwargs)
                 except:
                     print('here xd', child)
+

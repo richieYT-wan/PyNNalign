@@ -8,8 +8,8 @@ class NNAlignDataset(Dataset):
     Here for now, only get encoding and try to
     """
 
-    def __init__(self, df, max_len, window_size, indel=False, encoding='onehot', seq_col='Peptide',
-                 target_col='agg_label', pad_scale=None):
+    def __init__(self, df, max_len, window_size, encoding='onehot', seq_col='Peptide',
+                 target_col='agg_label', pad_scale=None, indel=False):
         super(NNAlignDataset, self).__init__()
         # Encoding stuff
         df['len'] = df[seq_col].apply(len)
@@ -17,10 +17,10 @@ class NNAlignDataset(Dataset):
         matrix_dim = 21 if indel else 20
         x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
         y = torch.from_numpy(df[target_col].values).float().view(-1,1)
-        # Expand and unfold the sub kmers and the target to match the shape
+        # Expand and unfold the sub kmers and the target to match the shape ; contiguous to allow for view operations
         self.x = x.unfold(1, window_size, 1).transpose(2, 3) \
-            .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3)
-        self.y = y #.expand((len(y), max_len - window_size + 1)).view(-1, max_len - window_size + 1, 1)
+            .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3).contiguous()
+        self.y = y.contiguous() #.expand((len(y), max_len - window_size + 1)).view(-1, max_len - window_size + 1, 1)
         # Saving the normal encoded things in case it's needed
         self.encoded_x = x
         self.encoded_y = y
@@ -40,10 +40,10 @@ class NNAlignDataset(Dataset):
         return self.x[idx], self.y[idx]
 
 
-def get_NNAlign_dataloader(df, max_len, window_size, indel=False, encoding='onehot', seq_col='Peptide',
-                           target_col='agg_label', pad_scale=None, batch_size=64, sampler=torch.utils.data.RandomSampler,
+def get_NNAlign_dataloader(df, max_len, window_size, encoding='onehot', seq_col='Peptide',
+                           target_col='agg_label', pad_scale=None, indel=False, batch_size=64, sampler=torch.utils.data.RandomSampler,
                            return_dataset=False):
-    dataset = NNAlignDataset(df, max_len, window_size, indel, encoding, seq_col, target_col, pad_scale)
+    dataset = NNAlignDataset(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel)
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
     if return_dataset:
         return dataloader, dataset

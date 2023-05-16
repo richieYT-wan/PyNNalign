@@ -231,8 +231,8 @@ def encode_batch(sequences, max_len=None, encoding='onehot', pad_scale=None):
     """
     if max_len is None:
         max_len = max([len(x) for x in sequences])
-
-    return torch.stack([encode(seq, max_len, encoding, pad_scale) for seq in sequences])
+    # Contiguous to allow for .view operation
+    return torch.stack([encode(seq, max_len, encoding, pad_scale) for seq in sequences]).contiguous()
 
 
 def onehot_decode(onehot_sequence):
