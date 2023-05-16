@@ -94,20 +94,29 @@ def train_model_step(model, criterion, optimizer, train_loader):
     for x_train, y_train in train_loader:
         output = model(x_train)
         loss = criterion(output, y_train)
-        # Output should be sigmoid scores (range [0,1])
-        y_scores.append(output)
-        y_true.append(y_train)
-        if torch.isnan(torch.tensor(loss)): print('NaN losses!'); return torch.nan
+        # if torch.isnan(torch.tensor(loss)): print('NaN losses!'); return torch.nan
+        # NNAlign code to select the best sub-mer for each datapoint and only backprop from those
 
-        model.zero_grad()
-        loss.backward()
+        best_idx = loss.argmin(dim=1).unsqueeze(1)
+        selected_loss = torch.gather(loss, 1, best_idx)
+        optimizer.zero_grad()
+        selected_loss.mean().backward()
         optimizer.step()
-        # Multiply to have a normalized running loss at the end
-        train_loss += loss.item() * y_train.shape[0]
+
+        # Here select the best scoring kmers as output, then computes metrics
+        with torch.no_grad():
+            selected_output = torch.gather(output, 1, best_idx)
+            y_probs = F.sigmoid(selected_output)
+            # Output should be sigmoid scores (range [0,1])
+            y_scores.append(y_probs.flatten())
+            # Since all labels are the same for sub-kmers, just take an index and flatten it
+            y_true.append(y_train[:,0].flatten())
+
+        train_loss += selected_loss.mean().item() * y_train.shape[0]
 
     # Concatenate the y_pred & y_true tensors and compute metrics
     y_scores, y_true = torch.cat(y_scores), torch.cat(y_true)
-    train_metrics = get_metrics(y_true, y_scores)
+    train_metrics = get_metrics(y_true, y_scores, threshold=0.5, reduced=True)
     # Normalizes to loss per batch
     train_loss /= len(train_loader.dataset)
     return train_loss, train_metrics
@@ -121,13 +130,20 @@ def eval_model_step(model, criterion, valid_loader):
     with torch.no_grad():
         for x_valid, y_valid in valid_loader:
             output = model(x_valid)
-            valid_loss += (criterion(output, y_valid).item() * y_valid.shape[0])
+            loss = criterion(output, y_valid)
+            best_idx = loss.argmin(dim=1).unsqueeze(1)
+            selected_loss = torch.gather(loss, 1, best_idx)
+            selected_output = torch.gather(output, 1, best_idx)
+            valid_loss += (selected_loss.mean().item() * y_valid.shape[0])
             # Output should be sigmoid scores (range [0,1])
-            y_scores.append(output)
-            y_true.append(y_valid)
+            # Output should be sigmoid scores (range [0,1])
+            y_scores.append(F.sigmoid(output)[:,0].flatten())
+            # Since all labels are the same for sub-kmers, just take an index and flatten it
+            y_true.append(y_valid[:, 0].flatten())
+
     # Concatenate the y_pred & y_true tensors and compute metrics
     y_scores, y_true = torch.cat(y_scores), torch.cat(y_true)
-    valid_metrics = get_metrics(y_true, y_scores)
+    valid_metrics = get_metrics(y_true, y_scores, threshold=0.5, reduced=True)
     # Normalizes to loss per batch
     valid_loss /= len(valid_loader.dataset)
     return valid_loss, valid_metrics

@@ -62,13 +62,22 @@ def _init(DATADIR):
         BL62FREQ_VALUES[letter_1] = _blosum62[i]
         for j, letter_2 in enumerate(AA_KEYS):
             BL62FREQ[letter_1][letter_2] = _blosum62[i, j]
-    HLAS = pkl_load(ICSDIR + 'ics_shannon.pkl')[9].keys()
+    ICS_KL = pkl_load(ICSDIR + 'ics_kl_new.pkl')
+    ICS_SHANNON = pkl_load(ICSDIR + 'ics_shannon.pkl')
+    HLAS = ICS_SHANNON[9].keys()
 
-    return VAL, N_CORES, DATADIR, AA_KEYS, CHAR_TO_INT, INT_TO_CHAR, BG, BL62FREQ, BL62FREQ_VALUES, BL50, BL50_VALUES, BL62, BL62_VALUES, HLAS
+    return VAL, N_CORES, DATADIR, AA_KEYS, CHAR_TO_INT, INT_TO_CHAR, BG, BL62FREQ, BL62FREQ_VALUES, BL50, BL50_VALUES, BL62, BL62_VALUES, HLAS, ICS_KL, ICS_SHANNON
 
 
-VAL, N_CORES, DATADIR, AA_KEYS, CHAR_TO_INT, INT_TO_CHAR, BG, BL62FREQ, BL62FREQ_VALUES, BL50, BL50_VALUES, BL62, BL62_VALUES, HLAS = _init(
+VAL, N_CORES, DATADIR, AA_KEYS, CHAR_TO_INT, INT_TO_CHAR, BG, BL62FREQ, BL62FREQ_VALUES, BL50, BL50_VALUES, BL62, BL62_VALUES, HLAS, ICS_KL, ICS_SHANNON = _init(
     DATADIR)
+
+encoding_matrix_dict = {'onehot': None,
+                        'BL62LO': BL62_VALUES,
+                        'BL62FREQ': BL62FREQ_VALUES,
+                        'BL50LO': BL50_VALUES}
+ics_dict = {'KL': ICS_KL,
+            'Shannon': ICS_SHANNON}
 
 
 ######################################
@@ -110,9 +119,8 @@ def assert_encoding_kwargs(encoding_kwargs, mode_eval=False):
     if encoding_kwargs is None:
         encoding_kwargs = {'max_len': 12,
                            'encoding': 'onehot',
-                           'blosum_matrix': None,
                            'standardize': False}
-    essential_keys = ['max_len', 'encoding', 'blosum_matrix', 'standardize']
+    essential_keys = ['max_len', 'encoding', 'standardize']
     keys_check = [x in encoding_kwargs.keys() for x in essential_keys]
     keys_check_dict = {k: v for (k, v) in zip(essential_keys, keys_check) if v == False}
     assert all(keys_check), f'Encoding kwargs don\'t contain the essential key-value pairs! ' \
@@ -174,14 +182,16 @@ def get_aa_properties(df, seq_col='icore_mut', do_vhse=True, prefix=''):
                  'isoelectric_point', 'VHSE1', 'VHSE3', 'VHSE7', 'VHSE8']
 
 
-def encode(sequence, max_len=None, encoding='onehot', blosum_matrix=None):
+def encode(sequence, max_len=None, encoding='onehot', pad_scale=None):
     """
     encodes a single peptide into a matrix, using 'onehot' or 'blosum'
     if 'blosum', then need to provide the blosum dictionary as argument
     """
-    assert (encoding == 'onehot' or encoding.lower().startswith("blosum")), 'wrong encoding type'
+    assert encoding in encoding_matrix_dict.keys(), f'Wrong encoding key {encoding} passed!'\
+                                                    f'Should be any of {encoding_matrix_dict.keys()}'
     # One hot encode by setting 1 to positions where amino acid is present, 0 elsewhere
     size = len(sequence)
+    blosum_matrix = encoding_matrix_dict[encoding]
     if encoding == 'onehot':
         int_encoded = [CHAR_TO_INT[char] for char in sequence]
         onehot_encoded = list()
@@ -192,7 +202,7 @@ def encode(sequence, max_len=None, encoding='onehot', blosum_matrix=None):
         tmp = np.array(onehot_encoded)
 
     # BLOSUM encode
-    if encoding == 'blosum':
+    else:
         if blosum_matrix is None or not isinstance(blosum_matrix, dict):
             raise Exception('No BLOSUM matrix provided!')
 
@@ -204,7 +214,9 @@ def encode(sequence, max_len=None, encoding='onehot', blosum_matrix=None):
     if max_len is not None and max_len > size:
         diff = int(max_len) - int(size)
         try:
-            tmp = np.concatenate([tmp, np.zeros([diff, len(AA_KEYS)], dtype=np.float32)],
+            if pad_scale is None:
+                pad_scale = 0 if encoding=='onehot' else -12
+            tmp = np.concatenate([tmp, pad_scale*np.ones([diff, len(AA_KEYS)], dtype=np.float32)],
                                  axis=0)
         except:
             print('Here in encode', type(tmp), tmp.shape, len(AA_KEYS), type(diff), type(max_len), type(size), sequence)
@@ -213,14 +225,14 @@ def encode(sequence, max_len=None, encoding='onehot', blosum_matrix=None):
     return torch.from_numpy(tmp).float()
 
 
-def encode_batch(sequences, max_len=None, encoding='onehot', blosum_matrix=None):
+def encode_batch(sequences, max_len=None, encoding='onehot', pad_scale=None):
     """
     Encode multiple sequences at once.
     """
     if max_len is None:
         max_len = max([len(x) for x in sequences])
 
-    return torch.stack([encode(seq, max_len, encoding, blosum_matrix) for seq in sequences])
+    return torch.stack([encode(seq, max_len, encoding, pad_scale) for seq in sequences])
 
 
 def onehot_decode(onehot_sequence):
@@ -336,9 +348,9 @@ def batch_find_extra_aa(core_seqs, icore_seqs):
     return encoded, lens
 
 
-def encode_batch_weighted(df, ics_dict=None, device=None, max_len=None, encoding='onehot', blosum_matrix=None,
-                          seq_col='Peptide', hla_col='HLA', target_col='agg_label', mask=False, invert=False,
-                          threshold=.234, return_weights=False):
+def encode_batch_weighted(df, ics_dict=None, device=None, max_len=None, encoding='onehot', seq_col='Peptide',
+                          hla_col='HLA', target_col='agg_label', mask=False, invert=False, threshold=.234,
+                          return_weights=False):
     """
     Takes as input a df containing sequence, len, HLA;
     Batch onehot-encode all sequences & weights them with (1-IC) depending on the ICs dict given
@@ -350,7 +362,6 @@ def encode_batch_weighted(df, ics_dict=None, device=None, max_len=None, encoding
         device (str) : device for cpu or cuda transfer
         max_len (int): Maximum length to consider
         encoding (str) : 'onehot' or 'blosum'
-        blosum_matrix : The blosum matrix dictionary; Should just use the BL62_VALUES that's initialized by default
         seq_col (str): Name of the column containing the Peptide sequences (default = 'Peptide')
         hla_col (str): Name of the column containing the HLA alleles (default = 'HLA')
 
@@ -369,7 +380,7 @@ def encode_batch_weighted(df, ics_dict=None, device=None, max_len=None, encoding
         max_len = df['seq_len'].max()
 
     # Encoding the sequences
-    encoded_sequences = encode_batch(df[seq_col].values, max_len, encoding=encoding, blosum_matrix=blosum_matrix)
+    encoded_sequences = encode_batch(df[seq_col].values, max_len, encoding=encoding)
     if ics_dict is not None:
         weights = get_ic_weights(df, ics_dict, max_len, seq_col, hla_col, mask, invert, threshold)
     else:
@@ -438,13 +449,12 @@ def get_train_valid_dfs(dataframe, fold_inner, fold_outer):
 #     return x, y
 
 
-def get_mutation_tensors(df, ics_dict, device='cuda', max_len=12, encoding='onehot', blosum_matrix=None,
-                         mutant_col='Peptide', wt_col='wild_type', feat_cols=['trueHLA_EL_rank'],
-                         target_col='agg_label', hla_col='HLA', mask=False, invert=False):
-    x_mut = encode_batch_weighted(df, ics_dict, device, max_len, encoding, blosum_matrix, mutant_col, hla_col,
-                                  target_col, mask, invert)
-    x_wt = encode_batch_weighted(df, ics_dict, device, max_len, encoding, blosum_matrix, wt_col, hla_col, target_col,
-                                 mask, invert)
+def get_mutation_tensors(df, ics_dict, device='cuda', max_len=12, encoding='onehot', mutant_col='Peptide',
+                         wt_col='wild_type', feat_cols=['trueHLA_EL_rank'], target_col='agg_label', hla_col='HLA',
+                         mask=False, invert=False):
+    x_mut = encode_batch_weighted(df, ics_dict, device, max_len, encoding, mutant_col, hla_col, target_col, mask,
+                                  invert)
+    x_wt = encode_batch_weighted(df, ics_dict, device, max_len, encoding, wt_col, hla_col, target_col, mask, invert)
     x_props = torch.from_numpy(df[feat_cols].values).float().to(device)
     y = torch.from_numpy(df[target_col].values).float().unsqueeze(1).to(device)
     x = torch.cat([x_mut.view(-1, max_len * 20), x_wt.view(-1, max_len * 20), x_props], dim=1)
@@ -466,8 +476,7 @@ def to_tensors(x, y, device='cpu'):
     return x, y
 
 
-def get_array_dataset(df, ics_dict, max_len=12, encoding='onehot', blosum_matrix=None, seq_col='icore_mut',
-                      hla_col='HLA',
+def get_array_dataset(df, ics_dict, max_len=12, encoding='onehot', seq_col='icore_mut', hla_col='HLA',
                       target_col='agg_label', rank_col='EL_rank_mut', mask=False, invert=False, add_rank=True,
                       add_aaprop=False, remove_pep=False, threshold=0.234, icore_bulge=False, core_col='core_mut',
                       icore_col='icore_mut'):
@@ -496,8 +505,8 @@ def get_array_dataset(df, ics_dict, max_len=12, encoding='onehot', blosum_matrix
         tensor_dataset (torch.utils.data.TensorDataset): Dataset containing the tensors X and y
     """
     # df = verify_df(df, seq_col, hla_col, target_col)
-    encoded_weighted, true_lens = encode_batch_weighted(df, ics_dict, 'cpu', max_len, encoding, blosum_matrix, seq_col,
-                                                        hla_col, target_col, mask, invert, threshold)
+    encoded_weighted, true_lens = encode_batch_weighted(df, ics_dict, 'cpu', max_len, encoding, seq_col, hla_col,
+                                                        target_col, mask, invert, threshold)
     x = batch_compute_frequency(encoded_weighted.numpy(), true_lens)
     if add_rank:
         ranks = np.expand_dims(df[rank_col].values, 1)
@@ -523,10 +532,10 @@ def get_array_dataset(df, ics_dict, max_len=12, encoding='onehot', blosum_matrix
     return x, y
 
 
-def get_dataset(df, ics_dict, max_len=12, encoding='onehot', blosum_matrix=None, seq_col='icore_mut',
-                hla_col='HLA', target_col='agg_label', rank_col='EL_rank_mut', mut_col=None, adaptive=False, mask=False,
-                invert=False, add_rank=False, add_aaprop=False, remove_pep=False, mask_aa=None, threshold=.234,
-                icore_bulge=False, core_col='core_mut', icore_col='icore_mut'):
+def get_dataset(df, ics_dict, max_len=12, encoding='onehot', seq_col='icore_mut', hla_col='HLA', target_col='agg_label',
+                rank_col='EL_rank_mut', mut_col=None, adaptive=False, mask=False, invert=False, add_rank=False,
+                add_aaprop=False, remove_pep=False, mask_aa=None, threshold=.234, icore_bulge=False,
+                core_col='core_mut', icore_col='icore_mut'):
     """
     """
     # df = verify_df(df, seq_col, hla_col, target_col)
@@ -537,16 +546,15 @@ def get_dataset(df, ics_dict, max_len=12, encoding='onehot', blosum_matrix=None,
         anchors = df.query('anchor_mutation==True')
         non_ancs = df.query('anchor_mutation==False')
         # Here Invert is true (so the anchors get IC instead of 1-IC)
-        x_anchors, y_anchors = get_array_dataset(anchors, ics_dict, max_len, encoding, blosum_matrix, seq_col, hla_col,
-                                                 target_col, invert=True, add_rank=True, add_aaprop=False,
-                                                 remove_pep=False)
+        x_anchors, y_anchors = get_array_dataset(anchors, ics_dict, max_len, encoding, seq_col, hla_col, target_col,
+                                                 invert=True, add_rank=True, add_aaprop=False, remove_pep=False)
         # Adding the mut columns and concatenating on columns axis (ax=1)
         if len(mut_col) > 0:
             mut_anchors = anchors[mut_col].values
             x_anchors = np.concatenate([x_anchors, mut_anchors], axis=1)
         # Here, invert is False (so using 1-IC, to up-weigh non-anchor positions for non anc mutations
-        x_non, y_non = get_array_dataset(non_ancs, ics_dict, max_len, encoding, blosum_matrix, seq_col, hla_col,
-                                         target_col, invert=False, add_rank=True, add_aaprop=False, remove_pep=False)
+        x_non, y_non = get_array_dataset(non_ancs, ics_dict, max_len, encoding, seq_col, hla_col, target_col,
+                                         invert=False, add_rank=True, add_aaprop=False, remove_pep=False)
         # Same
         if mut_col is not None and type(mut_col) == list:
             if len(mut_col) > 0:
@@ -557,9 +565,9 @@ def get_dataset(df, ics_dict, max_len=12, encoding='onehot', blosum_matrix=None,
         y = np.concatenate([y_anchors, y_non], axis=0)
 
     else:
-        x, y = get_array_dataset(df, ics_dict, max_len, encoding, blosum_matrix, seq_col, hla_col, target_col, rank_col,
-                                 mask, invert, add_rank=add_rank, add_aaprop=add_aaprop, remove_pep=remove_pep,
-                                 threshold=threshold, icore_bulge=icore_bulge, core_col=core_col, icore_col=icore_col)
+        x, y = get_array_dataset(df, ics_dict, max_len, encoding, seq_col, hla_col, target_col, rank_col, mask, invert,
+                                 add_rank=add_rank, add_aaprop=add_aaprop, remove_pep=remove_pep, threshold=threshold,
+                                 icore_bulge=icore_bulge, core_col=core_col, icore_col=icore_col)
         if mut_col is not None and type(mut_col) == list:
             if len(mut_col) > 0:
                 mut_scores = df[mut_col].values
@@ -696,7 +704,7 @@ def compute_pfm(sequences, how='shannon', seq_weighting=False, beta=50):
         print(sequences)
         raise Exception(sequences)
     N = len(sequences)
-    onehot_seqs = encode_batch(sequences, max_len, encoding='onehot', blosum_matrix=None).numpy()
+    onehot_seqs = encode_batch(sequences, max_len, encoding='onehot').numpy()
 
     if how == 'shannon':
         freq_matrix = onehot_seqs.sum(axis=0) / N
