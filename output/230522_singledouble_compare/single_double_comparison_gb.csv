@@ -1,0 +1,3 @@
+identifier,mean_test_auc,std_test_auc,mean_train_auc,mean_time
+normal_doublepass,0.673933,0.02110952226610138,0.7532559999999999,66.24
+test_singlepass,0.672833,0.02256141810411497,0.7653669999999999,63.69

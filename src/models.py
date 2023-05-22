@@ -204,10 +204,9 @@ class NNAlignSinglePass(NetParent):
         z = torch.gather(z, 1, max_idx).squeeze(1)  # Indexing the best submers
         return z
 
-
 class NNAlignWrapper(NetParent):
     def __init__(self, n_hidden, window_size, activation=nn.ReLU(), batchnorm=False, dropout=0.0, indel=False,
-                 singlepass=False):
+                 singlepass=True):
         super(NNAlignWrapper, self).__init__()
         NN = {False: NNAlign,
               True: NNAlignSinglePass}
