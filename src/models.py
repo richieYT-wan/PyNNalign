@@ -93,12 +93,13 @@ class Standardizer(nn.Module):
             else:
                 return x
 
-    def view_2d_to_3d(self,x):
+    def view_2d_to_3d(self, x):
         with torch.no_grad():
             if len(x.shape) == 2 and self.dimensions is not None:
                 return x.view(self.dimensions[0], self.dimensions[1], self.dimensions[2])
             else:
                 return x
+
 
 class NNAlign(NetParent):
     """
@@ -118,7 +119,7 @@ class NNAlign(NetParent):
         self.n_hidden = n_hidden
         self.in_layer = nn.Linear(self.window_size * self.matrix_dim, n_hidden)
         self.out_layer = nn.Linear(n_hidden, 1)
-        self.batchnorm=batchnorm
+        self.batchnorm = batchnorm
         if batchnorm:
             self.bn1 = nn.BatchNorm1d(n_hidden)
         self.dropout = nn.Dropout(p=dropout)
@@ -156,10 +157,61 @@ class NNAlign(NetParent):
         return x
 
 
+class NNAlignSinglePass(NetParent):
+    """
+    This just runs the forward loop and selects the best loss.
+    The inputs should be split in the ExpandDataset class with the unfold/transpose/reshape/flatten etc.
+    TODO: implement 2 versions of it, one with the double forward pass,
+        and one with a single + with torch nograd selection to get the argmax
+        If the results are the same, then just keep the network with a single forward pass
+        + implement crossvalidation + nested crossvalidation
+    """
+
+    def __init__(self, n_hidden, window_size,
+                 activation=nn.ReLU(), batchnorm=False,
+                 dropout=0.0, indel=False):
+        super(NNAlignSinglePass, self).__init__()
+        self.matrix_dim = 21 if indel else 20
+        self.window_size = window_size
+        self.n_hidden = n_hidden
+        self.in_layer = nn.Linear(self.window_size * self.matrix_dim, n_hidden)
+        self.out_layer = nn.Linear(n_hidden, 1)
+        self.batchnorm = batchnorm
+        if batchnorm:
+            self.bn1 = nn.BatchNorm1d(n_hidden)
+        self.dropout = nn.Dropout(p=dropout)
+        self.act = activation
+
+    def forward(self, x):
+        """
+        Here, do a double forward pass to be sure not to compute the gradient when doing any of the steps
+        for the best submer selection
+        :param x:
+        :return:
+        """
+
+        # FIRST FORWARD PASS: best scoring selection, with no grad
+        z = self.in_layer(x)  # Inlayer
+        # Flip dimensions to allow for batchnorm then flip back
+        if self.batchnorm:
+            z = self.bn1(z.view(x.shape[0] * x.shape[1], self.n_hidden)).view(-1, x.shape[1], self.n_hidden)
+        z = self.dropout(z)
+        z = self.act(z)
+        z = self.out_layer(z)  # Out Layer for prediction
+        # NNAlign selecting the max score here
+        with torch.no_grad():
+            max_idx = z.argmax(dim=1).unsqueeze(1)
+        z = torch.gather(z, 1, max_idx).squeeze(1)  # Indexing the best submers
+        return z
+
+
 class NNAlignWrapper(NetParent):
-    def __init__(self, n_hidden, window_size, activation=nn.ReLU(), batchnorm=False, dropout=0.0, indel=False):
+    def __init__(self, n_hidden, window_size, activation=nn.ReLU(), batchnorm=False, dropout=0.0, indel=False,
+                 singlepass=False):
         super(NNAlignWrapper, self).__init__()
-        self.nnalign = NNAlign(n_hidden, window_size, activation, batchnorm, dropout, indel)
+        NN = {False: NNAlign,
+              True: NNAlignSinglePass}
+        self.nnalign = NN[singlepass](n_hidden, window_size, activation, batchnorm, dropout, indel)
         self.standardizer = Standardizer()
 
     def fit_standardizer(self, x):
@@ -207,4 +259,3 @@ class FFNetPipeline(NetParent):
                     child.reset_parameters(**kwargs)
                 except:
                     print('here xd', child)
-
