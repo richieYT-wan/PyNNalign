@@ -8,7 +8,7 @@ import torch
 from matplotlib import pyplot as plt
 import matplotlib.patheffects as path_effects
 import seaborn as sns
-from sklearn.model_selection import KFold, StratifiedGroupKFold
+from sklearn.model_selection import KFold
 from typing import Any, Iterable
 import secrets
 import string
