@@ -102,16 +102,6 @@ def train_model_step(model, criterion, optimizer, train_loader):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        #
-        # # Here select the best scoring kmers as output, then computes metrics
-        # with torch.no_grad():
-        #     selected_output = torch.gather(output, 1, best_idx)
-        #     y_probs = F.sigmoid(selected_output)
-        #     # Output should be sigmoid scores (range [0,1])
-        #     y_scores.append(y_probs.flatten())
-        #     # Since all labels are the same for sub-kmers, just take an index and flatten it
-        #     y_true.append(y_train[:,0].flatten())
-
         y_true.append(y_train)
         y_scores.append(F.sigmoid(output))
         train_loss += loss.item() * y_train.shape[0]
@@ -133,16 +123,6 @@ def eval_model_step(model, criterion, valid_loader):
         for x_valid, y_valid in valid_loader:
             output = model(x_valid)
             loss = criterion(output, y_valid)
-            # best_idx = loss.argmin(dim=1).unsqueeze(1)
-            # selected_loss = torch.gather(loss, 1, best_idx)
-            # selected_output = torch.gather(output, 1, best_idx)
-            # valid_loss += (selected_loss.mean().item() * y_valid.shape[0])
-            # # Output should be sigmoid scores (range [0,1])
-            # # Output should be sigmoid scores (range [0,1])
-            # y_scores.append(F.sigmoid(output)[:,0].flatten())
-            # # Since all labels are the same for sub-kmers, just take an index and flatten it
-            # y_true.append(y_valid[:, 0].flatten())
-
             y_true.append(y_valid)
             y_scores.append(F.sigmoid(output))
             valid_loss += loss.item() * y_valid.shape[0]

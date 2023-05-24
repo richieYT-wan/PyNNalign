@@ -3,8 +3,6 @@ from collections import OrderedDict
 from typing import Union
 import numpy as np
 import sklearn
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from xgboost import XGBClassifier
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -79,6 +77,16 @@ class Standardizer(nn.Module):
             # Return to 3d if needed
             return self.view_2d_to_3d(x)
 
+    def recover(self, x):
+        assert self.fitted, 'Standardizer has not been fitted. Please fit to x_train'
+        with torch.no_grad():
+            # Flatten to 2d if needed
+            x = self.view_3d_to_2d(x)
+            # Return to original scale by multiplying with sigma and adding mu
+            x = x * self.sigma + self.mu
+            # Return to 3d if needed
+            return self.view_2d_to_3d(x)
+
     def reset_parameters(self, **kwargs):
         with torch.no_grad():
             self.mu = 0
@@ -102,7 +110,7 @@ class Standardizer(nn.Module):
 
 
 class NNAlign(NetParent):
-    """
+    """TODO : DEPRECATED
     This just runs the forward loop and selects the best loss.
     The inputs should be split in the ExpandDataset class with the unfold/transpose/reshape/flatten etc.
     TODO: implement 2 versions of it, one with the double forward pass, and one with a single + with torch nograd selection to get the argmax
@@ -159,14 +167,8 @@ class NNAlign(NetParent):
 
 class NNAlignSinglePass(NetParent):
     """
-    This just runs the forward loop and selects the best loss.
-    The inputs should be split in the ExpandDataset class with the unfold/transpose/reshape/flatten etc.
-    TODO: implement 2 versions of it, one with the double forward pass,
-        and one with a single + with torch nograd selection to get the argmax
-        If the results are the same, then just keep the network with a single forward pass
-        + implement crossvalidation + nested crossvalidation
+    NNAlign implementation with a single forward pass where best score selection + indexing is done in one pass.
     """
-
     def __init__(self, n_hidden, window_size,
                  activation=nn.ReLU(), batchnorm=False,
                  dropout=0.0, indel=False):
@@ -182,14 +184,15 @@ class NNAlignSinglePass(NetParent):
         self.dropout = nn.Dropout(p=dropout)
         self.act = activation
 
-    def forward(self, x):
+    def forward(self, x:torch.Tensor):
         """
-        Here, do a double forward pass to be sure not to compute the gradient when doing any of the steps
-        for the best submer selection
-        :param x:
-        :return:
-        """
+        Single forward pass for layers + best score selection without w/o grad
+        Args:
+            x:
 
+        Returns:
+
+        """
         # FIRST FORWARD PASS: best scoring selection, with no grad
         z = self.in_layer(x)  # Inlayer
         # Flip dimensions to allow for batchnorm then flip back
@@ -204,52 +207,55 @@ class NNAlignSinglePass(NetParent):
         z = torch.gather(z, 1, max_idx).squeeze(1)  # Indexing the best submers
         return z
 
+    def predict(self, x:torch.Tensor):
+        """Works like forward but also returns the index (for the motif selection/return)
+
+        This should be done with torch no_grad as this shouldn't be used during/for training
+        Also here does the sigmoid to return scores within [0, 1] on Z
+        TODO: Check whether this fct should also return window size.
+        Args:
+            x: torch.Tensor,
+
+        Returns:
+            z: torch.Tensor, the best scoring K-mer for each of the input in X
+            max_idx: torch.Tensor, the best indices corresponding to the best K-mer,
+                     used to find the predicted core
+        """
+        with torch.no_grad():
+            z = self.in_layer(x)
+            if self.batchnorm:
+                z = self.bn1(z.view(x.shape[0] * x.shape[1], self.n_hidden)).view(-1, x.shape[1], self.n_hidden)
+            z = self.act(self.dropout(z))
+            z = F.sigmoid(self.out_layer(z))
+            max_idx = z.argmax(dim=1).unsqueeze(1)
+            z = torch.gather(z, 1, max_idx).squeeze(1)
+            return z, max_idx
+
 class NNAlignWrapper(NetParent):
-    def __init__(self, n_hidden, window_size, activation=nn.ReLU(), batchnorm=False, dropout=0.0, indel=False,
-                 singlepass=True):
+    def __init__(self, n_hidden, window_size, activation=nn.ReLU(),
+                 batchnorm=False, dropout=0.0, indel=False, singlepass=True):
         super(NNAlignWrapper, self).__init__()
         NN = {False: NNAlign,
               True: NNAlignSinglePass}
         self.nnalign = NN[singlepass](n_hidden, window_size, activation, batchnorm, dropout, indel)
         self.standardizer = Standardizer()
 
-    def fit_standardizer(self, x):
+    def fit_standardizer(self, x:torch.Tensor):
         assert self.training, 'Must be in training mode to fit!'
         with torch.no_grad():
             self.standardizer.fit(x)
 
-    def forward(self, x):
+    def forward(self, x:torch.Tensor):
         with torch.no_grad():
             x = self.standardizer(x)
         x = self.nnalign(x)
         return x
 
-    def reset_parameters(self, **kwargs):
-        for child in self.children():
-            if hasattr(child, 'reset_parameters'):
-                try:
-                    child.reset_parameters(**kwargs)
-                except:
-                    print('here xd', child)
-
-
-class FFNetPipeline(NetParent):
-    def __init__(self, n_in=21, n_hidden=32, n_layers=1, act=nn.ReLU(), dropout=0.3):
-        super(FFNetPipeline, self).__init__()
-        self.standardizer = Standardizer()
-        self.input_length = n_in
-        self.ffn = nn.Linear(1, 1)
-        # self.ffn = FFN(n_in, n_hidden, n_layers, act, dropout)
-
-    def forward(self, x):
-        # Need to do self.standardizer.fit() somewhere in the nested_kcv function
-        x = self.standardizer(x)
-        x = self.ffn(x)
-        return x
-
-    def fit_standardizer(self, x):
-        assert self.training, 'Must be in training mode to fit!'
-        self.standardizer.fit(x)
+    def predict(self, x:torch.Tensor):
+        with torch.no_grad():
+            x = self.standardizer(x)
+            x, max_idx = self.nnalign.predict(x)
+            return x, max_idx
 
     def reset_parameters(self, **kwargs):
         for child in self.children():
@@ -258,3 +264,4 @@ class FFNetPipeline(NetParent):
                     child.reset_parameters(**kwargs)
                 except:
                     print('here xd', child)
+
