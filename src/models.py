@@ -202,6 +202,9 @@ class NNAlignDoublePass(NetParent):
         x = self.out_layer(x)
         return x
 
+    def predict(self, x):
+        raise NotImplementedError
+
 
 class NNAlignSinglePass(NetParent):
     """
@@ -265,27 +268,28 @@ class NNAlignSinglePass(NetParent):
             if self.batchnorm:
                 z = self.bn1(z.view(x.shape[0] * x.shape[1], self.n_hidden)).view(-1, x.shape[1], self.n_hidden)
             z = self.act(self.dropout(z))
-            z = F.sigmoid(self.out_layer(z))
+            z = self.out_layer(z)
             max_idx = z.argmax(dim=1).unsqueeze(1)
-            z = torch.gather(z, 1, max_idx).squeeze(1)
+            # Additionally run sigmoid on z so that it returns proba in range [0, 1]
+            z = F.sigmoid(torch.gather(z, 1, max_idx).squeeze(1))
             return z, max_idx
 
 
 class NNAlign(NetParent):
-    def __init__(self, n_hidden, window_size, activation=nn.ReLU(),
+    def __init__(self, n_hidden, window_size, activation=nn.SELU(),
                  batchnorm=False, dropout=0.0, indel=False,
-                 standardizer=True, singlepass=True):
+                 standardize=True, singlepass=True):
         super(NNAlign, self).__init__()
         # TODO:
         #  This is also deprecated, should just use single pass but leave it for now in case it's needed later
         NN = {False: NNAlignDoublePass,
               True: NNAlignSinglePass}
         self.nnalign = NN[singlepass](n_hidden, window_size, activation, batchnorm, dropout, indel)
-        self.standardizer = Standardizer() if standardizer else StdBypass()
+        self.standardizer = Standardizer() if standardize else StdBypass()
         # Save here to make reloading a model potentially easier
         self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
                             'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel,
-                            'standardizer': standardizer, 'singlepass': singlepass}
+                            'standardizer': standardize, 'singlepass': singlepass}
 
     def fit_standardizer(self, x: torch.Tensor):
         assert self.training, 'Must be in training mode to fit!'

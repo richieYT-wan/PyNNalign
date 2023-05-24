@@ -8,23 +8,46 @@ import torch
 from matplotlib import pyplot as plt
 import matplotlib.patheffects as path_effects
 import seaborn as sns
-import torch
-from torch import nn
-import torch.nn.functional as F
+from sklearn.model_selection import KFold, StratifiedGroupKFold
+from typing import Any, Iterable
+
+
+def make_chunks(iterable, chunk_size):
+    k, m = divmod(len(iterable), chunk_size)
+    return (iterable[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(chunk_size))
+
+
+def get_kfolds(df, k, xcol, ycol, shuffle=False, random_state=None):
+    """ Splits & assigns the fold numbers
+    Args:
+        df:
+        k:
+        shuffle:
+        random_state:
+
+    Returns:
+        df: df with column fold according to the Kfolds
+    """
+    kf = KFold(n_splits=k, shuffle=shuffle, random_state=random_state)
+    df['fold'] = -1
+    for i, (train_idx, test_idx) in enumerate(kf.split(df[xcol].values, df[ycol])):
+        df.iloc[test_idx, df.columns.get_loc('fold')] = i
+    df.fold = df.fold.astype(int)
+    return df
 
 
 def get_palette(palette, n_colors):
     """ 'stretches' stupid fucking palette to have more contrast"""
-    if n_colors==2:
+    if n_colors == 2:
         pal = sns.color_palette(palette, n_colors=5)
         palette = [pal[0], pal[-1]]
-    elif n_colors==3:
+    elif n_colors == 3:
         pal = sns.color_palette(palette, n_colors=5)
         palette = [pal[0], pal[2], pal[-1]]
     else:
-        nc = int(n_colors*2)
+        nc = int(n_colors * 2)
         pal = sns.color_palette(palette, n_colors=nc)
-        palette = [pal[i] for i in range(1, 1+int(n_colors*2), 2)]
+        palette = [pal[i] for i in range(1, 1 + int(n_colors * 2), 2)]
     return palette
 
 
@@ -97,7 +120,7 @@ def str2bool(v):
 
 def mkdirs(path):
     if not os.path.exists(path):
-        os.makedirs(path,exist_ok=True)
+        os.makedirs(path, exist_ok=True)
 
 
 def pkl_dump(obj, filename, dirname=None):
@@ -218,7 +241,6 @@ def parse_netmhcpan_full(row, netmhc_xls, exp=False):
         raise ValueError
 
 
-
 def pipeline_netmhcpan_xls_fullpep(df, xls_or_filename, col_suffix='_full', exp=False):
     """
     ASSUMES BOTH ARE THE DF AND THE XLS ARE SORTED THE SAME WAY.
@@ -231,34 +253,35 @@ def pipeline_netmhcpan_xls_fullpep(df, xls_or_filename, col_suffix='_full', exp=
     Returns:
 
     """
-    seq_ids = [f'>seq_{i}' for i in range(1, len(df)+1)]
+    seq_ids = [f'>seq_{i}' for i in range(1, len(df) + 1)]
     if type(xls_or_filename) == str:
         xls = read_netmhcpan_results(xls_or_filename)
         xls[('base', 'ID')] = seq_ids
     elif type(xls_or_filename) == pd.DataFrame:
         xls = xls_or_filename
-        xls[('base','ID')] = seq_ids
+        xls[('base', 'ID')] = seq_ids
     else:
         raise TypeError('The second argument `xls_or_filename` should either be a string or the parsed excel xls file.')
     df['seq_id'] = seq_ids
     if f'icore{col_suffix}' not in df.columns:
 
-        df[['icore'+col_suffix, 'core'+col_suffix, 'EL_rank'+col_suffix]] = df.apply(parse_netmhcpan_full, netmhc_xls=xls, exp=exp, result_type='expand', axis=1)
+        df[['icore' + col_suffix, 'core' + col_suffix, 'EL_rank' + col_suffix]] = df.apply(parse_netmhcpan_full,
+                                                                                           netmhc_xls=xls, exp=exp,
+                                                                                           result_type='expand', axis=1)
     else:
-        df[['TMP', 'core'+col_suffix, 'EL_rank'+col_suffix]] = df.apply(parse_netmhcpan_full, netmhc_xls=xls, exp=exp, result_type='expand', axis=1)
+        df[['TMP', 'core' + col_suffix, 'EL_rank' + col_suffix]] = df.apply(parse_netmhcpan_full, netmhc_xls=xls,
+                                                                            exp=exp, result_type='expand', axis=1)
         del df['TMP']
     return df
 
 
-
-def get_plot_corr(df, cols, which='spearman', title='', figsize=(13,12.5), palette='viridis'):
+def get_plot_corr(df, cols, which='spearman', title='', figsize=(13, 12.5), palette='viridis'):
     corr = df[cols].corr(which)
-    f,a = plt.subplots(1,1, figsize=figsize)
-    sns.heatmap(corr.round(2), center=0, xticklabels= corr.columns ,yticklabels=corr.columns,
-                cmap=palette,vmax=1, vmin=-1, annot=True, square=True, annot_kws={'weight':'semibold'})
+    f, a = plt.subplots(1, 1, figsize=figsize)
+    sns.heatmap(corr.round(2), center=0, xticklabels=corr.columns, yticklabels=corr.columns,
+                cmap=palette, vmax=1, vmin=-1, annot=True, square=True, annot_kws={'weight': 'semibold'})
     a.set_xticklabels(a.get_xticklabels(), rotation=30, fontweight='semibold')
     a.set_yticklabels(a.get_yticklabels(), fontweight='semibold')
-
 
 
 def set_hla(df):

@@ -10,10 +10,10 @@ import torch.optim as optim
 import math
 import numpy as np
 from torch.utils.data import DataLoader, TensorDataset
-from src.utils import set_mode, set_device
+from src.utils import make_chunks
+from src.torch_utils import set_mode, set_device
 from src.data_processing import get_dataset, assert_encoding_kwargs, to_tensors
 from src.metrics import get_metrics, get_predictions, get_mean_roc_curve
-from sklearn.model_selection import ParameterGrid
 from joblib import Parallel, delayed
 from functools import partial
 from tqdm.auto import tqdm
@@ -132,6 +132,14 @@ def eval_model_step(model, criterion, valid_loader):
     # Normalizes to loss per batch
     valid_loss /= len(valid_loader.dataset)
     return valid_loss, valid_metrics
+
+
+def predict_model(model, dataset:torch.utils.data.Dataset, batch_size:int=256):
+    model.eval()
+
+    indices = []
+    idx_chunks = make_chunks(indices, batch_size)
+    pass
 
 
 def train_loop(model, train_loader, valid_loader, device, criterion, optimizer, n_epochs, early_stopping=False,
