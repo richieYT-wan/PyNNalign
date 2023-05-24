@@ -39,7 +39,7 @@ def set_device(models_list, device):
         model.to(device)
 
 
-def save_checkpoint(model, filename: str = 'checkpoint.pt', dir_path: str = './'):
+def save_checkpoint(model, filename: str = 'checkpoint.pt', dir_path: str = './', verbose=False):
     """
     Saves a single torch model, with some sanity checks
     Args:
@@ -55,12 +55,14 @@ def save_checkpoint(model, filename: str = 'checkpoint.pt', dir_path: str = './'
     # Bad practice but fuck it
     if not os.path.exists(dir_path):
         mkdirs(dir_path)
-        print(f'Creating {dir_path}; The provided dir path {dir_path} did not exist!')
-    if not name.endswith('.pt'):
-        name = name + '.pt'
-    savepath = os.path.join(dir_path, name)
+        if verbose:
+            print(f'Creating {dir_path}; The provided dir path {dir_path} did not exist!')
+    if not filename.endswith('.pt'):
+        name = filename + '.pt'
+    savepath = os.path.join(dir_path, filename)
     torch.save(model.state_dict(), savepath)
-    print(f'Model saved at {savepath}')
+    if verbose:
+        print(f'Model saved at {savepath}')
 
 
 def load_checkpoint(model, filename: str, dir_path: str = None):

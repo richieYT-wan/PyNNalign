@@ -138,8 +138,8 @@ def predict_model(model, dataset: torch.utils.data.Dataset,
                     batch_size: int = 256):
     model.eval()
     assert hasattr(dataset, 'df'), 'Not DF found for this dataset!'
-    df = dataset.df.reset_index(drop=True)
-    indices = df.index
+    df = dataset.df.reset_index(drop=True).copy()
+    indices = range(len(df))
     idx_batches = make_chunks(indices, batch_size)
     predictions, best_indices, ys = [], [], []
     for idx in idx_batches:
@@ -149,9 +149,9 @@ def predict_model(model, dataset: torch.utils.data.Dataset,
             predictions.append(preds)
             best_indices.append(core_idx)
             ys.append(y)
-    predictions = torch.cat(predictions).detach().cpu().numpy()
-    best_indices = torch.cat(best_indices).detach().cpu().numpy()
-    ys = torch.cat(ys).detach().cpu().numpy()
+    predictions = torch.cat(predictions).detach().cpu().numpy().flatten()
+    best_indices = torch.cat(best_indices).detach().cpu().numpy().flatten()
+    ys = torch.cat(ys).detach().cpu().numpy().flatten()
     df['pred'] = predictions
     df['core_start_index'] = best_indices
     df['label'] = ys
