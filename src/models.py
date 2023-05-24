@@ -108,8 +108,46 @@ class Standardizer(nn.Module):
             else:
                 return x
 
+    def state_dict(self, **kwargs):
+        """overwrites the state_dict with the custom attributes
 
-class NNAlign(NetParent):
+        Returns: state_dict
+
+        Args:
+            **kwargs:
+        """
+        state_dict = super(Standardizer, self).state_dict()
+        state_dict['mu'] = self.mu
+        state_dict['sigma'] = self.sigma
+        state_dict['fitted'] = self.fitted
+        state_dict['dimensions'] = self.dimensions
+        return state_dict
+
+    def load_state_dict(self, state_dict, **kwargs):
+        self.mu = state_dict['mu']
+        self.sigma = state_dict['sigma']
+        self.fitted = state_dict['fitted']
+        self.dimensions = state_dict['dimensions']
+
+
+class StdBypass(nn.Module):
+    def __init__(self, **kwargs):
+        super(StdBypass, self).__init__()
+        self.requires_grad = False
+        self.bypass = nn.Identity(**kwargs)
+        self.fitted = False
+        self.mu = 0
+        self.sigma = 1
+
+    def forward(self, x):
+        return self.bypass(x)
+
+    def fit(self, x, **kwargs):
+        self.fitted=True
+        return self.bypass(x)
+
+
+class NNAlignDoublePass(NetParent):
     """TODO : DEPRECATED
     This just runs the forward loop and selects the best loss.
     The inputs should be split in the ExpandDataset class with the unfold/transpose/reshape/flatten etc.
@@ -121,7 +159,7 @@ class NNAlign(NetParent):
     def __init__(self, n_hidden, window_size,
                  activation=nn.ReLU(), batchnorm=False,
                  dropout=0.0, indel=False):
-        super(NNAlign, self).__init__()
+        super(NNAlignDoublePass, self).__init__()
         self.matrix_dim = 21 if indel else 20
         self.window_size = window_size
         self.n_hidden = n_hidden
@@ -169,6 +207,7 @@ class NNAlignSinglePass(NetParent):
     """
     NNAlign implementation with a single forward pass where best score selection + indexing is done in one pass.
     """
+
     def __init__(self, n_hidden, window_size,
                  activation=nn.ReLU(), batchnorm=False,
                  dropout=0.0, indel=False):
@@ -184,7 +223,7 @@ class NNAlignSinglePass(NetParent):
         self.dropout = nn.Dropout(p=dropout)
         self.act = activation
 
-    def forward(self, x:torch.Tensor):
+    def forward(self, x: torch.Tensor):
         """
         Single forward pass for layers + best score selection without w/o grad
         Args:
@@ -207,7 +246,7 @@ class NNAlignSinglePass(NetParent):
         z = torch.gather(z, 1, max_idx).squeeze(1)  # Indexing the best submers
         return z
 
-    def predict(self, x:torch.Tensor):
+    def predict(self, x: torch.Tensor):
         """Works like forward but also returns the index (for the motif selection/return)
 
         This should be done with torch no_grad as this shouldn't be used during/for training
@@ -231,27 +270,35 @@ class NNAlignSinglePass(NetParent):
             z = torch.gather(z, 1, max_idx).squeeze(1)
             return z, max_idx
 
-class NNAlignWrapper(NetParent):
+
+class NNAlign(NetParent):
     def __init__(self, n_hidden, window_size, activation=nn.ReLU(),
-                 batchnorm=False, dropout=0.0, indel=False, singlepass=True):
-        super(NNAlignWrapper, self).__init__()
-        NN = {False: NNAlign,
+                 batchnorm=False, dropout=0.0, indel=False,
+                 standardizer=True, singlepass=True):
+        super(NNAlign, self).__init__()
+        # TODO:
+        #  This is also deprecated, should just use single pass but leave it for now in case it's needed later
+        NN = {False: NNAlignDoublePass,
               True: NNAlignSinglePass}
         self.nnalign = NN[singlepass](n_hidden, window_size, activation, batchnorm, dropout, indel)
-        self.standardizer = Standardizer()
+        self.standardizer = Standardizer() if standardizer else StdBypass()
+        # Save here to make reloading a model potentially easier
+        self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
+                            'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel,
+                            'standardizer': standardizer, 'singlepass': singlepass}
 
-    def fit_standardizer(self, x:torch.Tensor):
+    def fit_standardizer(self, x: torch.Tensor):
         assert self.training, 'Must be in training mode to fit!'
         with torch.no_grad():
             self.standardizer.fit(x)
 
-    def forward(self, x:torch.Tensor):
+    def forward(self, x: torch.Tensor):
         with torch.no_grad():
             x = self.standardizer(x)
         x = self.nnalign(x)
         return x
 
-    def predict(self, x:torch.Tensor):
+    def predict(self, x: torch.Tensor):
         with torch.no_grad():
             x = self.standardizer(x)
             x, max_idx = self.nnalign.predict(x)
@@ -265,3 +312,14 @@ class NNAlignWrapper(NetParent):
                 except:
                     print('here xd', child)
 
+    def state_dict(self, **kwargs):
+        state_dict = super(NNAlign, self).state_dict()
+        state_dict['nnalign'] = self.nnalign.state_dict()
+        state_dict['standardizer'] = self.standardizer.state_dict()
+        state_dict['init_params'] = self.init_params
+        return state_dict
+
+    def load_state_dict(self, state_dict, **kwargs):
+        self.nnalign.load_state_dict(state_dict['nnalign'])
+        self.standardizer.load_state_dict(state_dict['standardizer'])
+        self.init_params = state_dict['init_params']
