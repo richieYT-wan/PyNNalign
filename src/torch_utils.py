@@ -39,7 +39,7 @@ def set_device(models_list, device):
         model.to(device)
 
 
-def save_checkpoint(model, name: str = 'checkpoint.pt', dir_path: str = './'):
+def save_checkpoint(model, filename: str = 'checkpoint.pt', dir_path: str = './'):
     """
     Saves a single torch model, with some sanity checks
     Args:

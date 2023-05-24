@@ -134,12 +134,28 @@ def eval_model_step(model, criterion, valid_loader):
     return valid_loss, valid_metrics
 
 
-def predict_model(model, dataset:torch.utils.data.Dataset, batch_size:int=256):
+def predict_model(model, dataset: torch.utils.data.Dataset,
+                    batch_size: int = 256):
     model.eval()
-
-    indices = []
-    idx_chunks = make_chunks(indices, batch_size)
-    pass
+    assert hasattr(dataset, 'df'), 'Not DF found for this dataset!'
+    df = dataset.df.reset_index(drop=True)
+    indices = df.index
+    idx_batches = make_chunks(indices, batch_size)
+    predictions, best_indices, ys = [], [], []
+    for idx in idx_batches:
+        x, y = dataset[idx]
+        with torch.no_grad():
+            preds, core_idx = model.predict(x)
+            predictions.append(preds)
+            best_indices.append(core_idx)
+            ys.append(y)
+    predictions = torch.cat(predictions).detach().cpu().numpy()
+    best_indices = torch.cat(best_indices).detach().cpu().numpy()
+    ys = torch.cat(ys).detach().cpu().numpy()
+    df['pred'] = predictions
+    df['core_start_index'] = best_indices
+    df['label'] = ys
+    return df
 
 
 def train_loop(model, train_loader, valid_loader, device, criterion, optimizer, n_epochs, early_stopping=False,

@@ -10,11 +10,22 @@ import matplotlib.patheffects as path_effects
 import seaborn as sns
 from sklearn.model_selection import KFold, StratifiedGroupKFold
 from typing import Any, Iterable
+import secrets
+import string
+from datetime import datetime as dt
+
+
+def get_datetime_string():
+    return dt.now().strftime("%y%m%d_%H%M%S")
+
+
+def get_random_id(length=8):
+    return ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(length))
 
 
 def make_chunks(iterable, chunk_size):
     k, m = divmod(len(iterable), chunk_size)
-    return (iterable[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(chunk_size))
+    return (iterable[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(chunk_size))
 
 
 def get_kfolds(df, k, xcol, ycol, shuffle=False, random_state=None):
