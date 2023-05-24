@@ -3,17 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="f7cb4fa7-829b-46bf-9dce-30d98360cf1b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301_f0.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301_f0.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301_f1.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301_f1.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301_f2.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301_f2.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301_f3.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301_f3.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301_f4.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/NetMHCIIpan_train/drb1_0301_f4.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notebooks/nnalign_init.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/nnalign_init.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyscripts/train_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/torch_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/torch_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/train_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/train_eval.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -137,11 +126,6 @@
           <url>file://$PROJECT_DIR$/pyscripts/train_model.py</url>
           <line>162</line>
           <option name="timeStamp" value="13" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/train_eval.py</url>
-          <line>157</line>
-          <option name="timeStamp" value="34" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
