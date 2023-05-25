@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod, abstractstaticmethod
 from collections import OrderedDict
 from typing import Union
 import numpy as np
@@ -21,8 +21,6 @@ class NetParent(nn.Module):
         # device is cpu by default
         self.device = 'cpu'
 
-    def forward(self, x):
-        raise NotImplementedError
 
     @staticmethod
     def init_weights(m):
@@ -59,12 +57,26 @@ class Standardizer(nn.Module):
         self.fitted = False
         self.dimensions = None
 
-    def fit(self, x):
+    def fit(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
+        """ Will consider the mask (padded position) and ignore them before computing the mean/std
+        Args:
+            x_tensor:
+            x_mask:
+
+        Returns:
+
+        """
+
         assert self.training, 'Can not fit while in eval mode. Please set model to training mode'
         with torch.no_grad():
-            x = self.view_3d_to_2d(x)
-            self.mu = x.mean(axis=0)
-            self.sigma = x.std(axis=0)
+            # TODO: deprecated 3d to 2d here / 2d to 3d here, but will stay in forward.
+            # x = self.view_3d_to_2d(x)
+            # Updated version with masking
+            masked_values = x_tensor * x_mask
+            mu = (torch.sum(masked_values, dim=1) / torch.sum(x_mask, dim=1))
+            sigma = (torch.sqrt(torch.sum((masked_values - mu.unsqueeze(1))**2, dim=1) / torch.sum(x_mask, dim=1)))
+            self.mu = mu.mean(dim=0)
+            self.sigma = sigma.mean(dim=0)
             # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
             self.sigma[torch.where(self.sigma == 0)] = 1e-12
             self.fitted = True
@@ -147,72 +159,13 @@ class StdBypass(nn.Module):
         return self.bypass(x)
 
 
-class NNAlignDoublePass(NetParent):
-    """TODO : DEPRECATED
-    This just runs the forward loop and selects the best loss.
-    The inputs should be split in the ExpandDataset class with the unfold/transpose/reshape/flatten etc.
-    TODO: implement 2 versions of it, one with the double forward pass, and one with a single + with torch nograd selection to get the argmax
-        If the results are the same, then just keep the network with a single forward pass
-        + implement crossvalidation + nested crossvalidation
-    """
-
-    def __init__(self, n_hidden, window_size,
-                 activation=nn.ReLU(), batchnorm=False,
-                 dropout=0.0, indel=False):
-        super(NNAlignDoublePass, self).__init__()
-        self.matrix_dim = 21 if indel else 20
-        self.window_size = window_size
-        self.n_hidden = n_hidden
-        self.in_layer = nn.Linear(self.window_size * self.matrix_dim, n_hidden)
-        self.out_layer = nn.Linear(n_hidden, 1)
-        self.batchnorm = batchnorm
-        if batchnorm:
-            self.bn1 = nn.BatchNorm1d(n_hidden)
-        self.dropout = nn.Dropout(p=dropout)
-        self.act = activation
-
-    def forward(self, x):
-        """
-        Here, do a double forward pass to be sure not to compute the gradient when doing any of the steps
-        for the best submer selection
-        :param x:
-        :return:
-        """
-
-        # FIRST FORWARD PASS: best scoring selection, with no grad
-        with torch.no_grad():
-            z = self.in_layer(x)  # Inlayer
-            if self.batchnorm:
-                z = self.bn1(z.view(x.shape[0] * x.shape[1], self.n_hidden)).view(-1, x.shape[1], self.n_hidden)
-            z = self.dropout(z)
-            z = self.act(z)
-            z = self.out_layer(z)  # Out Layer for prediction
-            # NNAlign selecting the max score here
-            max_idx = z.argmax(dim=1).unsqueeze(1).expand(-1, -1, self.window_size * self.matrix_dim)
-            x = torch.gather(x, 1, max_idx).squeeze(1)  # Indexing the best submers
-
-        # SECOND FORWARD PASS: normal prediction, with gradient
-        # Doing a simple no batchnorm no dropout version for now ;
-
-        # Simple fwd pass : in_layer -> BN -> DropOut -> Activation
-        x = self.in_layer(x)
-        if self.batchnorm:
-            x = self.bn1(x)
-        x = self.act(self.dropout(x))
-        x = self.out_layer(x)
-        return x
-
-    def predict(self, x):
-        raise NotImplementedError
-
-
 class NNAlignSinglePass(NetParent):
     """
     NNAlign implementation with a single forward pass where best score selection + indexing is done in one pass.
     """
 
     def __init__(self, n_hidden, window_size,
-                 activation=nn.ReLU(), batchnorm=False,
+                 activation, batchnorm=False,
                  dropout=0.0, indel=False):
         super(NNAlignSinglePass, self).__init__()
         self.matrix_dim = 21 if indel else 20
@@ -226,87 +179,93 @@ class NNAlignSinglePass(NetParent):
         self.dropout = nn.Dropout(p=dropout)
         self.act = activation
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x_tensor: torch.Tensor, x_mask: torch.tensor):
+
         """
         Single forward pass for layers + best score selection without w/o grad
         Args:
-            x:
+            x_mask:
+            x_tensor:
 
         Returns:
 
         """
         # FIRST FORWARD PASS: best scoring selection, with no grad
-        z = self.in_layer(x)  # Inlayer
+        z = self.in_layer(x_tensor)  # Inlayer
         # Flip dimensions to allow for batchnorm then flip back
         if self.batchnorm:
-            z = self.bn1(z.view(x.shape[0] * x.shape[1], self.n_hidden)).view(-1, x.shape[1], self.n_hidden)
+            z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden))\
+                    .view(-1, x_tensor.shape[1], self.n_hidden)
         z = self.dropout(z)
         z = self.act(z)
         z = self.out_layer(z)  # Out Layer for prediction
+
         # NNAlign selecting the max score here
         with torch.no_grad():
-            max_idx = z.argmax(dim=1).unsqueeze(1)
+            # Here, use sigmoid to set values to 0,1 before masking
+            # only for index selection, Z will be returned as logits
+            max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
+
         z = torch.gather(z, 1, max_idx).squeeze(1)  # Indexing the best submers
         return z
 
-    def predict(self, x: torch.Tensor):
+    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
         """Works like forward but also returns the index (for the motif selection/return)
 
         This should be done with torch no_grad as this shouldn't be used during/for training
         Also here does the sigmoid to return scores within [0, 1] on Z
-        TODO: Check whether this fct should also return window size.
         Args:
-            x: torch.Tensor,
-
+            x_tensor: torch.Tensor, the input tensor (i.e. encoded sequences)
+            x_mask: torch.Tensor, to mask padded positions
         Returns:
             z: torch.Tensor, the best scoring K-mer for each of the input in X
             max_idx: torch.Tensor, the best indices corresponding to the best K-mer,
                      used to find the predicted core
         """
         with torch.no_grad():
-            z = self.in_layer(x)
+            z = self.in_layer(x_tensor)
             if self.batchnorm:
-                z = self.bn1(z.view(x.shape[0] * x.shape[1], self.n_hidden)).view(-1, x.shape[1], self.n_hidden)
+                z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden))\
+                        .view(-1, x_tensor.shape[1], self.n_hidden)
             z = self.act(self.dropout(z))
             z = self.out_layer(z)
-            max_idx = z.argmax(dim=1).unsqueeze(1)
+            # Do the same trick where the padded positions are removed prior to selecting index
+            max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
             # Additionally run sigmoid on z so that it returns proba in range [0, 1]
             z = F.sigmoid(torch.gather(z, 1, max_idx).squeeze(1))
             return z, max_idx
 
 
 class NNAlign(NetParent):
-    def __init__(self, n_hidden, window_size, activation=nn.SELU(),
-                 batchnorm=False, dropout=0.0, indel=False,
-                 standardize=True, singlepass=True):
+    def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0, indel=False,
+                 standardize=True, **kwargs):
         super(NNAlign, self).__init__()
         # TODO:
         #  This is also deprecated, should just use single pass but leave it for now in case it's needed later
-        NN = {False: NNAlignDoublePass,
-              True: NNAlignSinglePass}
-        self.nnalign = NN[singlepass](n_hidden, window_size, activation, batchnorm, dropout, indel)
+
+        self.nnalign = NNAlignSinglePass(n_hidden, window_size, activation, batchnorm, dropout, indel)
         self.standardizer = Standardizer() if standardize else StdBypass()
         # Save here to make reloading a model potentially easier
         self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
                             'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel,
-                            'standardizer': standardize, 'singlepass': singlepass}
+                            'standardizer': standardize}
 
-    def fit_standardizer(self, x: torch.Tensor):
+    def fit_standardizer(self, x_tensor: torch.Tensor, x_mask):
         assert self.training, 'Must be in training mode to fit!'
         with torch.no_grad():
-            self.standardizer.fit(x)
+            self.standardizer.fit(x_tensor, x_mask)
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x_tensor: torch.Tensor, x_mask:torch.Tensor):
         with torch.no_grad():
-            x = self.standardizer(x)
-        x = self.nnalign(x)
-        return x
+            x_tensor = self.standardizer(x_tensor)
+        x_tensor = self.nnalign(x_tensor, x_mask)
+        return x_tensor
 
-    def predict(self, x: torch.Tensor):
+    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
         with torch.no_grad():
-            x = self.standardizer(x)
-            x, max_idx = self.nnalign.predict(x)
-            return x, max_idx
+            x_tensor = self.standardizer(x_tensor)
+            x_tensor, max_idx = self.nnalign.predict(x_tensor, x_mask)
+            return x_tensor, max_idx
 
     def reset_parameters(self, **kwargs):
         for child in self.children():

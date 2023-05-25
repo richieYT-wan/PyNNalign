@@ -79,7 +79,8 @@ def invoke(early_stopping, loss, model, implement=False):
 
 def train_model_step(model, criterion, optimizer, train_loader):
     """
-    TODO: Include a scheduler for the optimizer
+    230525: Updated train_loader behaviour. Now returns x_tensor, x_mask, y for each idx, used to remove padded positions
+            in the forward of NNAlign. vvv Change signature below
     Args:
         model:
         criterion:
@@ -92,8 +93,8 @@ def train_model_step(model, criterion, optimizer, train_loader):
     model.train()
     train_loss = 0
     y_scores, y_true = [], []
-    for x_train, y_train in train_loader:
-        output = model(x_train)
+    for x_tensor_train, x_mask_train, y_train in train_loader:
+        output = model(x_tensor_train, x_mask_train)
         loss = criterion(output, y_train)
         # if torch.isnan(torch.tensor(loss)): print('NaN losses!'); return torch.nan
         # NNAlign code to select the best sub-mer for each datapoint and only backprop from those
@@ -121,8 +122,8 @@ def eval_model_step(model, criterion, valid_loader):
     valid_loss = 0
     y_scores, y_true = [], []
     with torch.no_grad():
-        for x_valid, y_valid in valid_loader:
-            output = model(x_valid)
+        for x_tensor_valid, x_mask_valid, y_valid in valid_loader:
+            output = model(x_tensor_valid, x_mask_valid)
             loss = criterion(output, y_valid)
             y_true.append(y_valid)
             y_scores.append(F.sigmoid(output))
@@ -144,9 +145,9 @@ def predict_model(model, dataset: torch.utils.data.Dataset,
     idx_batches = make_chunks(indices, batch_size)
     predictions, best_indices, ys = [], [], []
     for idx in idx_batches:
-        x, y = dataset[idx]
+        x_tensor, x_mask, y = dataset[idx]
         with torch.no_grad():
-            preds, core_idx = model.predict(x)
+            preds, core_idx = model.predict(x_tensor, x_mask)
             predictions.append(preds)
             best_indices.append(core_idx)
             ys.append(y)

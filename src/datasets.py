@@ -21,11 +21,15 @@ class NNAlignDataset(Dataset):
         matrix_dim = 21 if indel else 20
         x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
         y = torch.from_numpy(df[target_col].values).float().view(-1,1)
+
+        # Creating the mask to allow selection of kmers without padding
+        x_mask = torch.from_numpy(df['len'].values)-window_size
+        range_tensor = torch.arange(max_len - window_size + 1).unsqueeze(0).repeat(len(x), 1)
+        self.x_mask = (range_tensor <= x_mask.unsqueeze(1)).float().unsqueeze(-1)
         # Expand and unfold the sub kmers and the target to match the shape ; contiguous to allow for view operations
-        self.original_x = x # before all the unfolding bs
-        self.x = x.unfold(1, window_size, 1).transpose(2, 3) \
-            .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3).contiguous()
-        self.y = y.contiguous() #.expand((len(y), max_len - window_size + 1)).view(-1, max_len - window_size + 1, 1)
+        self.x_tensor = x.unfold(1, window_size, 1).transpose(2, 3) \
+                  .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3).contiguous()
+        self.y = y.contiguous()
         # Saving df in case it's needed
         self.df = df
         self.len = len(x)
@@ -41,7 +45,7 @@ class NNAlignDataset(Dataset):
         :return:
         """
 
-        return self.x[idx], self.y[idx]
+        return self.x_tensor[idx], self.x_mask[idx], self.y[idx]
 
 
 def get_NNAlign_dataloader(df, max_len, window_size, encoding='onehot', seq_col='Peptide',

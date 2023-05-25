@@ -114,7 +114,7 @@ def main():
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # instantiate objects
-    model = NNAlign(**model_params, activation=nn.SELU(), singlepass=True, indel=False)
+    model = NNAlign(activation=nn.SELU(), indel=False, **model_params)
     criterion = nn.BCEWithLogitsLoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
     train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, **dataset_params)
@@ -128,7 +128,9 @@ def main():
 
     print('Starting training cycles')
     if hasattr(model, 'standardizer'):
-        model.fit_standardizer(train_dataset[:][0])
+        # Here, include the mask as well as it is used during fitting
+        model.fit_standardizer(x_tensor=train_dataset.x_tensor, x_mask=train_dataset.x_mask)
+
     for e in tqdm(range(1, args['n_epochs'] + 1), desc='epochs'):
         train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)
         valid_loss, valid_metric = eval_model_step(model, criterion, valid_loader)
