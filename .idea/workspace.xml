@@ -2,13 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f7cb4fa7-829b-46bf-9dce-30d98360cf1b" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/bashscripts/drb1_0301_kcv_macos_noSTD.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bashscripts/drb1_0301_kcv_macos.sh" beforeDir="false" afterPath="$PROJECT_DIR$/bashscripts/drb1_0301_kcv_macos.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notebooks/230525_fix_motif_len.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/230525_fix_motif_len.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyscripts/train_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/datasets.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/datasets.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/train_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/train_eval.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +95,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyscripts/train_model.py" />
-      <option name="PARAMETERS" value="-f &quot;../data/NetMHCIIpan_train/drb1_0301.csv&quot; -o &quot;debug&quot; -kf 0 -enc &quot;BL50LO&quot; -ml 21 -pad -15 -nh 50 -std True -bn True -do 0.0 -ws 9 -bs 256 -ne 25 -tol 0.0001" />
+      <option name="PARAMETERS" value="-f &quot;../data/NetMHCIIpan_train/drb1_0301.csv&quot; -o &quot;debug_std_false&quot; -kf 0 -enc &quot;BL50LO&quot; -ml 21 -pad -15 -nh 50 -std False -bn True -do 0.0 -ws 9 -bs 256 -ne 25 -tol 0.0001" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -150,6 +147,21 @@
           <url>file://$PROJECT_DIR$/pyscripts/train_model.py</url>
           <line>140</line>
           <option name="timeStamp" value="47" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/models.py</url>
+          <line>177</line>
+          <option name="timeStamp" value="49" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/models.py</url>
+          <line>274</line>
+          <option name="timeStamp" value="51" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/models.py</url>
+          <line>176</line>
+          <option name="timeStamp" value="52" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

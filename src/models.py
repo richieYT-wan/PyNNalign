@@ -151,12 +151,31 @@ class StdBypass(nn.Module):
         self.mu = 0
         self.sigma = 1
 
-    def forward(self, x):
-        return self.bypass(x)
+    def forward(self, x_tensor):
+        """
+        Args:
+            x:
+            x_mask: x_mask here exists for compatibility purposes
 
-    def fit(self, x, **kwargs):
+
+        Returns:
+
+        """
+
+        return x_tensor
+
+    def fit(self, x_tensor, x_mask):
+        """
+        Args:
+            x:
+            x_mask: x_mask here exists for compatibility purposes
+
+
+        Returns:
+
+        """
         self.fitted=True
-        return self.bypass(x)
+        return x_tensor
 
 
 class NNAlignSinglePass(NetParent):
