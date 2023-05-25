@@ -168,10 +168,14 @@ def main():
     print('Saving valid predictions from best model')
     valid_preds.to_csv(f'{outdir}valid_predictions_{unique_filename}.csv', index=False)
 
-    # Saving arguments for the run:
+    # Saving text file for the run:
     with open(f'{outdir}args_{unique_filename}.txt', 'w') as file:
         for key, value in args.items():
             file.write(f"{key}: {value}\n")
+        file.write(f"Best valid epoch: {best_epoch}\n")
+        file.write(f"Best valid loss: {best_val_auc}\n")
+        file.write(f"Best valid auc: {best_val_auc}\n")
+
     end = dt.now()
     elapsed = divmod((end - start).seconds, 60)
     print(f'Program finished in {elapsed[0]} minutes, {elapsed[1]} seconds.')
