@@ -1,6 +1,7 @@
 import pandas as pd
 from tqdm.auto import tqdm
 import os, sys
+
 module_path = os.path.abspath(os.path.join('..'))
 if module_path not in sys.path:
     sys.path.append(module_path)
@@ -68,6 +69,11 @@ def args_parser():
                         help='Whether to add DropOut to the model (p in float e[0,1], default = 0.0)')
     parser.add_argument('-ws', '--window_size', dest='window_size', type=int, default=6, required=False,
                         help='Window size for sub-mers selection (default = 6)')
+    """
+    Training hyperparameters & args
+    """
+    parser.add_argument('-br', '--burn_in', dest='burn_in', required=False, type=int, default=None,
+                        help='Burn-in period (in int) to align motifs to P0. Disabled by default')
     parser.add_argument('-lr', '--learning_rate', dest='lr', type=float, default=1e-4, required=False,
                         help='Learning rate for the optimizer')
     parser.add_argument('-wd', '--weight_decay', dest='weight_decay', type=float, default=1e-2, required=False,
@@ -130,6 +136,13 @@ def main():
     if hasattr(model, 'standardizer'):
         # Here, include the mask as well as it is used during fitting
         model.fit_standardizer(x_tensor=train_dataset.x_tensor, x_mask=train_dataset.x_mask)
+
+    if args['burn_in'] is not None:
+        print('Doing burn-in period')
+        train_dataset.burn_in(True)
+        for e in tqdm(range(0, args['burn_in']), desc='Burn-in period'):
+            _, _ = train_model_step(model, criterion, optimizer, train_loader)
+        train_dataset.burn_in(False)
 
     for e in tqdm(range(1, args['n_epochs'] + 1), desc='epochs'):
         train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)

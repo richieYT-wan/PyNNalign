@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from src.data_processing import encode_batch, encode_batch_weighted
 
@@ -9,7 +10,7 @@ class NNAlignDataset(Dataset):
     """
 
     def __init__(self, df, max_len, window_size, encoding='onehot', seq_col='Peptide',
-                 target_col='agg_label', pad_scale=None, indel=False):
+                 target_col='agg_label', pad_scale=None, indel=False, burnin_alphabet='ILVMFYW'):
 
         super(NNAlignDataset, self).__init__()
         # Encoding stuff
@@ -20,15 +21,21 @@ class NNAlignDataset(Dataset):
         # print(f'Pruning sequences longer than length={max_len}. \nNseqs Before:\t{l_start}\nNseqs After:\t{l_end}')
         matrix_dim = 21 if indel else 20
         x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
-        y = torch.from_numpy(df[target_col].values).float().view(-1,1)
+        y = torch.from_numpy(df[target_col].values).float().view(-1, 1)
 
         # Creating the mask to allow selection of kmers without padding
-        x_mask = torch.from_numpy(df['len'].values)-window_size
+        x_mask = torch.from_numpy(df['len'].values) - window_size
         range_tensor = torch.arange(max_len - window_size + 1).unsqueeze(0).repeat(len(x), 1)
+        # Mask for Kmers + padding
         self.x_mask = (range_tensor <= x_mask.unsqueeze(1)).float().unsqueeze(-1)
+        # Creating another mask for the burn-in period+bool flag switch
+        self.burn_in_mask = _get_burnin_mask_batch(df[seq_col].values, max_len, window_size, burnin_alphabet).unsqueeze(
+            -1)
+        self.burn_in_flag = False
+
         # Expand and unfold the sub kmers and the target to match the shape ; contiguous to allow for view operations
         self.x_tensor = x.unfold(1, window_size, 1).transpose(2, 3) \
-                  .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3).contiguous()
+            .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3).contiguous()
         self.y = y.contiguous()
         # Saving df in case it's needed
         self.df = df
@@ -44,12 +51,18 @@ class NNAlignDataset(Dataset):
         :param idx:
         :return:
         """
+        if self.burn_in_flag:
+            return self.x_tensor[idx], self.burn_in_mask[idx], self.y[idx]
+        else:
+            return self.x_tensor[idx], self.x_mask[idx], self.y[idx]
 
-        return self.x_tensor[idx], self.x_mask[idx], self.y[idx]
+    def burn_in(self, flag):
+        self.burn_in_flag = flag
 
 
 def get_NNAlign_dataloader(df, max_len, window_size, encoding='onehot', seq_col='Peptide',
-                           target_col='agg_label', pad_scale=None, indel=False, batch_size=64, sampler=torch.utils.data.RandomSampler,
+                           target_col='agg_label', pad_scale=None, indel=False, batch_size=64,
+                           sampler=torch.utils.data.RandomSampler,
                            return_dataset=False):
     dataset = NNAlignDataset(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel)
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
@@ -57,3 +70,12 @@ def get_NNAlign_dataloader(df, max_len, window_size, encoding='onehot', seq_col=
         return dataloader, dataset
     else:
         return dataloader
+
+
+def _get_burnin_mask_batch(sequences, max_len, motif_len, alphabet='ILVMFYW'):
+    return torch.stack([_get_burnin_mask(x, max_len, motif_len, alphabet) for x in sequences])
+
+
+def _get_burnin_mask(seq, max_len, motif_len, alphabet='ILVMFYW'):
+    mask = torch.tensor([x in alphabet for i, x in enumerate(seq) if i < len(seq) - motif_len + 1]).float()
+    return F.pad(mask, (0, (max_len - motif_len + 1) - len(mask)), 'constant', 0)
