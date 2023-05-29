@@ -1,0 +1,23 @@
+file: ../data/NetMHCIIpan_train/drb1_0301.csv
+out: 230529_burnin_test
+split: 5
+fold: 0
+seq_col: Sequence
+target_col: target
+encoding: BL50LO
+max_len: 21
+pad_scale: -15.0
+n_hidden: 50
+standardize: True
+batchnorm: True
+dropout: 0.0
+window_size: 9
+burn_in: 10
+lr: 0.0001
+weight_decay: 0.01
+batch_size: 256
+n_epochs: 500
+tolerance: 0.0001
+Best valid epoch: 461
+Best valid loss: 0
+Best valid auc: 0
