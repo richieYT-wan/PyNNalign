@@ -254,20 +254,41 @@ class NNAlignSinglePass(NetParent):
             z = F.sigmoid(torch.gather(z, 1, max_idx).squeeze(1))
             return z, max_idx
 
+    def predict_logits(self, x_tensor:torch.Tensor, x_mask:torch.Tensor):
+        """ QOL method to return the predictions without Sigmoid + return the indices
+        To be used elsewhere down the line (in EF model)
+
+        Args:
+            x_tensor:
+            x_mask:
+
+        Returns:
+
+        """
+        with torch.no_grad():
+            z = self.in_layer(x_tensor)
+            if self.batchnorm:
+                z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden))\
+                        .view(-1, x_tensor.shape[1], self.n_hidden)
+            z = self.act(self.dropout(z))
+            z = self.out_layer(z)
+            # Do the same trick where the padded positions are removed prior to selecting index
+            max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
+            # Additionally run sigmoid on z so that it returns proba in range [0, 1]
+            z = torch.gather(z, 1, max_idx).squeeze(1)
+            return z, max_idx
+
 
 class NNAlign(NetParent):
     def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0, indel=False,
                  standardize=True, **kwargs):
         super(NNAlign, self).__init__()
-        # TODO:
-        #  This is also deprecated, should just use single pass but leave it for now in case it's needed later
-
         self.nnalign = NNAlignSinglePass(n_hidden, window_size, activation, batchnorm, dropout, indel)
         self.standardizer = Standardizer() if standardize else StdBypass()
         # Save here to make reloading a model potentially easier
         self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
                             'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel,
-                            'standardizer': standardize}
+                            'standardize': standardize}
 
     def fit_standardizer(self, x_tensor: torch.Tensor, x_mask):
         assert self.training, 'Must be in training mode to fit!'
@@ -284,6 +305,12 @@ class NNAlign(NetParent):
         with torch.no_grad():
             x_tensor = self.standardizer(x_tensor)
             x_tensor, max_idx = self.nnalign.predict(x_tensor, x_mask)
+            return x_tensor, max_idx
+
+    def predict_logits(self, x_tensor:torch.Tensor, x_mask: torch.Tensor):
+        with torch.no_grad():
+            x_tensor = self.standardizer(x_tensor)
+            x_tensor, max_idx = self.nnalign.predict_logits(x_tensor, x_mask)
             return x_tensor, max_idx
 
     def reset_parameters(self, **kwargs):
@@ -305,3 +332,95 @@ class NNAlign(NetParent):
         self.nnalign.load_state_dict(state_dict['nnalign'])
         self.standardizer.load_state_dict(state_dict['standardizer'])
         self.init_params = state_dict['init_params']
+
+
+class NNAlignEF(NetParent):
+    """ EF == ExtraFeatures
+    TODO: Currently assumes that I need an extra in_layer + an extra out_layer
+          Could also be changed to take a single extra layer of nn.Linear(1+n_extrafeatures, 1)
+          That takes as input the logits from NNAlign + the extra features and directly returns a score without 2 layers.
+          Can maybe write another class EFModel that just takes the ef_xx part here
+    """
+    def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0,
+                 indel=False, standardize=True,
+                 n_extrafeatures=0, n_hidden_ef=5, activation_ef=nn.SELU(), batchnorm_ef=False, dropout_ef=0.0,
+                 **kwargs):
+        super(NNAlignEF, self).__init__()
+        # NNAlign part
+        self.nnalign_model = NNAlign(n_hidden, window_size, activation, batchnorm, dropout, indel, standardize)
+        # Extra layer part
+        self.in_dim = n_extrafeatures + 1 # +1 because that's the dimension of the logit scores returned by NNAlign
+        self.ef_standardizer = Standardizer() if standardize else StdBypass()
+        self.ef_inlayer = nn.Linear(self.in_dim, n_hidden_ef)
+        self.ef_outlayer = nn.Linear(n_hidden_ef, 1)
+        self.ef_act = activation_ef
+        self.ef_dropout = nn.Dropout(dropout_ef)
+        self.ef_batchnorm = batchnorm_ef
+        if batchnorm_ef:
+            self.ef_bn1 = nn.BatchNorm1d(n_hidden_ef)
+
+        self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
+                            'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel, 'standardize': standardize,
+                            'n_extrafeatures':n_extrafeatures, 'n_hidden_ef':n_hidden_ef, 'activation_ef':activation_ef,
+                            'batchnorm_ef':batchnorm_ef, 'dropout_ef':dropout_ef}
+
+    def fit_standardizer(self, x_tensor:torch.Tensor, x_mask:torch.Tensor, x_features:torch.Tensor):
+        self.nnalign_model.fit_standardizer(x_tensor, x_mask)
+        self.ef_standardizer.fit(x_features)
+
+    def forward(self, x_tensor:torch.Tensor, x_mask:torch.Tensor, x_features:torch.Tensor):
+        # NNAlign part
+        z = self.nnalign_model(x_tensor, x_mask)
+        # Extra features part, standardizes, concat
+        x_features = self.ef_standardizer(x_features)
+        z = torch.cat([z, x_features], dim=1)
+        # Standard NN stuff for the extra layers
+        z = self.ef_inlayer(z)
+        if self.ef_batchnorm:
+            z = self.ef_bn1(z)
+        z = self.ef_act(self.ef_dropout(z))
+        # Returning logits
+        z = self.ef_outlayer(z)
+        return z
+
+    def predict(self, x_tensor:torch.Tensor, x_mask:torch.Tensor, x_features:torch.Tensor):
+        """ TODO: This is a bit convoluted and could be reworked to be more efficient
+                  Would probly require to modify the other classes a bit though
+
+        Args:
+            x_tensor:
+            x_mask:
+            x_features:
+
+        Returns:
+
+        """
+        with torch.no_grad():
+            # Return logits from nnalign model + max idx
+            z, max_idx = self.nnalign_model.predict_logits(x_tensor, x_mask)
+
+            # Standard NN stuff for the extra layers
+            x_features = self.ef_standardizer(x_features)
+            z = torch.cat([z, x_features], dim=1)
+            z = self.ef_inlayer(z)
+            if self.ef_batchnorm:
+                z = self.ef_bn1(z)
+            z = self.ef_act(self.ef_dropout(z))
+            # Returning probs [0, 1]
+            z = F.sigmoid(self.ef_outlayer(z))
+            return z, max_idx
+
+    def state_dict(self, **kwargs):
+        state_dict = super(NNAlignEF, self).state_dict()
+        state_dict['nnalign_model'] = self.nnalign_model.state_dict()
+        state_dict['ef_standardizer'] = self.ef_standardizer.state_dict()
+        state_dict['init_params'] = self.init_params
+
+    def load_state_dict(self, state_dict, **kwargs):
+        self.nnalign_model.load_state_dict(state_dict['nnalign_model'])
+        self.ef_standardizer.load_state_dict(state_dict['ef_standardizer'])
+        self.init_params = state_dict['init_params']
+
+
+
+
