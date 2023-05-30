@@ -47,7 +47,7 @@ class NNAlignDataset(Dataset):
 
         # Add extra features
 
-        if feature_cols is not None:
+        if len(feature_cols)>0:
             self.x_features = torch.from_numpy(df[feature_cols].values).float()
             self.extra_features_flag = True
         else:

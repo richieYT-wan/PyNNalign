@@ -15,9 +15,8 @@ import numpy as np
 from torch.utils.data import DataLoader, TensorDataset
 from src.utils import make_chunks
 from src.torch_utils import set_mode, set_device
-from src.data_processing import get_dataset, assert_encoding_kwargs, to_tensors
+from src.data_processing import get_dataset, assert_encoding_kwargs
 from src.metrics import get_metrics, get_predictions, get_mean_roc_curve
-
 
 
 class EarlyStopping:
@@ -90,17 +89,16 @@ def train_model_step(model, criterion, optimizer, train_loader):
     Returns:
 
     """
+    assert type(train_loader.sampler) == torch.utils.data.RandomSampler, 'TrainLoader should use RandomSampler!'
     model.train()
     train_loss = 0
     y_scores, y_true = [], []
-    for x_tensor_train, x_mask_train, y_train in train_loader:
-        output = model(x_tensor_train, x_mask_train)
+    # Here, workaround so that the same fct can pass different number of arguments to the model
+    # e.g. to accomodate for an extra x_feature tensor if returned by train_loader
+    for data in train_loader:
+        y_train = data.pop(-1)
+        output = model(*data)
         loss = criterion(output, y_train)
-        # if torch.isnan(torch.tensor(loss)): print('NaN losses!'); return torch.nan
-        # NNAlign code to select the best sub-mer for each datapoint and only backprop from those
-        #
-        # best_idx = loss.argmin(dim=1).unsqueeze(1)
-        # selected_loss = torch.gather(loss, 1, best_idx)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -122,8 +120,10 @@ def eval_model_step(model, criterion, valid_loader):
     valid_loss = 0
     y_scores, y_true = [], []
     with torch.no_grad():
-        for x_tensor_valid, x_mask_valid, y_valid in valid_loader:
-            output = model(x_tensor_valid, x_mask_valid)
+        # Same workaround as above
+        for data in valid_loader:
+            y_valid = data.pop(-1)
+            output = model(*data)
             loss = criterion(output, y_valid)
             y_true.append(y_valid)
             y_scores.append(F.sigmoid(output))
@@ -136,18 +136,23 @@ def eval_model_step(model, criterion, valid_loader):
     return valid_loss, valid_metrics
 
 
-def predict_model(model, dataset: torch.utils.data.Dataset,
-                    batch_size: int = 256):
-    model.eval()
+def predict_model(model, dataset: torch.utils.data.Dataset, dataloader: torch.utils.data.DataLoader):
+    assert type(dataloader.sampler) == torch.utils.data.SequentialSampler, \
+        'Test/Valid loader MUST use SequentialSampler!'
+
     assert hasattr(dataset, 'df'), 'Not DF found for this dataset!'
+    model.eval()
     df = dataset.df.reset_index(drop=True).copy()
-    indices = range(len(df))
-    idx_batches = make_chunks(indices, batch_size)
+    # indices = range(len(df))
+    # idx_batches = make_chunks(indices, batch_size)
     predictions, best_indices, ys = [], [], []
-    for idx in idx_batches:
-        x_tensor, x_mask, y = dataset[idx]
-        with torch.no_grad():
-            preds, core_idx = model.predict(x_tensor, x_mask)
+    # HERE, MUST ENSURE WE USE
+    with torch.no_grad():
+        # Same workaround as above
+        for data in dataloader:
+            y = data.pop(-1)
+            preds, core_idx = model.predict(*data)
+
             predictions.append(preds)
             best_indices.append(core_idx)
             ys.append(y)
@@ -158,313 +163,3 @@ def predict_model(model, dataset: torch.utils.data.Dataset,
     df['core_start_index'] = best_indices
     df['label'] = ys
     return df
-
-
-def train_loop(model, train_loader, valid_loader, device, criterion, optimizer, n_epochs, early_stopping=False,
-               patience=20, delta=1e-7, filename='checkpoint', verbosity: int = 0):
-    # Very bad implementation in case loader is actually a dataset
-    if type(train_loader) == torch.utils.data.dataset.TensorDataset:
-        train_loader = DataLoader(train_loader)
-    model.to(device)
-    train_losses, valid_losses, train_metrics, valid_metrics = [], [], [], []
-    early_stop = EarlyStopping(delta=delta, patience=patience, name=filename)
-    valid_auc = []  # Used to check early stopping.
-    range_ = tqdm(range(1, n_epochs + 1), leave=False) if verbosity > 0 else range(1, n_epochs + 1)
-    e = 0
-    best_auc = 0
-    best_epoch = 0
-    best_loss = 100
-    for epoch in range_:
-        train_loss, train_metrics_ = train_model_step(model, criterion, optimizer, train_loader)
-        valid_loss, valid_metrics_ = eval_model_step(model, criterion, valid_loader)
-        if torch.isnan(torch.tensor(train_loss)) or torch.isnan(torch.tensor(valid_loss)):
-            print(f'NaN losses at {epoch} epoch.');
-            break
-        # updating list of scores etc.
-        train_losses.append(train_loss)
-        valid_losses.append(valid_loss)
-        train_metrics.append(train_metrics_)
-        valid_metrics.append(valid_metrics_)
-        valid_auc.append(valid_metrics_['auc'])
-        # print losses/metrics if verbose = 2
-        if (epoch % (n_epochs // 10) == 0 or epoch == 1) and verbosity == 2:
-            tqdm.write(f'Train Epoch: {epoch}\tTrain Loss: {train_loss:.5f}\tEval Loss:{valid_loss:.5f}\n' \
-                       f'\tTrain AUC, Accuracy:\t{train_metrics_["auc"], train_metrics_["accuracy"]}\n' \
-                       f'\tEval AUC, Accuracy:\t{valid_metrics_["auc"], valid_metrics_["accuracy"]}')
-        # If verbose=1, only show start, middle, end.
-        elif (epoch % (n_epochs // 2) == 0 or epoch == 1 or epoch == n_epochs + 1) and (verbosity == 1):
-            print(f'\nTrain Epoch: {epoch}\tTrain Loss: {train_loss:.5f}\tEval Loss:{valid_loss:.5f}\n' \
-                  f'\tTrain AUC, Accuracy:\t{train_metrics_["auc"], train_metrics_["accuracy"]}\n' \
-                  f'\tEval AUC, Accuracy:\t{valid_metrics_["auc"], valid_metrics_["accuracy"]}')
-        # TODO : For now, early stopping is disabled and just train to the end and re-load the best model
-        if valid_metrics_['auc'] > best_auc:
-            best_epoch = epoch
-            best_loss = valid_loss
-            best_auc = valid_metrics_['auc']
-            torch.save(model.state_dict(), f'{filename}.pt')
-
-        # TODO : Re-implement early stopping
-        # # Stop training if early stopping, using AUC as metric
-        # if early_stopping:
-        #     if invoke(early_stop, valid_auc[-1], model, implement=early_stopping):
-        #         model.load_state_dict(torch.load(f'{filename}.pt'))
-        #         tqdm.write(f'\nEarly Stopping at epoch={epoch};'
-        #                    f'current best valid loss:{valid_loss}; '
-        #                    f'previous avg losses: {np.mean(valid_losses[-patience:-1]),}, previous losses std: {np.std(valid_losses[-patience:-1])}\n'
-        #                    f'\tTrain AUC, Accuracy:\t{train_metrics_["auc"], train_metrics_["accuracy"]}\n' \
-        #                    f'\tEval AUC, Accuracy:\t{valid_metrics_["auc"], valid_metrics_["accuracy"]}')
-        #         e = epoch
-        #         break
-    print(f'Reloading best model at {best_epoch} epochs, with best AUC: {best_auc}, ""best"" valid loss = {best_loss}')
-    model.load_state_dict(torch.load(f'{filename}.pt'))
-    # flatten metrics into lists for easier printing, i.e. make dict of list from list of dicts
-    results_metrics = {'train': {k: [dic[k] for dic in train_metrics] for k in train_metrics[0]},
-                       'valid': {k: [dic[k] for dic in valid_metrics] for k in valid_metrics[0]}}
-    results_metrics['train']['losses'] = train_losses
-    results_metrics['valid']['losses'] = valid_losses
-    results_metrics['break_epoch'] = e
-
-    # Return the model in eval mode to be sure
-    model.eval()
-    return model, results_metrics
-
-
-def reset_model_optimizer(model, optimizer, seed):
-    """
-    TODO: Include a scheduler for the optimizer
-    Args:
-        model:
-        optimizer:
-        seed:
-
-    Returns:
-
-    """
-    # Deepcopy of model and reset the params so it's untied from the previous model
-    model = copy.deepcopy(model)
-    model.reset_parameters(seed=seed)
-    model.train()
-    # Re-initialize the optimizer object with the same kwargs without keeping the parameters
-    # This only handles a single param groups so far
-    optimizer_kwargs = {k: v for k, v in optimizer.param_groups[0].items() if k != 'params'}
-    optimizer = optimizer.__class__(model.parameters(), **optimizer_kwargs)
-    return model, optimizer
-
-
-##################################
-############ NN stuff ############
-##################################
-
-def parallel_nn_train_wrapper(train_dataframe, x_test, ics_dict, device,
-                              encoding_kwargs, standardize, fold_out, fold_in,
-                              model, optimizer, criterion, training_kwargs: dict):
-    """
-    Wrapper to parallelize training for all inner folds,
-    returns the trained model, train_metrics and evaluated on x_test (which is just x for df.query('fold==@fold_out')
-    Args:
-        train_dataframe:
-        x_test:
-        ics_dict:
-        device:
-        encoding_kwargs:
-        standardize:
-        fold_out:
-        fold_in:
-        model:
-        optimizer:
-        criterion:
-        training_kwargs:
-
-    Returns:
-
-    """
-    seed = int(f'{fold_out}{fold_in}')
-    model, optimizer = reset_model_optimizer(model, optimizer, seed)
-    train = train_dataframe.query('fold != @fold_out and fold != @ fold_in').reset_index(drop=True)
-    valid = train_dataframe.query('fold == @fold_in').reset_index(drop=True)
-    # Converting to tensors
-    x_train, y_train = get_dataset(train, ics_dict, **encoding_kwargs)
-    x_train, y_train = to_tensors(x_train, y_train, device)
-    x_valid, y_valid = get_dataset(valid, ics_dict, **encoding_kwargs)
-    x_valid, y_valid = to_tensors(x_valid, y_valid, device)
-    # Fitting a standardizer ; model must be in training mode to fit so just in case
-    model.train()
-    if standardize and hasattr(model, 'standardizer'):
-        model.fit_standardizer(x_train)
-    # Don't get dataloader for X_
-    train_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=32)
-    valid_loader = DataLoader(TensorDataset(x_valid, y_valid), batch_size=32)
-    # Making a deep copy to update the checkpoint filename to include outer-inner fold
-    training_kwargs = copy.deepcopy(training_kwargs)
-    training_kwargs['filename'] = f'{training_kwargs["filename"]}_o{fold_out}_i{fold_in}'
-
-    model, train_metrics = train_loop(model, train_loader, valid_loader, device, criterion, optimizer,
-                                      **training_kwargs)
-
-    # TODO : Deprecate this
-    # if train_metrics['break_epoch'] < 75:
-    #     print(f'\n\n{"#"*10}\n\n')
-    #     print(f'THIS FUCKED UP:\t{train_metrics["break_epoch"]}\tF_in={fold_in},\tF_out={fold_out},\tseed={seed}')
-    #     print(train_metrics['valid']['losses'])
-    #     print(train_metrics['valid']['auc'])
-
-    with torch.no_grad():
-        y_pred_test = model(x_test.to(device))
-
-    return model, train_metrics, y_pred_test
-
-
-def nested_kcv_train_nn(dataframe, model, optimizer, criterion, device, ics_dict, encoding_kwargs, training_kwargs,
-                        n_jobs=None):
-    """
-    TODO: Have the fct (here or after return in another fct/scope) save the models checkpoints from the models dict
-
-    Here should set optimizer kwargs and model params before calling this fct
-    Training_kwargs should only be for stuff like early stopping, n_epochs, etc.
-    ex:
-        model = NetworkClass(n_input=20, n_hidden=50)
-        optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-        criterion = torch.nn.CrossEntropyLoss()
-        models, train_metrics, test_metrics = nested_kcv_train_nn(data, model, optimizer, criterion, device, ics_dict,
-                                                                  encoding_kwargs, training_kwargs, n_jobs)
-    Args:
-        dataframe:
-        model:
-        optimizer:
-        criterion:
-        device:
-        ics_dict:
-        encoding_kwargs:
-        training_kwargs:
-        n_jobs:
-
-    Returns:
-        models_dict
-        train_metrics
-        test_metrics
-    """
-    encoding_kwargs['standardize'] = True
-    encoding_kwargs = assert_encoding_kwargs(encoding_kwargs, mode_eval=False)
-    models_dict = {}
-    test_metrics = {}
-    train_metrics = {}
-    folds = sorted(dataframe.fold.unique())
-    std = encoding_kwargs.pop('standardize')
-    # For now, when using GPU, use a single core
-    if 'cuda' in device.lower():
-        n_jobs = 1
-    else:
-        n_jobs = min(multiprocessing.cpu_count() - 1, len(folds) - 1) if n_jobs is None \
-            else n_jobs if (n_jobs is not None and n_jobs <= multiprocessing.cpu_count()) \
-            else multiprocessing.cpu_count() - 1
-
-    for fold_out in tqdm(folds, leave=False, desc='Outer fold', position=2):
-        test = dataframe.query('fold==@fold_out').reset_index(drop=True)
-        x_test, y_test = get_dataset(test, ics_dict, **encoding_kwargs)
-        x_test, y_test = to_tensors(x_test, y_test, device)
-        inner_folds = sorted([f for f in folds if f != fold_out])
-        train_wrapper_ = partial(parallel_nn_train_wrapper, train_dataframe=dataframe, x_test=x_test,
-                                 ics_dict=ics_dict, device=device, encoding_kwargs=encoding_kwargs, standardize=std,
-                                 fold_out=fold_out, model=model, optimizer=optimizer, criterion=criterion,
-                                 training_kwargs=training_kwargs)
-        output = Parallel(n_jobs=n_jobs)(
-            delayed(train_wrapper_)(fold_in=fold_in) for fold_in in tqdm(inner_folds, desc='Inner Folds',
-                                                                         leave=False, position=1))
-        models_dict[fold_out] = [x[0] for x in output]
-        train_metrics[fold_out] = {k: v for k, v in
-                                   zip(inner_folds, [x[1] for x in output])}
-        avg_prediction = [x[2] for x in output]
-        avg_prediction = torch.mean(torch.stack(avg_prediction), dim=0).detach().cpu().numpy()
-        test_metrics[fold_out] = get_metrics(y_test, avg_prediction)
-    return models_dict, train_metrics, test_metrics
-
-
-def parallel_nn_eval_wrapper(test_dataframe, models_list, ics_dict, device,
-                             train_dataframe, encoding_kwargs, fold_out):
-    """
-    This fct is for a given outer fold, and needs a list of models trained for this outer fold
-    i.e. models_list = models_dict[fold_out]
-    Args:
-        test_dataframe:
-        models_list:
-        ics_dict:
-        train_dataframe:
-        encoding_kwargs:
-        fold_out:
-
-    Returns:
-
-    """
-    if 'fold' in test_dataframe.columns and test_dataframe.equals(train_dataframe):
-        test_df = test_dataframe.query('fold==@fold_out')
-    else:
-        test_df = test_dataframe.copy().reset_index(drop=True)
-
-    if train_dataframe is not None and not train_dataframe.equals(test_dataframe):
-        tmp = train_dataframe.query('fold != @fold_out')
-        train_peps = tmp[encoding_kwargs['seq_col']].unique()
-        test_df = test_df.query(f'{encoding_kwargs["seq_col"]} not in @train_peps')
-
-    set_device(models_list, device)
-    predictions_df = get_predictions(test_df, models_list, ics_dict, encoding_kwargs)
-    test_metrics = get_metrics(predictions_df[encoding_kwargs['target_col']].values,
-                               predictions_df['pred'].values)
-    if device != 'cpu':
-        # If device was initially cuda, resets it to CPU after eval for space
-        set_device(models_list, 'cpu')
-    return predictions_df, test_metrics
-
-
-def evaluate_trained_models_nn(test_dataframe, models_dict, ics_dict, device,
-                               train_dataframe=None, encoding_kwargs=None,
-                               concatenated=False, only_concat=False, n_jobs=None):
-    """
-    No need to training kwargs here as models should be in eval mode
-    Args:
-        test_dataframe:
-        models_dict:
-        ics_dict:
-        train_dataframe:
-        encoding_kwargs:
-        concatenated:
-        only_concat:
-        n_jobs:
-
-    Returns:
-
-    """
-    if 'standardize' in encoding_kwargs.keys():
-        del encoding_kwargs['standardize']
-    set_mode(models_dict, 'eval')
-    eval_wrapper_ = partial(parallel_nn_eval_wrapper, test_dataframe=test_dataframe, ics_dict=ics_dict,
-                            device=device, train_dataframe=train_dataframe, encoding_kwargs=encoding_kwargs)
-    n_jobs = 1 if device != 'cpu' else len(models_dict.keys()) if (
-            n_jobs is None and len(models_dict.keys()) <= multiprocessing.cpu_count()) else n_jobs
-    output = Parallel(n_jobs=n_jobs)(delayed(eval_wrapper_)(fold_out=fold_out, models_list=models_list) \
-                                     for (fold_out, models_list) in tqdm(models_dict.items(),
-                                                                         desc='Eval Folds',
-                                                                         leave=False,
-                                                                         position=2))
-    predictions_df = [x[0] for x in output]
-    test_metrics = [x[1] for x in output]
-    test_results = {k: v for k, v in zip(models_dict.keys(), test_metrics)}
-    predictions_df = pd.concat(predictions_df)
-
-    # Here get the concat results
-    if concatenated:
-        test_results['concatenated'] = get_metrics(predictions_df[encoding_kwargs['target_col']].values,
-                                                   predictions_df['pred'].values)
-    # Either concatenated, or mean predictions
-    else:
-        # obj_cols = [x for x,y in zip(predictions_df.dtypes.index, predictions_df.dtypes.values) if y=='object']
-        cols = [encoding_kwargs['seq_col'], encoding_kwargs['hla_col'], encoding_kwargs['target_col']]
-        mean_preds = predictions_df.groupby(cols).agg(mean_pred=('pred', 'mean'))
-        predictions_df = test_dataframe.merge(mean_preds, left_on=cols, right_on=cols, suffixes=[None, None])
-    # print('there', len(predictions_df))
-
-    if only_concat and concatenated:
-        keys_del = [k for k in test_results if k != 'concatenated']
-        for k in keys_del:
-            del test_results[k]
-
-    return test_results, predictions_df

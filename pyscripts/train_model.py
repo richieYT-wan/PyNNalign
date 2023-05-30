@@ -9,6 +9,7 @@ if module_path not in sys.path:
 import torch
 from torch import optim
 from torch import nn
+from torch.utils.data import RandomSampler, SequentialSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
 from src.torch_utils import save_checkpoint, load_checkpoint
@@ -123,8 +124,8 @@ def main():
     model = NNAlign(activation=nn.SELU(), indel=False, **model_params)
     criterion = nn.BCEWithLogitsLoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
-    train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, **dataset_params)
-    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, return_dataset=True, indel=False, **dataset_params)
+    train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, sampler=RandomSampler, **dataset_params)
+    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, return_dataset=True, indel=False, sampler=SequentialSampler, **dataset_params)
 
     train_losses, valid_losses = [], []
     train_metrics, valid_metrics = [], []
@@ -177,7 +178,7 @@ def main():
     print('Reloading best model and returning validation predictions')
     model = load_checkpoint(model, filename=checkpoint_filename,
                             dir_path=outdir)
-    valid_preds = predict_model(model, valid_dataset, args['batch_size'])
+    valid_preds = predict_model(model, valid_dataset, valid_loader)
     print('Saving valid predictions from best model')
     valid_preds.to_csv(f'{outdir}valid_predictions_{unique_filename}.csv', index=False)
 

@@ -21,7 +21,6 @@ class NetParent(nn.Module):
         # device is cpu by default
         self.device = 'cpu'
 
-
     @staticmethod
     def init_weights(m):
         if isinstance(m, nn.Conv2d):
@@ -49,9 +48,9 @@ class NetParent(nn.Module):
         self.device = device
 
 
-class Standardizer(nn.Module):
+class StandardizerSequence(nn.Module):
     def __init__(self):
-        super(Standardizer, self).__init__()
+        super(StandardizerSequence, self).__init__()
         self.mu = 0
         self.sigma = 1
         self.fitted = False
@@ -74,7 +73,7 @@ class Standardizer(nn.Module):
             # Updated version with masking
             masked_values = x_tensor * x_mask
             mu = (torch.sum(masked_values, dim=1) / torch.sum(x_mask, dim=1))
-            sigma = (torch.sqrt(torch.sum((masked_values - mu.unsqueeze(1))**2, dim=1) / torch.sum(x_mask, dim=1)))
+            sigma = (torch.sqrt(torch.sum((masked_values - mu.unsqueeze(1)) ** 2, dim=1) / torch.sum(x_mask, dim=1)))
             self.mu = mu.mean(dim=0)
             self.sigma = sigma.mean(dim=0)
             # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
@@ -82,7 +81,7 @@ class Standardizer(nn.Module):
             self.fitted = True
 
     def forward(self, x):
-        assert self.fitted, 'Standardizer has not been fitted. Please fit to x_train'
+        assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
         with torch.no_grad():
             # Flatten to 2d if needed
             x = (self.view_3d_to_2d(x) - self.mu) / self.sigma
@@ -90,7 +89,7 @@ class Standardizer(nn.Module):
             return self.view_2d_to_3d(x)
 
     def recover(self, x):
-        assert self.fitted, 'Standardizer has not been fitted. Please fit to x_train'
+        assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
         with torch.no_grad():
             # Flatten to 2d if needed
             x = self.view_3d_to_2d(x)
@@ -128,7 +127,7 @@ class Standardizer(nn.Module):
         Args:
             **kwargs:
         """
-        state_dict = super(Standardizer, self).state_dict()
+        state_dict = super(StandardizerSequence, self).state_dict()
         state_dict['mu'] = self.mu
         state_dict['sigma'] = self.sigma
         state_dict['fitted'] = self.fitted
@@ -140,6 +139,60 @@ class Standardizer(nn.Module):
         self.sigma = state_dict['sigma']
         self.fitted = state_dict['fitted']
         self.dimensions = state_dict['dimensions']
+
+
+class StandardizerFeatures(nn.Module):
+    def __init__(self):
+        super(StandardizerFeatures, self).__init__()
+        self.mu = 0
+        self.sigma = 1
+        self.fitted = False
+
+    def fit(self, x_features: torch.Tensor):
+        """ Will consider the mask (padded position) and ignore them before computing the mean/std
+        Args:
+            x_features:
+
+        Returns:
+            None
+        """
+        assert self.training, 'Can not fit while in eval mode. Please set model to training mode'
+        with torch.no_grad():
+            self.mu = x_features.mean(dim=0)
+            self.sigma = x_features.std(dim=0)
+            # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
+            self.sigma[torch.where(self.sigma == 0)] = 1e-12
+            self.fitted = True
+
+    def forward(self, x):
+        assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
+        with torch.no_grad():
+            return x - self.mu / self.sigma
+
+    def reset_parameters(self, **kwargs):
+        with torch.no_grad():
+            self.mu = 0
+            self.sigma = 0
+            self.fitted = False
+
+    def state_dict(self, **kwargs):
+        """overwrites the state_dict with the custom attributes
+
+        Returns: state_dict
+
+        Args:
+            **kwargs:
+        """
+        state_dict = super(StandardizerFeatures, self).state_dict()
+        state_dict['mu'] = self.mu
+        state_dict['sigma'] = self.sigma
+        state_dict['fitted'] = self.fitted
+        return state_dict
+
+    def load_state_dict(self, state_dict, **kwargs):
+        self.mu = state_dict['mu']
+        self.sigma = state_dict['sigma']
+        self.fitted = state_dict['fitted']
 
 
 class StdBypass(nn.Module):
@@ -174,7 +227,7 @@ class StdBypass(nn.Module):
         Returns:
 
         """
-        self.fitted=True
+        self.fitted = True
         return x_tensor
 
 
@@ -213,8 +266,8 @@ class NNAlignSinglePass(NetParent):
         z = self.in_layer(x_tensor)  # Inlayer
         # Flip dimensions to allow for batchnorm then flip back
         if self.batchnorm:
-            z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden))\
-                    .view(-1, x_tensor.shape[1], self.n_hidden)
+            z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
+                .view(-1, x_tensor.shape[1], self.n_hidden)
         z = self.dropout(z)
         z = self.act(z)
         z = self.out_layer(z)  # Out Layer for prediction
@@ -244,8 +297,8 @@ class NNAlignSinglePass(NetParent):
         with torch.no_grad():
             z = self.in_layer(x_tensor)
             if self.batchnorm:
-                z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden))\
-                        .view(-1, x_tensor.shape[1], self.n_hidden)
+                z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
+                    .view(-1, x_tensor.shape[1], self.n_hidden)
             z = self.act(self.dropout(z))
             z = self.out_layer(z)
             # Do the same trick where the padded positions are removed prior to selecting index
@@ -254,7 +307,7 @@ class NNAlignSinglePass(NetParent):
             z = F.sigmoid(torch.gather(z, 1, max_idx).squeeze(1))
             return z, max_idx
 
-    def predict_logits(self, x_tensor:torch.Tensor, x_mask:torch.Tensor):
+    def predict_logits(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
         """ QOL method to return the predictions without Sigmoid + return the indices
         To be used elsewhere down the line (in EF model)
 
@@ -268,8 +321,8 @@ class NNAlignSinglePass(NetParent):
         with torch.no_grad():
             z = self.in_layer(x_tensor)
             if self.batchnorm:
-                z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden))\
-                        .view(-1, x_tensor.shape[1], self.n_hidden)
+                z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
+                    .view(-1, x_tensor.shape[1], self.n_hidden)
             z = self.act(self.dropout(z))
             z = self.out_layer(z)
             # Do the same trick where the padded positions are removed prior to selecting index
@@ -284,7 +337,7 @@ class NNAlign(NetParent):
                  standardize=True, **kwargs):
         super(NNAlign, self).__init__()
         self.nnalign = NNAlignSinglePass(n_hidden, window_size, activation, batchnorm, dropout, indel)
-        self.standardizer = Standardizer() if standardize else StdBypass()
+        self.standardizer = StandardizerSequence() if standardize else StdBypass()
         # Save here to make reloading a model potentially easier
         self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
                             'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel,
@@ -295,7 +348,7 @@ class NNAlign(NetParent):
         with torch.no_grad():
             self.standardizer.fit(x_tensor, x_mask)
 
-    def forward(self, x_tensor: torch.Tensor, x_mask:torch.Tensor):
+    def forward(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
         with torch.no_grad():
             x_tensor = self.standardizer(x_tensor)
         x_tensor = self.nnalign(x_tensor, x_mask)
@@ -307,7 +360,7 @@ class NNAlign(NetParent):
             x_tensor, max_idx = self.nnalign.predict(x_tensor, x_mask)
             return x_tensor, max_idx
 
-    def predict_logits(self, x_tensor:torch.Tensor, x_mask: torch.Tensor):
+    def predict_logits(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
         with torch.no_grad():
             x_tensor = self.standardizer(x_tensor)
             x_tensor, max_idx = self.nnalign.predict_logits(x_tensor, x_mask)
@@ -341,6 +394,7 @@ class NNAlignEF(NetParent):
           That takes as input the logits from NNAlign + the extra features and directly returns a score without 2 layers.
           Can maybe write another class EFModel that just takes the ef_xx part here
     """
+
     def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0,
                  indel=False, standardize=True,
                  n_extrafeatures=0, n_hidden_ef=5, activation_ef=nn.SELU(), batchnorm_ef=False, dropout_ef=0.0,
@@ -349,26 +403,29 @@ class NNAlignEF(NetParent):
         # NNAlign part
         self.nnalign_model = NNAlign(n_hidden, window_size, activation, batchnorm, dropout, indel, standardize)
         # Extra layer part
-        self.in_dim = n_extrafeatures + 1 # +1 because that's the dimension of the logit scores returned by NNAlign
-        self.ef_standardizer = Standardizer() if standardize else StdBypass()
+        self.in_dim = n_extrafeatures + 1  # +1 because that's the dimension of the logit scores returned by NNAlign
+        self.ef_standardizer = StandardizerFeatures() if standardize else StdBypass()
         self.ef_inlayer = nn.Linear(self.in_dim, n_hidden_ef)
         self.ef_outlayer = nn.Linear(n_hidden_ef, 1)
         self.ef_act = activation_ef
         self.ef_dropout = nn.Dropout(dropout_ef)
         self.ef_batchnorm = batchnorm_ef
+
+        # TODO : If this is switched to a single layer, then BatchNorm1d should be updated to nn.BatchNorm1d(self.in_dim)
         if batchnorm_ef:
             self.ef_bn1 = nn.BatchNorm1d(n_hidden_ef)
 
         self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
                             'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel, 'standardize': standardize,
-                            'n_extrafeatures':n_extrafeatures, 'n_hidden_ef':n_hidden_ef, 'activation_ef':activation_ef,
-                            'batchnorm_ef':batchnorm_ef, 'dropout_ef':dropout_ef}
+                            'n_extrafeatures': n_extrafeatures, 'n_hidden_ef': n_hidden_ef,
+                            'activation_ef': activation_ef,
+                            'batchnorm_ef': batchnorm_ef, 'dropout_ef': dropout_ef}
 
-    def fit_standardizer(self, x_tensor:torch.Tensor, x_mask:torch.Tensor, x_features:torch.Tensor):
+    def fit_standardizer(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_features: torch.Tensor):
         self.nnalign_model.fit_standardizer(x_tensor, x_mask)
         self.ef_standardizer.fit(x_features)
 
-    def forward(self, x_tensor:torch.Tensor, x_mask:torch.Tensor, x_features:torch.Tensor):
+    def forward(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_features: torch.Tensor):
         # NNAlign part
         z = self.nnalign_model(x_tensor, x_mask)
         # Extra features part, standardizes, concat
@@ -383,7 +440,7 @@ class NNAlignEF(NetParent):
         z = self.ef_outlayer(z)
         return z
 
-    def predict(self, x_tensor:torch.Tensor, x_mask:torch.Tensor, x_features:torch.Tensor):
+    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_features: torch.Tensor):
         """ TODO: This is a bit convoluted and could be reworked to be more efficient
                   Would probly require to modify the other classes a bit though
 
@@ -415,12 +472,9 @@ class NNAlignEF(NetParent):
         state_dict['nnalign_model'] = self.nnalign_model.state_dict()
         state_dict['ef_standardizer'] = self.ef_standardizer.state_dict()
         state_dict['init_params'] = self.init_params
+        return state_dict
 
     def load_state_dict(self, state_dict, **kwargs):
         self.nnalign_model.load_state_dict(state_dict['nnalign_model'])
         self.ef_standardizer.load_state_dict(state_dict['ef_standardizer'])
         self.init_params = state_dict['init_params']
-
-
-
-

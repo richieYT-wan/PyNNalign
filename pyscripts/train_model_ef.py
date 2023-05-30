@@ -24,7 +24,7 @@ import argparse
 
 def args_parser():
     parser = argparse.ArgumentParser(description='Script to train and evaluate a NNAlign model ')
-    #
+    # TODO: Deprecate or update this behaviour
     # parser.add_argument('-tf', '--train_file', dest='train', required=True,
     #                     type=str, help='filename of the train_file, w/ extension & full path' \
     #                                    'ex: /path/to/file/train.csv')
@@ -36,7 +36,7 @@ def args_parser():
     Data processing args
     """
     parser.add_argument('-f', '--file', dest='file', required=True, type=str,
-                        default='../data/NetMHCIIpan_train/drb1_0301.csv',
+                        default='../data/aligned_icore/230530_cedar_aligned.csv',
                         help='filename of the input file')
     parser.add_argument('-o', '--out', dest='out', required=False,
                         type=str, default='', help='Additional output name')
@@ -56,7 +56,7 @@ def args_parser():
     parser.add_argument('-pad', '--pad_scale', dest='pad_scale', type=float, default=None, required=False,
                         help='Number with which to pad the inputs if needed; ' \
                              'Default behaviour is 0 if onehot, -12 is BLOSUM')
-    parser.add_argument('-ef', '--extra_features', dest='extra_features', nargs='+', required = False,
+    parser.add_argument('-fc', '--feature_cols', dest='feature_cols', nargs='+', required = False,
                         help='Name of columns (str) to use as extra features, space separated.'\
                              'For example, to add 2 features Rank and Similarity, do: -ef Rank Similarity')
     """
@@ -123,13 +123,13 @@ def main():
         train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
     # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
     # Def params so it's ✨tidy✨
-    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize']
-    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size']
+    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize', 'n_hidden_ef', 'batchnorm_ef', 'dropout_ef']
+    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size', 'feature_cols']
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # instantiate objects
-    model = NNAlignEF(activation=nn.SELU(), indel=False, **model_params)
+    model = NNAlignEF(activation=nn.SELU(), activation_ef=nn.SELU(), n_extrafeatures=len(args['feature_cols']), indel=False, **model_params)
     criterion = nn.BCEWithLogitsLoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
     train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, **dataset_params)
@@ -144,7 +144,9 @@ def main():
     print('Starting training cycles')
     if hasattr(model, 'standardizer'):
         # Here, include the mask as well as it is used during fitting
-        model.fit_standardizer(x_tensor=train_dataset.x_tensor, x_mask=train_dataset.x_mask)
+        model.fit_standardizer(x_tensor=train_dataset.x_tensor,
+                               x_mask=train_dataset.x_mask,
+                               x_features=train_dataset.x_features)
 
     if args['burn_in'] is not None:
         # TODO: Here, should this be applied only to the nnalign submodel without the EF layer ?
@@ -190,7 +192,7 @@ def main():
     print('Reloading best model and returning validation predictions')
     model = load_checkpoint(model, filename=checkpoint_filename,
                             dir_path=outdir)
-    valid_preds = predict_model(model, valid_dataset, args['batch_size'])
+    valid_preds = predict_model(model, valid_dataset, valid_loader)
     print('Saving valid predictions from best model')
     valid_preds.to_csv(f'{outdir}valid_predictions_{unique_filename}.csv', index=False)
 

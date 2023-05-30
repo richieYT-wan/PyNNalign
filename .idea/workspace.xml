@@ -2,11 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f7cb4fa7-829b-46bf-9dce-30d98360cf1b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pyscripts/train_model_ef.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pyscripts/debug_extrafeatures.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notebooks/230525_fix_motif_len.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/230525_fix_motif_len.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/230530_ExtraFeatures.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/230530_ExtraFeatures.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyscripts/train_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyscripts/train_model_ef.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_model_ef.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_processing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/datasets.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/datasets.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/metrics.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/train_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/train_eval.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,29 +67,8 @@
       <recent name="$PROJECT_DIR$/" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.debug_burnin">
-    <configuration name="debug_burnin" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="PyNNalign" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pyscripts" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyscripts/debug_burnin.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="models" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.train_model">
+    <configuration name="datasets" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PyNNalign" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -96,7 +80,49 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/models.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/datasets.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="debug_extrafeatures" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="PyNNalign" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pyscripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyscripts/debug_extrafeatures.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="train_eval" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="PyNNalign" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/train_eval.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -118,7 +144,28 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyscripts/train_model.py" />
-      <option name="PARAMETERS" value="-f &quot;../data/NetMHCIIpan_train/drb1_0301.csv&quot; -o &quot;debug_std_false&quot; -kf 0 -enc &quot;BL50LO&quot; -ml 21 -pad -15 -nh 50 -std False -bn True -do 0.0 -ws 9 -bs 256 -ne 25 -tol 0.0001" />
+      <option name="PARAMETERS" value="-f ../data/NetMHCIIpan_train/drb1_0301.csv -kf 1 -o DEBUG_TRAIN_DRB1 -enc BL50LO -ml 21 -pad -15 -nh 50 -std True -bn True -do 0. -ws 9 -lr 1e-4 -bs 256 -ne 50 -tol 0.0001" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="train_model_ef" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="PyNNalign" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pyscripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyscripts/train_model_ef.py" />
+      <option name="PARAMETERS" value="-f $PROJECT_DIR$/data/aligned_icore/230530_cedar_aligned.csv -o debug_extrafeatures -kf 0 -x mutant -y target -enc BL50LO -ml 12 -pad -15 -fc EL_rank_mut icore_selfsimilarity -nh 25 -std True -bn True -do 0.15 -ws 5 -efnh 5 -efbn True -efdo 0.15 -lr 5e-5 -wd 1e-2 -bs 64 -ne 300" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -127,15 +174,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.debug_burnin" />
-      <item itemvalue="Python.models" />
+      <item itemvalue="Python.datasets" />
+      <item itemvalue="Python.debug_extrafeatures" />
+      <item itemvalue="Python.train_eval" />
+      <item itemvalue="Python.train_model_ef" />
       <item itemvalue="Python.train_model" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.debug_burnin" />
         <item itemvalue="Python.train_model" />
-        <item itemvalue="Python.models" />
+        <item itemvalue="Python.debug_extrafeatures" />
+        <item itemvalue="Python.train_eval" />
+        <item itemvalue="Python.train_model_ef" />
+        <item itemvalue="Python.datasets" />
       </list>
     </recent_temporary>
   </component>
@@ -154,16 +205,6 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/models.py</url>
-          <line>76</line>
-          <option name="timeStamp" value="45" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/models.py</url>
-          <line>78</line>
-          <option name="timeStamp" value="46" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pyscripts/debug_burnin.py</url>
           <line>31</line>
           <option name="timeStamp" value="72" />
@@ -172,6 +213,41 @@
           <url>file://$PROJECT_DIR$/pyscripts/debug_burnin.py</url>
           <line>37</line>
           <option name="timeStamp" value="75" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pyscripts/train_model_ef.py</url>
+          <line>150</line>
+          <option name="timeStamp" value="88" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pyscripts/train_model_ef.py</url>
+          <line>161</line>
+          <option name="timeStamp" value="89" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pyscripts/train_model_ef.py</url>
+          <line>155</line>
+          <option name="timeStamp" value="91" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/train_eval.py</url>
+          <line>139</line>
+          <option name="timeStamp" value="106" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/train_eval.py</url>
+          <line>142</line>
+          <option name="timeStamp" value="107" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/train_eval.py</url>
+          <line>144</line>
+          <option name="timeStamp" value="108" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/train_eval.py</url>
+          <line>164</line>
+          <option name="timeStamp" value="113" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
