@@ -1,0 +1,23 @@
+file: ../data/aligned_icore/230530_cedar_aligned.csv
+out: 230530_CEDAR_NO_EF
+split: 5
+fold: 0
+seq_col: mutant
+target_col: target
+encoding: BL50LO
+max_len: 12
+pad_scale: -15.0
+n_hidden: 25
+standardize: True
+batchnorm: True
+dropout: 0.15
+window_size: 5
+burn_in: None
+lr: 0.0001
+weight_decay: 0.01
+batch_size: 128
+n_epochs: 300
+tolerance: 0.0001
+Best valid epoch: 127
+Best valid loss: 0.6503
+Best valid auc: 0.6503
