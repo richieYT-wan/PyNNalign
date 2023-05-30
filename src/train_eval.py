@@ -12,10 +12,11 @@ from functools import partial
 from tqdm.auto import tqdm
 import numpy as np
 
-from torch.utils.data import DataLoader, TensorDataset
-from src.torch_utils import set_mode, set_device, save_checkpoint, load_checkpoint
-from src.data_processing import get_dataset, assert_encoding_kwargs
-from src.metrics import get_metrics, get_predictions, get_mean_roc_curve
+from torch.utils.data import DataLoader
+from src.datasets import NNAlignDataset
+from src.utils import get_motif
+from src.torch_utils import save_checkpoint, load_checkpoint
+from src.metrics import get_metrics
 
 
 class EarlyStopping:
@@ -135,7 +136,7 @@ def eval_model_step(model, criterion, valid_loader):
     return valid_loss, valid_metrics
 
 
-def predict_model(model, dataset: torch.utils.data.Dataset, dataloader: torch.utils.data.DataLoader):
+def predict_model(model, dataset: NNAlignDataset, dataloader: torch.utils.data.DataLoader):
     assert type(dataloader.sampler) == torch.utils.data.SequentialSampler, \
         'Test/Valid loader MUST use SequentialSampler!'
     assert hasattr(dataset, 'df'), 'Not DF found for this dataset!'
@@ -157,9 +158,12 @@ def predict_model(model, dataset: torch.utils.data.Dataset, dataloader: torch.ut
     predictions = torch.cat(predictions).detach().cpu().numpy().flatten()
     best_indices = torch.cat(best_indices).detach().cpu().numpy().flatten()
     ys = torch.cat(ys).detach().cpu().numpy().flatten()
+
     df['pred'] = predictions
     df['core_start_index'] = best_indices
     df['label'] = ys
+    seq_col, window_size = dataset.seq_col, dataset.window_size
+    df['motif'] = df.apply(get_motif, seq_col=seq_col, window_size=window_size, axis=1)
     return df
 
 

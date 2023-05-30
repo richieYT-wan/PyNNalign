@@ -15,6 +15,10 @@ import string
 from datetime import datetime as dt
 
 
+def get_motif(row, seq_col, window_size):
+    return row[seq_col][int(row['core_start_index']):int(row['core_start_index'])+window_size]
+
+
 def plot_loss_aucs(train_losses, valid_losses, train_aucs, valid_aucs,
                    filename, outdir, dpi=300):
     f, a = plt.subplots(2, 1, figsize=(12, 10));

@@ -58,6 +58,7 @@ class NNAlignDataset(Dataset):
         self.df = df
         self.len = len(x)
         self.max_len = max_len
+        self.seq_col = seq_col
         self.window_size = window_size
 
     def __len__(self):
