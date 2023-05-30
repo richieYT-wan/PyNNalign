@@ -239,5 +239,7 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 output/230522_singledouble_compare/*.png
-Output/230522_impl_comparisons/*.png
+output/230522_impl_comparisons/*.png
+output/*debug*
 .idea/workspace.xml
+output/.DS_Store

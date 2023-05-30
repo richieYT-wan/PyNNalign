@@ -14,7 +14,7 @@ from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
 from src.torch_utils import save_checkpoint, load_checkpoint
 from src.models import NNAlignEF
-from src.train_eval import train_model_step, eval_model_step, predict_model
+from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
 from src.datasets import get_NNAlign_dataloader
 from matplotlib import pyplot as plt
@@ -136,51 +136,10 @@ def main():
     train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, sampler=RandomSampler, **dataset_params)
     valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, return_dataset=True, indel=False, sampler=SequentialSampler, **dataset_params)
 
-    train_losses, valid_losses = [], []
-    train_metrics, valid_metrics = [], []
-    best_val_loss = 100
-    best_val_auc = 0
-    best_epoch = 1
-
-    print('Starting training cycles')
-    if any([(hasattr(child, 'standardizer') or hasattr(child, 'ef_standardizer')) for child in model.children()]):
-        # Here, include the mask as well as it is used during fitting
-        model.fit_standardizer(x_tensor=train_dataset.x_tensor,
-                               x_mask=train_dataset.x_mask,
-                               x_features=train_dataset.x_features)
-
-    if args['burn_in'] is not None:
-        # TODO: Here, should this be applied only to the nnalign submodel without the EF layer ?
-        #       Then model here would be model.nnalign_model instead, so that we only train that
-        #       Need to check how exactly the parameters work with the optimizer & the dataloader
-        #       Shouldn't really need to do burn-in with epitope data though.
-        print('Doing burn-in period')
-        train_dataset.burn_in(True)
-        for e in tqdm(range(0, args['burn_in']), desc='Burn-in period'):
-            _, _ = train_model_step(model, criterion, optimizer, train_loader)
-        train_dataset.burn_in(False)
-
-    for e in tqdm(range(1, args['n_epochs'] + 1), desc='epochs'):
-        train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)
-        valid_loss, valid_metric = eval_model_step(model, criterion, valid_loader)
-        train_metrics.append(train_metric)
-        valid_metrics.append(valid_metric)
-        train_losses.append(train_loss)
-        valid_losses.append(valid_loss)
-        if e % (args['n_epochs'] // 25) == 0:
-            tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
-            tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
-
-        if valid_loss <= best_val_loss + args['tolerance'] and valid_metric['auc'] > best_val_auc:
-            best_epoch = e
-            best_val_loss = valid_loss
-            best_val_auc = best_val_auc
-            save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
-
-    print(f'End of training cycles')
-    print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
-    print(f'Best valid epoch: {best_epoch}')
-    print(f'Best valid loss :\t{best_val_loss:.3e}, best train AUC:\t{best_val_auc}')
+    model, train_metrics, valid_metrics, train_losses, valid_losses, \
+        best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model, criterion, optimizer,
+                                                                   train_dataset, train_loader, valid_loader, checkpoint_filename,
+                                                                   outdir, args['burn_in'])
     pkl_dump(train_losses, f'{outdir}/train_losses_{unique_filename}.pkl')
     pkl_dump(valid_losses, f'{outdir}/valid_losses_{unique_filename}.pkl')
     pkl_dump(train_metrics, f'{outdir}/train_metrics_{unique_filename}.pkl')
@@ -191,8 +150,8 @@ def main():
                    unique_filename, outdir, 300)
 
     print('Reloading best model and returning validation predictions')
-    model = load_checkpoint(model, filename=checkpoint_filename,
-                            dir_path=outdir)
+    # model = load_checkpoint(model, filename=checkpoint_filename,
+    #                         dir_path=outdir)
     valid_preds = predict_model(model, valid_dataset, valid_loader)
     print('Saving valid predictions from best model')
     valid_preds.to_csv(f'{outdir}valid_predictions_{unique_filename}.csv', index=False)

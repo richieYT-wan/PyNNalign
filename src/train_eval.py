@@ -13,8 +13,7 @@ from tqdm.auto import tqdm
 import numpy as np
 
 from torch.utils.data import DataLoader, TensorDataset
-from src.utils import make_chunks
-from src.torch_utils import set_mode, set_device
+from src.torch_utils import set_mode, set_device, save_checkpoint, load_checkpoint
 from src.data_processing import get_dataset, assert_encoding_kwargs
 from src.metrics import get_metrics, get_predictions, get_mean_roc_curve
 
@@ -139,7 +138,6 @@ def eval_model_step(model, criterion, valid_loader):
 def predict_model(model, dataset: torch.utils.data.Dataset, dataloader: torch.utils.data.DataLoader):
     assert type(dataloader.sampler) == torch.utils.data.SequentialSampler, \
         'Test/Valid loader MUST use SequentialSampler!'
-
     assert hasattr(dataset, 'df'), 'Not DF found for this dataset!'
     model.eval()
     df = dataset.df.reset_index(drop=True).copy()
@@ -163,3 +161,75 @@ def predict_model(model, dataset: torch.utils.data.Dataset, dataloader: torch.ut
     df['core_start_index'] = best_indices
     df['label'] = ys
     return df
+
+
+def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dataset, train_loader, valid_loader,
+                     checkpoint_filename, outdir, burn_in: int = None):
+    """ Trains and validates a model over n_epochs, then reloads the best checkpoint
+
+
+    Args:
+        n_epochs:
+        tolerance:
+        model:
+        criterion:
+        optimizer:
+        train_dataset: Torch Dataset, is here so we can do standardize & burn-in periods
+        train_loader:
+        valid_loader:
+        checkpoint_filename:
+        outdir:
+
+    Returns:
+        model
+        train_metrics
+        valid_metrics
+        train_losses
+        valid_losses
+        best_epoch
+        best_val_loss
+        best_val_auc
+    """
+
+    if any([(hasattr(child, 'standardizer') or hasattr(child, 'ef_standardizer')) for child in [model.children()]+[model]]):
+        # TODO: Not sure about this workaround (works the same as in above with *data & pop(-1))
+        xs = train_dataset[:][:-1]
+        model.fit_standardizer(*xs)
+
+    if burn_in is not None:  # doing burn-in if it's not None
+        print('Doing burn-in period')
+        train_dataset.burn_in(True)
+        for e in tqdm(range(0, burn_in), desc='Burn-in period'):
+            _, _ = train_model_step(model, criterion, optimizer, train_loader)
+        train_dataset.burn_in(False)
+
+    print(f'Starting {n_epochs} training cycles')
+    train_metrics, valid_metrics, train_losses, valid_losses = [], [], [], []
+    best_val_loss, best_val_auc, best_epoch = 1000, 0.5, 1
+    for e in tqdm(range(1, n_epochs + 1), desc='epochs'):
+        train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)
+        valid_loss, valid_metric = eval_model_step(model, criterion, valid_loader)
+        train_metrics.append(train_metric)
+        valid_metrics.append(valid_metric)
+        train_losses.append(train_loss)
+        valid_losses.append(valid_loss)
+        if e % (n_epochs // 25) == 0:
+            tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+            tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+
+        # Doesn't allow saving the very first model as sometimes it gets stuck in a random state that has good
+        # performance for whatever reasons
+        if e > 1 and ((valid_loss <= best_val_loss + tolerance and valid_metric['auc'] > best_val_auc)\
+                      or valid_metric['auc'] > best_val_auc):
+            best_epoch = e
+            best_val_loss = valid_loss
+            best_val_auc = valid_metric['auc']
+            save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+
+    print(f'End of training cycles')
+    print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
+    print(f'Best valid epoch: {best_epoch}')
+    print(f'Best valid loss :\t{best_val_loss:.3e}, best valid AUC:\t{best_val_auc}')
+    print(f'Reloaded best model at {os.path.join(outdir, checkpoint_filename)}')
+    model = load_checkpoint(model, checkpoint_filename, outdir)
+    return model, train_metrics, valid_metrics, train_losses, valid_losses, best_epoch, best_val_loss, best_val_auc

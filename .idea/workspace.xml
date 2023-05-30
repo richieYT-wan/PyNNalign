@@ -3,8 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="f7cb4fa7-829b-46bf-9dce-30d98360cf1b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/230530_ExtraFeatures.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/230530_ExtraFeatures.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pyscripts/train_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pyscripts/train_model_ef.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_model_ef.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/train_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/train_eval.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +62,7 @@
       <recent name="$PROJECT_DIR$/" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.train_model_ef">
+  <component name="RunManager" selected="Python.train_model">
     <configuration name="datasets" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PyNNalign" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -175,8 +177,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.train_model_ef" />
         <item itemvalue="Python.train_model" />
+        <item itemvalue="Python.train_model_ef" />
         <item itemvalue="Python.debug_extrafeatures" />
         <item itemvalue="Python.train_eval" />
         <item itemvalue="Python.datasets" />
@@ -196,53 +198,14 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pyscripts/debug_burnin.py</url>
-          <line>31</line>
-          <option name="timeStamp" value="72" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pyscripts/debug_burnin.py</url>
-          <line>37</line>
-          <option name="timeStamp" value="75" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/train_eval.py</url>
-          <line>144</line>
-          <option name="timeStamp" value="108" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/train_eval.py</url>
-          <line>164</line>
-          <option name="timeStamp" value="113" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pyscripts/debug_extrafeatures.py</url>
-          <line>44</line>
-          <option name="timeStamp" value="114" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pyscripts/debug_extrafeatures.py</url>
-          <line>43</line>
-          <option name="timeStamp" value="115" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/models.py</url>
-          <line>424</line>
-          <option name="timeStamp" value="122" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/models.py</url>
-          <line>425</line>
-          <option name="timeStamp" value="123" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pyscripts/train_model.py</url>
-          <line>138</line>
-          <option name="timeStamp" value="124" />
-        </line-breakpoint>
-      </breakpoints>
+      <default-breakpoints>
+        <breakpoint enabled="true" type="python-exception">
+          <properties notifyOnlyOnFirst="true" notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+            <option name="notifyOnlyOnFirst" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
     </breakpoint-manager>
   </component>
 </project>
