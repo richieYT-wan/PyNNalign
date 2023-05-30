@@ -75,9 +75,9 @@ def args_parser():
                         help='Window size for sub-mers selection (default = 6)')
     parser.add_argument('-efnh', '--n_hidden_ef', dest='n_hidden_ef', required=True,
                         type = int, default = 5, help = 'Number of hidden units in the EF layer (default = 5)')
-    parser.add_argument('-efbn', '--batchnorm_ef', dest='batchnorm_ef', required=True,
+    parser.add_argument('-efbn', '--batchnorm_ef', dest='batchnorm_ef',
                         default=False, type=str2bool, help='Whether to add BatchNorm to the EF layer, (default = False)')
-    parser.add_argument('-efdo', '--dropout_ef', dest='dropout_ef', required=True,
+    parser.add_argument('-efdo', '--dropout_ef', dest='dropout_ef',
                         default=0.0, type=float, help='Whether to add DropOut to the EF layer (p in float e[0,1], default = 0.0)')
     """
     Training hyperparameters & args
@@ -114,6 +114,7 @@ def main():
     # valid_df = pd.read_csv(args['valid'])
     df = pd.read_csv(args['file'])
     if args['fold'] is not None:
+        torch.manual_seed(args['fold'])
         fold = args['fold']
         dfname = args['file'].split('/')[-1].split('.')[0]
         train_df = df.query('fold!=@fold')

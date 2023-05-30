@@ -2,9 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f7cb4fa7-829b-46bf-9dce-30d98360cf1b" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/bashscripts/cedar_10fold_w_vs_wo_ef.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bashscripts/burn_in_5fold.sh" beforeDir="false" afterPath="$PROJECT_DIR$/bashscripts/burn_in_5fold.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notebooks/230530_ExtraFeatures.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/230530_ExtraFeatures.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyscripts/train_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/output/debug_extrafeats/test.pt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output/debug_extrafeatures_230530_143751_96BVq/args_kcv_230530_cedar_aligned_f0_debug_extrafeatures_230530_143751_96BVq.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output/debug_extrafeatures_230530_143751_96BVq/checkpoint_best_kcv_230530_cedar_aligned_f0_debug_extrafeatures_230530_143751_96BVq.pt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output/debug_extrafeatures_230530_143751_96BVq/kcv_230530_cedar_aligned_f0_debug_extrafeatures_230530_143751_96BVq.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output/debug_extrafeatures_230530_143751_96BVq/train_losses_kcv_230530_cedar_aligned_f0_debug_extrafeatures_230530_143751_96BVq.pkl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output/debug_extrafeatures_230530_143751_96BVq/train_metrics_kcv_230530_cedar_aligned_f0_debug_extrafeatures_230530_143751_96BVq.pkl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output/debug_extrafeatures_230530_143751_96BVq/valid_losses_kcv_230530_cedar_aligned_f0_debug_extrafeatures_230530_143751_96BVq.pkl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output/debug_extrafeatures_230530_143751_96BVq/valid_metrics_kcv_230530_cedar_aligned_f0_debug_extrafeatures_230530_143751_96BVq.pkl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/output/debug_extrafeatures_230530_143751_96BVq/valid_predictions_kcv_230530_cedar_aligned_f0_debug_extrafeatures_230530_143751_96BVq.csv" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/pyscripts/train_model_ef.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_model_ef.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/train_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/train_eval.py" afterDir="false" />
     </list>
@@ -35,7 +45,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/Users/riwa/Documents/code/PyNNalign/pyscripts",
+    "last_opened_file_path": "/Users/riwa/Documents/code/PyNNalign/bashscripts",
     "settings.editor.selected.configurable": "editor.preferences.tabs"
   },
   "keyToStringList": {
@@ -55,8 +65,8 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/pyscripts" />
       <recent name="$PROJECT_DIR$/bashscripts" />
+      <recent name="$PROJECT_DIR$/pyscripts" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/" />

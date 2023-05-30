@@ -17,6 +17,6 @@ mkdir 230529_Burn_In_Fix
 
 for dir in $(ls ./ | grep 230529_burnin_test);
 do
-  mv "${dir}" "230529_Burn_In_Fix/${f}"
+  mv "${dir}" "230529_Burn_In_Fix/${dir}"
 done
 
