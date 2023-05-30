@@ -2,16 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f7cb4fa7-829b-46bf-9dce-30d98360cf1b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pyscripts/debug_extrafeatures.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notebooks/230530_ExtraFeatures.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/230530_ExtraFeatures.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pyscripts/train_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pyscripts/train_model_ef.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_model_ef.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_processing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/datasets.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/datasets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/metrics.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/train_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/train_eval.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,7 +34,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "last_opened_file_path": "/Users/riwa/Documents/code/PyNNalign/pyscripts",
-    "settings.editor.selected.configurable": "preferences.keymap"
+    "settings.editor.selected.configurable": "editor.preferences.tabs"
   },
   "keyToStringList": {
     "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
@@ -67,7 +60,7 @@
       <recent name="$PROJECT_DIR$/" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.train_model">
+  <component name="RunManager" selected="Python.train_model_ef">
     <configuration name="datasets" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PyNNalign" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -165,7 +158,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyscripts/train_model_ef.py" />
-      <option name="PARAMETERS" value="-f $PROJECT_DIR$/data/aligned_icore/230530_cedar_aligned.csv -o debug_extrafeatures -kf 0 -x mutant -y target -enc BL50LO -ml 12 -pad -15 -fc EL_rank_mut icore_selfsimilarity -nh 25 -std True -bn True -do 0.15 -ws 5 -efnh 5 -efbn True -efdo 0.15 -lr 5e-5 -wd 1e-2 -bs 64 -ne 300" />
+      <option name="PARAMETERS" value="-f $PROJECT_DIR$/data/aligned_icore/230530_cedar_aligned.csv -o debug_extrafeatures -kf 0 -x mutant -y target -enc BL50LO -ml 12 -pad -15 -fc EL_rank_mut icore_selfsimilarity -nh 25 -std True -bn True -do 0.15 -ws 5 -efnh 5 -efbn True -efdo 0.15 -lr 5e-5 -wd 1e-2 -bs 64 -ne 50" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -182,10 +175,10 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.train_model_ef" />
         <item itemvalue="Python.train_model" />
         <item itemvalue="Python.debug_extrafeatures" />
         <item itemvalue="Python.train_eval" />
-        <item itemvalue="Python.train_model_ef" />
         <item itemvalue="Python.datasets" />
       </list>
     </recent_temporary>
@@ -215,31 +208,6 @@
           <option name="timeStamp" value="75" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pyscripts/train_model_ef.py</url>
-          <line>150</line>
-          <option name="timeStamp" value="88" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pyscripts/train_model_ef.py</url>
-          <line>161</line>
-          <option name="timeStamp" value="89" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pyscripts/train_model_ef.py</url>
-          <line>155</line>
-          <option name="timeStamp" value="91" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/train_eval.py</url>
-          <line>139</line>
-          <option name="timeStamp" value="106" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/train_eval.py</url>
-          <line>142</line>
-          <option name="timeStamp" value="107" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/train_eval.py</url>
           <line>144</line>
           <option name="timeStamp" value="108" />
@@ -248,6 +216,31 @@
           <url>file://$PROJECT_DIR$/src/train_eval.py</url>
           <line>164</line>
           <option name="timeStamp" value="113" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pyscripts/debug_extrafeatures.py</url>
+          <line>44</line>
+          <option name="timeStamp" value="114" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pyscripts/debug_extrafeatures.py</url>
+          <line>43</line>
+          <option name="timeStamp" value="115" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/models.py</url>
+          <line>424</line>
+          <option name="timeStamp" value="122" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/models.py</url>
+          <line>425</line>
+          <option name="timeStamp" value="123" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pyscripts/train_model.py</url>
+          <line>138</line>
+          <option name="timeStamp" value="124" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

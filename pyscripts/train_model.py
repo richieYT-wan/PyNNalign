@@ -134,7 +134,7 @@ def main():
     best_epoch = 1
 
     print('Starting training cycles')
-    if hasattr(model, 'standardizer'):
+    if any([hasattr(child, 'standardizer') for child in model]):
         # Here, include the mask as well as it is used during fitting
         model.fit_standardizer(x_tensor=train_dataset.x_tensor, x_mask=train_dataset.x_mask)
 

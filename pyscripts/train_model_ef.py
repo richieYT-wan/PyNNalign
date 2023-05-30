@@ -9,6 +9,7 @@ if module_path not in sys.path:
 import torch
 from torch import optim
 from torch import nn
+from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
 from src.torch_utils import save_checkpoint, load_checkpoint
@@ -132,8 +133,8 @@ def main():
     model = NNAlignEF(activation=nn.SELU(), activation_ef=nn.SELU(), n_extrafeatures=len(args['feature_cols']), indel=False, **model_params)
     criterion = nn.BCEWithLogitsLoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
-    train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, **dataset_params)
-    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, return_dataset=True, indel=False, **dataset_params)
+    train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, sampler=RandomSampler, **dataset_params)
+    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, return_dataset=True, indel=False, sampler=SequentialSampler, **dataset_params)
 
     train_losses, valid_losses = [], []
     train_metrics, valid_metrics = [], []
@@ -142,7 +143,7 @@ def main():
     best_epoch = 1
 
     print('Starting training cycles')
-    if hasattr(model, 'standardizer'):
+    if any([(hasattr(child, 'standardizer') or hasattr(child, 'ef_standardizer')) for child in model.children()]):
         # Here, include the mask as well as it is used during fitting
         model.fit_standardizer(x_tensor=train_dataset.x_tensor,
                                x_mask=train_dataset.x_mask,
