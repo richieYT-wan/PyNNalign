@@ -2,18 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f7cb4fa7-829b-46bf-9dce-30d98360cf1b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/bashscripts/cedar_10fold_EF_TEST.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pyscripts/test_debug/train_model_ef_single_double_debug.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pyscripts/train_test_model_ef.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bashscripts/hyperparameters_tune.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bashscripts/placeholder_tuner.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pyscripts/test_fn.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bashscripts/test.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/notebooks/230530_ExtraFeatures.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/230530_ExtraFeatures.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyscripts/debug_burnin.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/test_debug/debug_burnin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyscripts/debug_extrafeatures.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/test_debug/debug_extrafeatures.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyscripts/train_model_ef.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/test_model_ef.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_processing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/torch_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/torch_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/train_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/train_eval.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyscripts/train_test_model_ef.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyscripts/train_test_model_ef.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,7 +38,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/Users/riwa/Documents/code/PyNNalign/pyscripts",
+    "last_opened_file_path": "/Users/riwa/Documents/code/PyNNalign/bashscripts",
     "settings.editor.selected.configurable": "editor.preferences.tabs"
   },
   "keyToStringList": {
@@ -63,15 +58,15 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/pyscripts" />
       <recent name="$PROJECT_DIR$/bashscripts" />
+      <recent name="$PROJECT_DIR$/pyscripts" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/pyscripts/test_debug" />
       <recent name="$PROJECT_DIR$/" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.train_model_ef_single_double_debug">
+  <component name="RunManager" selected="Python.test_fn">
     <configuration name="debug_burnin" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PyNNalign" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -107,6 +102,27 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyscripts/test_debug/debug_extrafeatures.py" />
       <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_fn" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="PyNNalign" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pyscripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyscripts/test_fn.py" />
+      <option name="PARAMETERS" value="myname" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -156,6 +172,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="train_model_ef" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="PyNNalign" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pyscripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyscripts/train_model_ef.py" />
+      <option name="PARAMETERS" value="-f ../data/aligned_icore/230530_cedar_aligned.csv -kf 1 -o DEBUG_EF -enc BL50LO -x mutant -y target -fc EL_rank_mut icore_selfsimilarity -ml 12 -pad -15 -nh 25 -std True -bn True -do 0.15 -ws 5 -efnh 5 -efbn True -efdo 0.15 -lr 1e-4 -bs 128 -ne 300 -tol 0.0001" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="train_model_ef_single_double_debug" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="PyNNalign" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -190,7 +227,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyscripts/train_test_model_ef.py" />
-      <option name="PARAMETERS" value="-f $PROJECT_DIR$/data/aligned_icore/230530_cedar_aligned.csv -o debug_extrafeatures -kf 0 -x mutant -y target -enc BL50LO -ml 12 -pad -15 -fc EL_rank_mut icore_selfsimilarity -nh 25 -std True -bn True -do 0.15 -ws 5 -efnh 5 -efbn True -efdo 0.15 -lr 5e-5 -wd 1e-2 -bs 64 -ne 50" />
+      <option name="PARAMETERS" value="-trf $PROJECT_DIR$/data/aligned_icore/230530_cedar_aligned.csv -tef $PROJECT_DIR$/data/aligned_icore/230530_prime_aligned.csv -o DEBUG_EF_TRAIN_TEST -kf 0 -x mutant -y target -enc BL50LO -ml 12 -pad -15 -fc EL_rank_mut icore_selfsimilarity -nh 25 -std True -bn True -do 0.15 -ws 5 -efnh 5 -efbn True -efdo 0.15 -lr 5e-5 -wd 1e-2 -bs 64 -ne 50" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -199,7 +236,9 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.test_fn" />
       <item itemvalue="Python.train_model_ef_single_double_debug" />
+      <item itemvalue="Python.train_model_ef" />
       <item itemvalue="Python.debug_burnin" />
       <item itemvalue="Python.train_test_model_ef" />
       <item itemvalue="Python.debug_extrafeatures" />
@@ -208,10 +247,10 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.train_test_model_ef" />
         <item itemvalue="Python.debug_extrafeatures" />
         <item itemvalue="Python.debug_burnin" />
         <item itemvalue="Python.train_model" />
-        <item itemvalue="Python.train_test_model_ef" />
         <item itemvalue="Python.train_eval" />
       </list>
     </recent_temporary>

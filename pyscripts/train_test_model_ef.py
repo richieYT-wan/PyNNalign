@@ -22,6 +22,7 @@ import seaborn as sns
 
 import argparse
 
+
 def args_parser():
     parser = argparse.ArgumentParser(description='Script to train and evaluate a NNAlign model ')
     # TODO: Deprecate or update this behaviour
@@ -61,8 +62,8 @@ def args_parser():
     parser.add_argument('-pad', '--pad_scale', dest='pad_scale', type=float, default=None, required=False,
                         help='Number with which to pad the inputs if needed; ' \
                              'Default behaviour is 0 if onehot, -12 is BLOSUM')
-    parser.add_argument('-fc', '--feature_cols', dest='feature_cols', nargs='+', required = False,
-                        help='Name of columns (str) to use as extra features, space separated.'\
+    parser.add_argument('-fc', '--feature_cols', dest='feature_cols', nargs='+', required=False,
+                        help='Name of columns (str) to use as extra features, space separated.' \
                              'For example, to add 2 features Rank and Similarity, do: -ef Rank Similarity')
     """
     Neural Net & Encoding args 
@@ -78,11 +79,13 @@ def args_parser():
     parser.add_argument('-ws', '--window_size', dest='window_size', type=int, default=6, required=False,
                         help='Window size for sub-mers selection (default = 6)')
     parser.add_argument('-efnh', '--n_hidden_ef', dest='n_hidden_ef', required=True,
-                        type = int, default = 5, help = 'Number of hidden units in the EF layer (default = 5)')
+                        type=int, default=5, help='Number of hidden units in the EF layer (default = 5)')
     parser.add_argument('-efbn', '--batchnorm_ef', dest='batchnorm_ef',
-                        default=False, type=str2bool, help='Whether to add BatchNorm to the EF layer, (default = False)')
+                        default=False, type=str2bool,
+                        help='Whether to add BatchNorm to the EF layer, (default = False)')
     parser.add_argument('-efdo', '--dropout_ef', dest='dropout_ef',
-                        default=0.0, type=float, help='Whether to add DropOut to the EF layer (p in float e[0,1], default = 0.0)')
+                        default=0.0, type=float,
+                        help='Whether to add DropOut to the EF layer (p in float e[0,1], default = 0.0)')
     """
     Training hyperparameters & args
     """
@@ -108,6 +111,7 @@ then ls that somewhere and iterate through each of the folders to reload each mo
 we can do this instead.
 """
 
+
 def main():
     start = dt.now()
     # I like dictionary for args :-)
@@ -120,15 +124,14 @@ def main():
     mkdirs(outdir)
 
     print(args)
-    # TODO: Deprecate this behaviour for now because I don't want to deal with it
-    # train_df = pd.read_csv(args['train'])
-    # valid_df = pd.read_csv(args['valid'])
     df = pd.read_csv(args['train_file'])
-    test_df = pd.read_csv(args['test_file'])
+    tmp = args['seq_col']
+    # Filtering from training set
+    test_df = pd.read_csv(args['test_file']).query(f'{tmp} not in @df.{tmp}.values')
     if args['fold'] is not None:
         torch.manual_seed(args['fold'])
         fold = args['fold']
-        dfname = args['file'].split('/')[-1].split('.')[0]
+        dfname = os.path.basename(args['train_file']).split('.')[0]
         train_df = df.query('fold!=@fold')
         valid_df = df.query('fold==@fold')
         unique_filename = f'kcv_{dfname}_f{fold}_{unique_filename}'
@@ -137,24 +140,32 @@ def main():
         train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
     # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
     # Def params so it's ✨tidy✨
-    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize', 'n_hidden_ef', 'batchnorm_ef', 'dropout_ef']
-    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size', 'feature_cols']
+    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize', 'n_hidden_ef', 'batchnorm_ef',
+                  'dropout_ef']
+    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size',
+                    'feature_cols']
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # instantiate objects
-    model = NNAlignEF(activation=nn.SELU(), activation_ef=nn.SELU(), n_extrafeatures=len(args['feature_cols']), indel=False, **model_params)
+    model = NNAlignEF(activation=nn.SELU(), activation_ef=nn.SELU(), n_extrafeatures=len(args['feature_cols']),
+                      indel=False, **model_params)
     criterion = nn.BCEWithLogitsLoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
-    train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, sampler=RandomSampler, **dataset_params)
-    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, return_dataset=True, indel=False, sampler=SequentialSampler, **dataset_params)
-    test_loader, test_dataset = get_NNAlign_dataloader(test_df, return_dataset=True, indel=False, sampler=SequentialSampler, **dataset_params)
+    train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False,
+                                                         sampler=RandomSampler, **dataset_params)
+    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, return_dataset=True, indel=False,
+                                                         sampler=SequentialSampler, **dataset_params)
+    test_loader, test_dataset = get_NNAlign_dataloader(test_df, return_dataset=True, indel=False,
+                                                       sampler=SequentialSampler, **dataset_params)
 
     # Training loop & train/valid results
     model, train_metrics, valid_metrics, train_losses, valid_losses, \
-        best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model, criterion, optimizer,
-                                                                   train_dataset, train_loader, valid_loader, checkpoint_filename,
-                                                                   outdir, args['burn_in'])
+    best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model, criterion,
+                                                               optimizer,
+                                                               train_dataset, train_loader, valid_loader,
+                                                               checkpoint_filename,
+                                                               outdir, args['burn_in'])
     pkl_dump(train_losses, f'{outdir}/train_losses_{unique_filename}.pkl')
     pkl_dump(valid_losses, f'{outdir}/valid_losses_{unique_filename}.pkl')
     pkl_dump(train_metrics, f'{outdir}/train_metrics_{unique_filename}.pkl')
@@ -181,12 +192,16 @@ def main():
 
     # Saving text file for the run:
     with open(f'{outdir}args_{unique_filename}.txt', 'w') as file:
+        header = "#" * 100 + "\n#" + " "*42 + "PARAMETERS" + "\n" + '#' * 100 + '\n'
+        file.write(header)
         for key, value in args.items():
             file.write(f"{key}: {value}\n")
+        header2 = "#" * 100 + "\n#" + " "*42 + "VALID-TEST\n" + '#' * 100 + '\n'
+        file.write(header2)
         file.write(f"Best valid epoch: {best_epoch}\n")
-        file.write(f"Best valid loss: {best_val_auc}\n")
+        file.write(f"Best valid loss: {best_val_loss}\n")
         file.write(f"Best valid auc: {best_val_auc}\n")
-        file.write(f"Test file: {args['test_file']}")
+        file.write(f"Test file: {args['test_file']}\n")
         file.write(f"Test loss: {test_loss}\n")
         file.write(f"Test AUC: {test_metrics['auc']}\n")
 

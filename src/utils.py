@@ -14,12 +14,12 @@ from datetime import datetime as dt
 
 
 def get_motif(row, seq_col, window_size):
-    return row[seq_col][int(row['core_start_index']):int(row['core_start_index'])+window_size]
+    return row[seq_col][int(row['core_start_index']):int(row['core_start_index']) + window_size]
 
 
 def plot_loss_aucs(train_losses, valid_losses, train_aucs, valid_aucs,
                    filename, outdir, dpi=300):
-    f, a = plt.subplots(2, 1, figsize=(12, 10));
+    f, a = plt.subplots(2, 1, figsize=(12, 10))
     a = a.ravel()
     a[0].plot(train_losses, label='train_losses')
     a[0].plot(valid_losses, label='valid_losses')
@@ -30,19 +30,21 @@ def plot_loss_aucs(train_losses, valid_losses, train_aucs, valid_aucs,
     a[1].legend()
     a[1].set_title('AUC')
     a[1].set_xlabel('epochs')
-    f.savefig(f'{outdir}{filename}.png', dpi=dpi, bbox_inches='tight');
+    f.savefig(f'{outdir}{filename}.png', dpi=dpi, bbox_inches='tight')
 
 
 def get_datetime_string():
-    return dt.now().strftime("%y%m%d_%H%M%S")
+    return dt.now().strftime("%y%m%d_%H%M")
 
 
-def get_random_id(length=8):
-    first_character = ''.join(secrets.choice(string.digits) for _ in range(2))  # Generate a random digit for the first character
+def get_random_id(length=6):
+    first_character = ''.join(
+        secrets.choice(string.digits) for _ in range(2))  # Generate a random digit for the first character
     remaining_characters = ''.join(
-        secrets.choice(string.ascii_letters + string.digits) for _ in range(length-2))  # Generate L-2 random characters
+        secrets.choice(string.ascii_letters + string.digits) for _ in
+        range(length - 2))  # Generate L-2 random characters
     random_string = first_character + remaining_characters
-    return first_character + remaining_characters
+    return random_string
 
 
 def make_chunks(iterable, chunk_size):
