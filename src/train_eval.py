@@ -208,6 +208,10 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
         train_dataset.burn_in(False)
 
     print(f'Starting {n_epochs} training cycles')
+    # Pre-saving the model at the very start because some bugged partitions
+    # would have terrible performance and never save for very short debug runs.
+    save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+    # Actual runs
     train_metrics, valid_metrics, train_losses, valid_losses = [], [], [], []
     best_val_loss, best_val_auc, best_epoch = 1000, 0.5, 1
     for e in tqdm(range(1, n_epochs + 1), desc='epochs', leave=False):

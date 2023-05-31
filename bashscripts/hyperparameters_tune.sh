@@ -1,21 +1,42 @@
 #!/bin/bash
 
+# Making extra columns combinations :
+strings=("icore_aliphatic_index" "icore_boman" "icore_hydrophobicity" "icore_isoelectric_point" "icore_dissimilarity_score" "icore_blsm_mut_score" "ratio_rank" "EL_rank_wt_aligned" "foreignness_score" "Total_Gene_TPM")
+
+length=${#strings[@]}
+total_combinations=$((2**length - 1))
+
+COMBINATION_VALUES=()
+
+# Generate all possible combinations of strings
+for ((i=1; i<=total_combinations; i++)); do
+    combination=""
+    for ((j=0; j<length; j++)); do
+        if (( (i & (1<<j)) != 0 )); then
+            if [ -z "$combination" ]; then
+                combination="${strings[$j]}"
+            else
+                combination="$combination ${strings[$j]}"
+            fi
+        fi
+    done
+    COMBINATION_VALUES+=("$combination")
+done
 # Define the list of values for each variable
-ENC_VALUES=("BL50LO")
-PAD_VALUES=(-17)
-NH_VALUES=(15)
-STD_VALUES=(true)
-BN_VALUES=(true)
-DO_VALUES=(0.15)
-WS_VALUES=(5)
-EFNH_VALUES=(5)
-EFBN_VALUES=(true)
-EFDO_VALUES=(0.15)
-LR_VALUES=(1e-4)
-WD_VALUES=(1e-2)
-BS_VALUES=(64)
-COMBINATION_VALUES=("EL_rank_mut" "EL_rank_mut icore_selfsimilarity")
-fold=0
+ENC_VALUES=("BL50LO" "BL62LO" "BL62FREQ" "onehot")
+PAD_VALUES=(-15 0)
+NH_VALUES=(10 15 25 40 50 75)
+STD_VALUES=(true false)
+BN_VALUES=(true false)
+DO_VALUES=(0.0 0.15 0.3)
+WS_VALUES=(4 5 6 7)
+EFNH_VALUES=(2 5 10 15)
+EFBN_VALUES=(true false)
+EFDO_VALUES=(0.0 0.15 0.3)
+LR_VALUES=(5e-5 1e-4 5e-4 1e-3)
+WD_VALUES=(1e-2 1e-4 1e-6 1e-12)
+BS_VALUES=(64 128)
+
 # Iterate over the variables and their values
 for ENC in "${ENC_VALUES[@]}"; do
   for PAD in "${PAD_VALUES[@]}"; do
