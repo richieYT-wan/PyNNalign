@@ -122,8 +122,6 @@ def main():
     checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
     outdir = os.path.join('../output/', unique_filename) + '/'
     mkdirs(outdir)
-
-    print(args)
     df = pd.read_csv(args['train_file'])
     tmp = args['seq_col']
     # Filtering from training set
