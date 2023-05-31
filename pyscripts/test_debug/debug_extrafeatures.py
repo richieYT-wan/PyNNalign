@@ -1,5 +1,5 @@
 import os, sys
-module_path = os.path.abspath(os.path.join('..'))
+module_path = os.path.abspath(os.path.join('../..'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 from src.models import NNAlignEF, NNAlign
@@ -11,7 +11,7 @@ from torch import nn
 from torch.utils.data import RandomSampler, SequentialSampler
 import torch.nn.functional as F
 from torch import optim
-cedar_aligned = pd.read_csv('../data/aligned_icore/230530_cedar_aligned.csv')
+cedar_aligned = pd.read_csv('/Users/riwa/Documents/code/PyNNalign/data/aligned_icore/230530_cedar_aligned.csv')
 n_hidden=25
 window_size=5
 dropout=0.15
@@ -41,6 +41,7 @@ criterion = nn.BCEWithLogitsLoss(reduction='mean')
 optimizer = optim.SGD(model.parameters(), lr=1e-4, weight_decay=1e-2)
 train_stuff = train_model_step(model, criterion, optimizer, train_loader)
 valid_stuff = eval_model_step(model, criterion, valid_loader)
-save_checkpoint(model, filename='test.pt', dir_path = '../output/debug_extrafeats/')
-load_checkpoint(model, filename='test.pt', dir_path = '../output/debug_extrafeats/')
+save_checkpoint(model, filename='test.pt', dir_path = '/Users/riwa/Documents/code/PyNNalign/output/debug_extrafeats/')
+load_checkpoint(model, filename='test.pt', dir_path = '/Users/riwa/Documents/code/PyNNalign/output/debug_extrafeats/')
 predict_stuff = predict_model(model, test_dataset, test_loader)
+print('All good')

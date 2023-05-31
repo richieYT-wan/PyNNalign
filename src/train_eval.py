@@ -210,14 +210,14 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
     print(f'Starting {n_epochs} training cycles')
     train_metrics, valid_metrics, train_losses, valid_losses = [], [], [], []
     best_val_loss, best_val_auc, best_epoch = 1000, 0.5, 1
-    for e in tqdm(range(1, n_epochs + 1), desc='epochs'):
+    for e in tqdm(range(1, n_epochs + 1), desc='epochs', leave=False):
         train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)
         valid_loss, valid_metric = eval_model_step(model, criterion, valid_loader)
         train_metrics.append(train_metric)
         valid_metrics.append(valid_metric)
         train_losses.append(train_loss)
         valid_losses.append(valid_loss)
-        if e % (n_epochs // 20) == 0:
+        if e % (n_epochs // 10) == 0:
             tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
             tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
 
@@ -234,6 +234,6 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
     print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
     print(f'Best valid epoch: {best_epoch}')
     print(f'Best valid loss :\t{best_val_loss:.3e}, best valid AUC:\t{best_val_auc}')
-    print(f'Reloaded best model at {os.path.join(outdir, checkpoint_filename)}')
+    print(f'Reloaded best model at {os.path.abspath(os.path.join(outdir, checkpoint_filename))}')
     model = load_checkpoint(model, checkpoint_filename, outdir)
     return model, train_metrics, valid_metrics, train_losses, valid_losses, best_epoch, best_val_loss, best_val_auc

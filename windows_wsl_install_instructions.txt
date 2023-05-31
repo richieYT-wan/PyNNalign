@@ -1,0 +1,9 @@
+
+Link to install WSL: 
+https://learn.microsoft.com/en-us/windows/wsl/install
+
+VIDEO FOR WINDOWS 10: 
+https://www.youtube.com/watch?v=X-DHaQLrBi8&ab_channel=ProgrammingKnowledge2
+
+VIDEO FOR WINDOWS 11: 
+https://www.youtube.com/watch?v=wjbbl0TTMeo&ab_channel=ProgrammingKnowledge2

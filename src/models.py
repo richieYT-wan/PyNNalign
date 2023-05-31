@@ -387,6 +387,121 @@ class NNAlign(NetParent):
         self.init_params = state_dict['init_params']
 
 
+class ExtraLayerSingle(NetParent):
+
+    def __init__(self, n_input, n_hidden, activation=nn.SELU(), batchnorm=False, dropout=0.0):
+        super(ExtraLayerSingle, self).__init__()
+        self.n_input = n_input
+
+        # This here exists for compatibility issues. We don't actually use any hidden but a single in -> out layer
+        self.n_hidden = n_hidden
+        # These here are used to batchnorm and dropout the concatenated inputs, rather than an intermediate layer nodes
+        self.dropout = nn.Dropout(dropout)
+        if batchnorm:
+            self.bn1 = nn.BatchNorm1d(n_input)
+        self.batchnorm = batchnorm
+        # Also exists for compatibility...
+        self.act = activation
+        self.layer = nn.Linear(n_input, 1)
+
+    def forward(self, x_concat):
+        """ Assumes we give it the concatenated (dim=1) input
+        The input should be the concat'd tensor between the tensor logits returned by NNAlign and the standardized features
+        Args:
+            x_concat:
+
+        Returns:
+            z
+        """
+        if self.batchnorm:
+            x_concat = self.bn1(x_concat)
+        z = self.dropout(x_concat)
+        z = self.layer(z)
+        return z
+
+    def predict(self, x_concat):
+        """
+        Convoluted but exists for compatibility issues
+        Args:
+            x_concat:
+
+        Returns:
+
+        """
+        return F.sigmoid(self(x_concat))
+
+    def state_dict(self, **kwargs):
+        state_dict = super(ExtraLayerSingle, self).state_dict()
+        state_dict['n_input'] = self.n_input
+        state_dict['n_hidden'] = self.n_hidden
+        # state_dict['dropout'] = self.dropout.p
+        state_dict['batchnorm'] = self.batchnorm
+        state_dict['act'] = self.act
+        return state_dict
+
+    def load_state_dict(self, state_dict, **kwargs):
+        self.n_input = state_dict['n_input']
+        self.n_hidden = state_dict['n_hidden']
+        # self.dropout = state_dict['dropout']
+        self.batchnorm = state_dict['batchnorm']
+        self.act = state_dict['act']
+
+
+class ExtraLayerDouble(NetParent):
+    def __init__(self, n_input, n_hidden, activation=nn.SELU(), batchnorm=False, dropout=0.0):
+        super(ExtraLayerDouble, self).__init__()
+        self.n_input = n_input
+        self.n_hidden = n_hidden
+        self.act = activation
+        self.batchnorm = batchnorm
+        self.dropout = nn.Dropout(dropout)
+        if batchnorm:
+            self.bn1 = nn.BatchNorm1d(n_hidden)
+
+        self.in_layer = nn.Linear(self.n_input, n_hidden)
+        self.out_layer = nn.Linear(n_hidden, 1)
+
+    def forward(self, x_concat):
+        """ Assumes x_concat comes from the concatenation of the output of NNAlign and X_features, standardized or not
+        Args:
+            x_concat:
+
+        Returns:
+            z: The result of the layers
+        """
+        z = self.in_layer(x_concat)
+        if self.batchnorm:
+            z = self.bn1(z)
+        z = self.act(self.dropout(z))
+        z = self.out_layer(z)
+        return z
+
+    def predict(self, x_concat):
+        """ Exists for compatibility / cleaner code issues
+        Args:
+            x_concat: Same as above.
+        Returns:
+            z
+        """
+        return F.sigmoid(self(x_concat))
+
+    def state_dict(self, **kwargs):
+        state_dict = super(ExtraLayerDouble, self).state_dict()
+        state_dict['n_input'] = self.n_input
+        state_dict['n_hidden'] = self.n_hidden
+        # state_dict['dropout'] = self.dropout.p
+        state_dict['batchnorm'] = self.batchnorm
+        state_dict['act'] = self.act
+        return state_dict
+
+    def load_state_dict(self, state_dict, **kwargs):
+        self.n_input = state_dict['n_input']
+        self.n_hidden = state_dict['n_hidden']
+        # self.dropout = state_dict['dropout']
+        self.batchnorm = state_dict['batchnorm']
+        self.act = state_dict['act']
+
+
 class NNAlignEF(NetParent):
     """ EF == ExtraFeatures
     TODO: Currently assumes that I need an extra in_layer + an extra out_layer
@@ -477,4 +592,79 @@ class NNAlignEF(NetParent):
     def load_state_dict(self, state_dict, **kwargs):
         self.nnalign_model.load_state_dict(state_dict['nnalign_model'])
         self.ef_standardizer.load_state_dict(state_dict['ef_standardizer'])
+        self.init_params = state_dict['init_params']
+
+
+class NNAlignEFTest(NetParent):
+    """ This class here used to test the difference using the class ExtraLayerXX instead of spelling out the layers here.
+    """
+
+    def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0,
+                 indel=False, standardize=True,
+                 extra_layer='single',
+                 n_extrafeatures=0, n_hidden_ef=5, activation_ef=nn.SELU(), batchnorm_ef=False, dropout_ef=0.0,
+                 **kwargs):
+        super(NNAlignEFTest, self).__init__()
+        # NNAlign part
+        self.nnalign_model = NNAlign(n_hidden, window_size, activation, batchnorm, dropout, indel, standardize)
+        # Extra layer part
+        self.in_dim = n_extrafeatures + 1  # +1 because that's the dimension of the logit scores returned by NNAlign
+        self.ef_standardizer = StandardizerFeatures() if standardize else StdBypass()
+        constructor = dict(single=ExtraLayerSingle, double=ExtraLayerDouble)[extra_layer]
+        self.ef_layer = constructor(n_input=n_extrafeatures+1, n_hidden=n_hidden_ef,
+                                        activation=activation_ef, batchnorm=batchnorm_ef, dropout=dropout_ef)
+
+        self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
+                            'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel, 'standardize': standardize,
+                            'n_extrafeatures': n_extrafeatures, 'n_hidden_ef': n_hidden_ef,
+                            'activation_ef': activation_ef,
+                            'batchnorm_ef': batchnorm_ef, 'dropout_ef': dropout_ef}
+
+    def fit_standardizer(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_features: torch.Tensor):
+        self.nnalign_model.fit_standardizer(x_tensor, x_mask)
+        self.ef_standardizer.fit(x_features)
+
+    def forward(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_features: torch.Tensor):
+        # NNAlign part
+        z = self.nnalign_model(x_tensor, x_mask)
+        # Extra features part, standardizes, concat
+        x_features = self.ef_standardizer(x_features)
+        z = torch.cat([z, x_features], dim=1)
+        # Standard NN stuff for the extra layers
+        return self.ef_layer(z)
+
+    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_features: torch.Tensor):
+        """ TODO: This is a bit convoluted and could be reworked to be more efficient
+                  Would probly require to modify the other classes a bit though
+
+        Args:
+            x_tensor:
+            x_mask:
+            x_features:
+
+        Returns:
+
+        """
+        with torch.no_grad():
+            # Return logits from nnalign model + max idx
+            z, max_idx = self.nnalign_model.predict_logits(x_tensor, x_mask)
+
+            # Standard NN stuff for the extra layers
+            x_features = self.ef_standardizer(x_features)
+            z = torch.cat([z, x_features], dim=1)
+            z = self.ef_layer.predict(z)
+            return z, max_idx
+
+    def state_dict(self, **kwargs):
+        state_dict = super(NNAlignEFTest, self).state_dict()
+        state_dict['nnalign_model'] = self.nnalign_model.state_dict()
+        state_dict['ef_standardizer'] = self.ef_standardizer.state_dict()
+        state_dict['ef_layer'] = self.ef_layer.state_dict()
+        state_dict['init_params'] = self.init_params
+        return state_dict
+
+    def load_state_dict(self, state_dict, **kwargs):
+        self.nnalign_model.load_state_dict(state_dict['nnalign_model'])
+        self.ef_standardizer.load_state_dict(state_dict['ef_standardizer'])
+        self.ef_layer.load_state_dict(state_dict['ef_layer'])
         self.init_params = state_dict['init_params']

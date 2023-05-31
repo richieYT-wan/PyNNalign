@@ -62,7 +62,7 @@ def save_checkpoint(model, filename: str = 'checkpoint.pt', dir_path: str = './'
     savepath = os.path.join(dir_path, filename)
     torch.save(model.state_dict(), savepath)
     if verbose:
-        print(f'Model saved at {savepath}')
+        print(f'Model saved at {os.path.abspath(savepath)}')
 
 
 def load_checkpoint(model, filename: str, dir_path: str = None):
