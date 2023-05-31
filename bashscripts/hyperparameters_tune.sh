@@ -102,9 +102,9 @@ for ENC in "${ENC_VALUES[@]}"; do
                             echo 'mv "${FILENAME}"_* "${OUTDIRFINAL}${FILENAME}/"' >> "${FILENAME}.sh"
 
                             # Submit the script for execution
-                            qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=01:30:00 "${FILENAME}.sh"
+                            qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=01:45:00 "${FILENAME}.sh"
                             # qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=00:05:00 "${FILENAME}.sh"
-                            # rm "${FILENAME}.sh"
+                            rm "${FILENAME}.sh"
                           done
                         done
                       done
