@@ -89,21 +89,19 @@ for ENC in "${ENC_VALUES[@]}"; do
                             echo 'pids=()' >> "${FILENAME}.sh"
                             echo 'for fold in $(seq 0 9);' >> "${FILENAME}.sh"
                             echo 'do' >> "${FILENAME}.sh"
-                            echo "python3 ./train_test_model_ef.py -trf \"\${HOMEDIR}data/aligned_icore/230530_cedar_aligned.csv\" -tef \"\${HOMEDIR}data/aligned_icore/230530_prime_aligned.csv\" -ml 12 -ne 450 -x mutant -y target -o ${FILENAME} -kf \${fold} -enc ${ENC} -pad ${PAD} -fc ${COMBINATION} -nh ${NH} -std ${STD} -bn ${BN} -do ${DO} -ws ${WS} -efnh ${EFNH} -efbn ${EFBN} -efdo ${EFDO} -lr ${LR} -wd ${WD} -bs ${BS} &" >> "${FILENAME}.sh"
+                            echo "python3 ./train_test_model_ef.py -trf \"\${HOMEDIR}data/aligned_icore/230530_cedar_aligned.csv\" -tef \"\${HOMEDIR}data/aligned_icore/230530_prime_aligned.csv\" -ml 12 -ne 750 -x mutant -y target -o ${FILENAME} -kf \${fold} -enc ${ENC} -pad ${PAD} -fc ${COMBINATION} -nh ${NH} -std ${STD} -bn ${BN} -do ${DO} -ws ${WS} -efnh ${EFNH} -efbn ${EFBN} -efdo ${EFDO} -lr ${LR} -wd ${WD} -bs ${BS} &" >> "${FILENAME}.sh"
                             # echo "python3 ./train_test_model_ef.py -trf \"\${HOMEDIR}data/aligned_icore/230530_cedar_aligned.csv\" -tef \"\${HOMEDIR}data/aligned_icore/230530_prime_aligned.csv\" -ml 12 -ne 11 -x mutant -y target -o ${FILENAME} -kf \${fold} -enc ${ENC} -pad ${PAD} -fc ${COMBINATION} -nh ${NH} -std ${STD} -bn ${BN} -do ${DO} -ws ${WS} -efnh ${EFNH} -efbn ${EFBN} -efdo ${EFDO} -lr ${LR} -wd ${WD} -bs ${BS} &" >> "${FILENAME}.sh"
                             echo '  pids+=($!)' >> "${FILENAME}.sh"
                             echo 'done' >> "${FILENAME}.sh"
                             echo 'for pid in "${pids[@]}"; do' >> "${FILENAME}.sh"
                             echo '  wait "$pid"' >> "${FILENAME}.sh"
                             echo 'done' >> "${FILENAME}.sh"
-                            # echo 'sleep 10' >> "${FILENAME}.sh"
-                            echo 'sleep 120' >> "${FILENAME}.sh"
                             echo 'mkdir -p "${OUTDIRFINAL}${FILENAME}/"' >> "${FILENAME}.sh"
                             echo 'cd "${OUTDIR}"' >> "${FILENAME}.sh"
                             echo 'mv "${FILENAME}"_* "${OUTDIRFINAL}${FILENAME}/"' >> "${FILENAME}.sh"
 
                             # Submit the script for execution
-                            qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=01:00:00 "${FILENAME}.sh"
+                            qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=02:00:00 "${FILENAME}.sh"
                             # qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=00:05:00 "${FILENAME}.sh"
                             # rm "${FILENAME}.sh"
                           done
