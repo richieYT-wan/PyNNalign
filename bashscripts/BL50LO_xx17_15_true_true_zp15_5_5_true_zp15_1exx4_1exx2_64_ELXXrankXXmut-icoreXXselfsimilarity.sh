@@ -1,5 +1,7 @@
 #!/bin/bash
-HOMEDIR="/Users/riwa/Documents/code/PyNNalign/"
+source /home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh
+source activate phd
+HOMEDIR="/home/projects/vaccine/people/yatwan/PyNNalign/"
 PYDIR="${HOMEDIR}pyscripts/"
 OUTDIR="${HOMEDIR}output/"
 OUTDIRFINAL="${OUTDIR}230601_hyperparameters_tuning_gridsearch/"

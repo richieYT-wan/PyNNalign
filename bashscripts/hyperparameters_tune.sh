@@ -45,7 +45,9 @@ for ENC in "${ENC_VALUES[@]}"; do
                             FILENAME=${FILENAME//icore_/}
                             # Write the code snippet to a new file
                             echo "#!/bin/bash" > "${FILENAME}.sh"
-                            echo 'HOMEDIR="/Users/riwa/Documents/code/PyNNalign/"' >> "${FILENAME}.sh"
+                            echo "source /home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh" >>"${FILENAME}.sh"
+                            echo "source activate phd" >> "${FILENAME}.sh"
+                            echo 'HOMEDIR="/home/projects/vaccine/people/yatwan/PyNNalign/"' >> "${FILENAME}.sh"
                             echo 'PYDIR="${HOMEDIR}pyscripts/"' >> "${FILENAME}.sh"
                             echo 'OUTDIR="${HOMEDIR}output/"' >> "${FILENAME}.sh"
                             echo 'OUTDIRFINAL="${OUTDIR}230601_hyperparameters_tuning_gridsearch/"' >> "${FILENAME}.sh"
@@ -78,7 +80,8 @@ for ENC in "${ENC_VALUES[@]}"; do
                             echo 'mv "${FILENAME}"_* "${OUTDIRFINAL}${FILENAME}/"' >> "${FILENAME}.sh"
 
                             # Submit the script for execution
-                            qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46.5gb,walltime=00:10:00 ${FILENAME}
+                            qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=00:10:00 "${FILENAME}.sh"
+                            rm "${FILENAME}.sh"
                           done
                         done
                       done
