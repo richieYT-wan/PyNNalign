@@ -1,13 +1,14 @@
 #!/bin/bash
 
 # Making extra columns combinations :
-strings=("icore_aliphatic_index" "icore_boman" "icore_hydrophobicity" "icore_isoelectric_point" "icore_dissimilarity_score" "icore_blsm_mut_score" "ratio_rank" "EL_rank_wt_aligned" "foreignness_score" "Total_Gene_TPM")
+#strings=("icore_aliphatic_index" "icore_boman" "icore_hydrophobicity" "icore_isoelectric_point" "icore_dissimilarity_score" "icore_blsm_mut_score" "ratio_rank" "EL_rank_wt_aligned" "foreignness_score" "Total_Gene_TPM")
+
+strings=("EL_rank_mut" "icore_blsm_mut_score" "icore_selfsimilarity" "hydrophobicity")
 
 length=${#strings[@]}
 total_combinations=$((2**length - 1))
 
 COMBINATION_VALUES=()
-
 # Generate all possible combinations of strings
 for ((i=1; i<=total_combinations; i++)); do
     combination=""
@@ -23,19 +24,19 @@ for ((i=1; i<=total_combinations; i++)); do
     COMBINATION_VALUES+=("$combination")
 done
 # Define the list of values for each variable
-ENC_VALUES=("BL50LO" "BL62LO" "BL62FREQ" "onehot")
-PAD_VALUES=(-15 0)
-NH_VALUES=(10 15 25 40 50 75)
-STD_VALUES=(true false)
+ENC_VALUES=("BL50LO" "BL62LO" "onehot")
+PAD_VALUES=(0)
+NH_VALUES=(10 25 50 75)
+STD_VALUES=(true)
 BN_VALUES=(true false)
-DO_VALUES=(0.0 0.15 0.3)
-WS_VALUES=(4 5 6 7)
-EFNH_VALUES=(2 5 10 15)
+DO_VALUES=(0.0 0.25)
+WS_VALUES=(5 6)
+EFNH_VALUES=(2 5 10)
 EFBN_VALUES=(true false)
-EFDO_VALUES=(0.0 0.15 0.3)
-LR_VALUES=(5e-5 1e-4 5e-4 1e-3)
-WD_VALUES=(1e-2 1e-4 1e-6 1e-12)
-BS_VALUES=(64 128)
+EFDO_VALUES=(0.0 0.25)
+LR_VALUES=(1e-4 5e-4 1e-3)
+WD_VALUES=(1e-2 1e-5 0)
+BS_VALUES=(128 256)
 
 # Iterate over the variables and their values
 for ENC in "${ENC_VALUES[@]}"; do
@@ -101,7 +102,7 @@ for ENC in "${ENC_VALUES[@]}"; do
                             echo 'mv "${FILENAME}"_* "${OUTDIRFINAL}${FILENAME}/"' >> "${FILENAME}.sh"
 
                             # Submit the script for execution
-                            qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=02:00:00 "${FILENAME}.sh"
+                            qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=01:00:00 "${FILENAME}.sh"
                             # qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=00:05:00 "${FILENAME}.sh"
                             # rm "${FILENAME}.sh"
                           done
