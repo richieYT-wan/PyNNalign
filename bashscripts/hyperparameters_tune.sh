@@ -38,6 +38,12 @@ LR_VALUES=(1e-4 5e-4 1e-3)
 WD_VALUES=(1e-2 1e-5 0)
 BS_VALUES=(128 256)
 
+# Setting up some filepaths
+HOMEDIR="/home/projects/vaccine/people/yatwan/PyNNalign/"
+PYDIR="${HOMEDIR}pyscripts/"
+OUTDIR="${HOMEDIR}output/"
+OUTDIRFINAL="${OUTDIR}230601_hyperparameters_tuning_gridsearch/"
+
 # Iterate over the variables and their values
 for ENC in "${ENC_VALUES[@]}"; do
   for PAD in "${PAD_VALUES[@]}"; do
@@ -65,46 +71,58 @@ for ENC in "${ENC_VALUES[@]}"; do
                             # Append COMBINATION to the end of the result string
                             FILENAME+="_${COMBI//_/XX}"
                             FILENAME=${FILENAME//icore_/}
-                            # Write the code snippet to a new file
-                            echo "#!/bin/bash" > "${FILENAME}.sh"
-                            echo "source /home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh" >>"${FILENAME}.sh"
-                            echo "source activate pynn" >> "${FILENAME}.sh"
-                            echo 'HOMEDIR="/home/projects/vaccine/people/yatwan/PyNNalign/"' >> "${FILENAME}.sh"
-                            echo 'PYDIR="${HOMEDIR}pyscripts/"' >> "${FILENAME}.sh"
-                            echo 'OUTDIR="${HOMEDIR}output/"' >> "${FILENAME}.sh"
-                            echo 'OUTDIRFINAL="${OUTDIR}230601_hyperparameters_tuning_gridsearch/"' >> "${FILENAME}.sh"
-                            echo 'mkdir -p ${OUTDIRFINAL}' >> "${FILENAME}.sh"
-                            echo "COMBINATION=\"${COMBINATION}\"" >> "${FILENAME}.sh"
-                            echo 'COMBI=${COMBINATION// /-}' >> "${FILENAME}.sh"
-                            echo "values=(" >> "${FILENAME}.sh"
-                            for value in "${values[@]}"; do
-                              echo "  \"$value\"" >> "${FILENAME}.sh"
-                            done
-                            echo ")" >> "${FILENAME}.sh"
-                            echo 'FILENAME=$(IFS=_; echo "${values[*]//['\''-'\'' ]/xx}")' >> "${FILENAME}.sh"
-                            echo 'FILENAME=${FILENAME//0./zp}' >> "${FILENAME}.sh"
-                            echo '# Append COMBINATION to the end of the result string' >> "${FILENAME}.sh"
-                            echo 'FILENAME+="_${COMBI//_/XX}"' >> "${FILENAME}.sh"
-                            echo 'FILENAME=${FILENAME//icore_/}' >> "${FILENAME}.sh"
-                            echo 'cd ${PYDIR}' >> "${FILENAME}.sh"
-                            echo 'pids=()' >> "${FILENAME}.sh"
-                            echo 'for fold in $(seq 0 9);' >> "${FILENAME}.sh"
-                            echo 'do' >> "${FILENAME}.sh"
-                            echo "python3 ./train_test_model_ef.py -trf \"\${HOMEDIR}data/aligned_icore/230530_cedar_aligned.csv\" -tef \"\${HOMEDIR}data/aligned_icore/230530_prime_aligned.csv\" -ml 12 -ne 750 -x mutant -y target -o ${FILENAME} -kf \${fold} -enc ${ENC} -pad ${PAD} -fc ${COMBINATION} -nh ${NH} -std ${STD} -bn ${BN} -do ${DO} -ws ${WS} -efnh ${EFNH} -efbn ${EFBN} -efdo ${EFDO} -lr ${LR} -wd ${WD} -bs ${BS} &" >> "${FILENAME}.sh"
-                            # echo "python3 ./train_test_model_ef.py -trf \"\${HOMEDIR}data/aligned_icore/230530_cedar_aligned.csv\" -tef \"\${HOMEDIR}data/aligned_icore/230530_prime_aligned.csv\" -ml 12 -ne 11 -x mutant -y target -o ${FILENAME} -kf \${fold} -enc ${ENC} -pad ${PAD} -fc ${COMBINATION} -nh ${NH} -std ${STD} -bn ${BN} -do ${DO} -ws ${WS} -efnh ${EFNH} -efbn ${EFBN} -efdo ${EFDO} -lr ${LR} -wd ${WD} -bs ${BS} &" >> "${FILENAME}.sh"
-                            echo '  pids+=($!)' >> "${FILENAME}.sh"
-                            echo 'done' >> "${FILENAME}.sh"
-                            echo 'for pid in "${pids[@]}"; do' >> "${FILENAME}.sh"
-                            echo '  wait "$pid"' >> "${FILENAME}.sh"
-                            echo 'done' >> "${FILENAME}.sh"
-                            echo 'mkdir -p "${OUTDIRFINAL}${FILENAME}/"' >> "${FILENAME}.sh"
-                            echo 'cd "${OUTDIR}"' >> "${FILENAME}.sh"
-                            echo 'mv "${FILENAME}"_* "${OUTDIRFINAL}${FILENAME}/"' >> "${FILENAME}.sh"
+                            if test -e ${OUTDIRFINAL}${FILENAME}; then
+                              continue
+                            else
+                              # Write the code snippet to a new file
+                              echo "#!/bin/bash" > "${FILENAME}.sh"
+                              echo "source /home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh" >>"${FILENAME}.sh"
+                              echo "source activate pynn" >> "${FILENAME}.sh"
+                              echo 'HOMEDIR="/home/projects/vaccine/people/yatwan/PyNNalign/"' >> "${FILENAME}.sh"
+                              echo 'PYDIR="${HOMEDIR}pyscripts/"' >> "${FILENAME}.sh"
+                              echo 'OUTDIR="${HOMEDIR}output/"' >> "${FILENAME}.sh"
+                              echo 'OUTDIRFINAL="${OUTDIR}230601_hyperparameters_tuning_gridsearch/"' >> "${FILENAME}.sh"
+                              echo 'mkdir -p ${OUTDIRFINAL}' >> "${FILENAME}.sh"
+                              echo "COMBINATION=\"${COMBINATION}\"" >> "${FILENAME}.sh"
+                              # I don't know why this part is needed. Couldn't I just pass the filename as such directly into the script??
+                              # Like : echo "FILENAME=${FILENAME}" >> "${FILENAME}.sh"
+                              # How I give COMBINATION, I can also feed in FILENAME instead of re-doing the operations.
+                              # But that's done now and it works + I don't want to risk breaking / re-doing anything
+                              # Need to think better next time xd but also I coded this at 2am
+                              echo 'COMBI=${COMBINATION// /-}' >> "${FILENAME}.sh"
+                              echo "values=(" >> "${FILENAME}.sh"
+                              for value in "${values[@]}"; do
+                                echo "  \"$value\"" >> "${FILENAME}.sh"
+                              done
+                              echo ")" >> "${FILENAME}.sh"
+                              echo 'FILENAME=$(IFS=_; echo "${values[*]//['\''-'\'' ]/xx}")' >> "${FILENAME}.sh"
+                              echo 'FILENAME=${FILENAME//0./zp}' >> "${FILENAME}.sh"
+                              echo '# Append COMBINATION to the end of the result string' >> "${FILENAME}.sh"
+                              echo 'FILENAME+="_${COMBI//_/XX}"' >> "${FILENAME}.sh"
+                              echo 'FILENAME=${FILENAME//icore_/}' >> "${FILENAME}.sh"
+                              # End of un-needed part
 
-                            # Submit the script for execution
-                            qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=01:45:00 "${FILENAME}.sh"
-                            # qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=00:05:00 "${FILENAME}.sh"
-                            rm "${FILENAME}.sh"
+                              echo 'cd ${PYDIR}' >> "${FILENAME}.sh"
+                              echo 'pids=()' >> "${FILENAME}.sh"
+                              echo 'for fold in $(seq 0 9);' >> "${FILENAME}.sh"
+                              echo 'do' >> "${FILENAME}.sh"
+                              echo "python3 ./train_test_model_ef.py -trf \"\${HOMEDIR}data/aligned_icore/230530_cedar_aligned.csv\" -tef \"\${HOMEDIR}data/aligned_icore/230530_prime_aligned.csv\" -ml 12 -ne 750 -x mutant -y target -o ${FILENAME} -kf \${fold} -enc ${ENC} -pad ${PAD} -fc ${COMBINATION} -nh ${NH} -std ${STD} -bn ${BN} -do ${DO} -ws ${WS} -efnh ${EFNH} -efbn ${EFBN} -efdo ${EFDO} -lr ${LR} -wd ${WD} -bs ${BS} &" >> "${FILENAME}.sh"
+                              # echo "python3 ./train_test_model_ef.py -trf \"\${HOMEDIR}data/aligned_icore/230530_cedar_aligned.csv\" -tef \"\${HOMEDIR}data/aligned_icore/230530_prime_aligned.csv\" -ml 12 -ne 11 -x mutant -y target -o ${FILENAME} -kf \${fold} -enc ${ENC} -pad ${PAD} -fc ${COMBINATION} -nh ${NH} -std ${STD} -bn ${BN} -do ${DO} -ws ${WS} -efnh ${EFNH} -efbn ${EFBN} -efdo ${EFDO} -lr ${LR} -wd ${WD} -bs ${BS} &" >> "${FILENAME}.sh"
+                              echo '  pids+=($!)' >> "${FILENAME}.sh"
+                              echo 'done' >> "${FILENAME}.sh"
+                              echo 'for pid in "${pids[@]}"; do' >> "${FILENAME}.sh"
+                              echo '  wait "$pid"' >> "${FILENAME}.sh"
+                              echo 'done' >> "${FILENAME}.sh"
+                              echo 'mkdir -p "${OUTDIRFINAL}${FILENAME}/"' >> "${FILENAME}.sh"
+                              echo 'cd "${OUTDIR}"' >> "${FILENAME}.sh"
+                              echo 'mv "${FILENAME}"_* "${OUTDIRFINAL}${FILENAME}/"' >> "${FILENAME}.sh"
+
+                              # Submit the script for execution
+                              qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=01:45:00 "${FILENAME}.sh"
+                              # qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=10:thinnode,mem=46gb,walltime=00:05:00 "${FILENAME}.sh"
+                              rm "${FILENAME}.sh"
+                            fi
+
                           done
                         done
                       done
