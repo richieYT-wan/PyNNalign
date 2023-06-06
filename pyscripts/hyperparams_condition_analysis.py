@@ -97,7 +97,7 @@ def pipeline(fold_dir, args):
 
     maindir = args['dir'] + '/' if not args['dir'].endswith('/') else args['dir']
     # Ex should be .../output/2306xx_hyperparams_tuning/
-    pcol, tcol = args['x'], args['y']
+    pcol, tcol = args['pred_col'], args['target_col']
     subdirs = [x for x in os.listdir(maindir + fold_dir) if path.isdir(path.join(maindir + fold_dir, x))]
     valid_preds, test_preds = [], []
     hyperparams = get_hps(fold_dir)
