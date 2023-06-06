@@ -8,4 +8,4 @@ OUTDIR="${HOMEDIR}output/"
 OUTDIRFINAL="${OUTDIR}230601_hyperparameters_tuning_gridsearch/"
 
 cd ${PYDIR}
-./python3 hyperparams_condition_analysis.py -d ${OUTDIRFINAL} -x 'pred' -y 'target' -nc 39
+python3 ./hyperparams_condition_analysis.py -d ${OUTDIRFINAL} -x 'pred' -y 'target' -nc 39
