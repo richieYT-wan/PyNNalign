@@ -9,6 +9,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+*Untitled.ipynb*
 .Python
 build/
 develop-eggs/
@@ -240,6 +241,7 @@ fabric.properties
 
 output/230522_singledouble_compare/*.png
 output/230522_impl_comparisons/*.png
+output/230601_hyperparameterS_tuning_gridsearch/
 output/*debug*
 .idea/workspace.xml
 output/.DS_Store
