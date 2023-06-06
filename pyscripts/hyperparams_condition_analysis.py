@@ -144,6 +144,7 @@ def pipeline(fold_dir, args):
 
 
 def main():
+    print('Starting script')
     start = dt.now()
     # I like dictionary for args :-)
     args = vars(args_parser())
@@ -153,6 +154,7 @@ def main():
     fold_dirs = [x for x in os.listdir(args['dir']) if
                  path.isdir(os.path.join(maindir, x))]  # This should give all the hyperparams (200K+) combi
     wrapper = partial(pipeline, args=args)
+    print('Doing fold dirs now')
     results = Parallel(n_jobs=args['n_cores'])(delayed(wrapper)(fold_dir=fd) for fd in tqdm(fold_dirs))
     pd.concat(results).to_csv(f'{maindir}total_results.csv', index=False)
     end = dt.now()
