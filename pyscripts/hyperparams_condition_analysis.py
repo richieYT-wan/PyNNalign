@@ -96,6 +96,7 @@ def pipeline(fold_dir, args):
     """
 
     maindir = args['dir'] + '/' if not args['dir'].endswith('/') else args['dir']
+    fold_dir = fold_dir + '/' if not fold_dir.endswith('/') else fold_dir
     # Ex should be .../output/2306xx_hyperparams_tuning/
     pcol, tcol = args['pred_col'], args['target_col']
     subdirs = [x for x in os.listdir(maindir + fold_dir) if path.isdir(path.join(maindir + fold_dir, x))]
@@ -122,7 +123,7 @@ def pipeline(fold_dir, args):
 
     per_fold, valid_preds, test_preds = pd.concat(per_fold), pd.concat(valid_preds), pd.concat(test_preds)
     # Adding mean perf
-    per_fold = per_fold.sort_values('fold').append(per_fold.mean(axis=0), ignore_index=True).replace(
+    per_fold = pd.concat([per_fold.sort_values('fold'), per_fold.mean(axis=0)], axis=1).replace(
         to_replace={'fold': 4.5}, value='average')
     # Adding HP
     per_fold = pd.concat([per_fold, pd.concat([pd.DataFrame(hyperparams, index=[i]) for i in range(len(per_fold))])],
