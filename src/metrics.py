@@ -57,8 +57,7 @@ def get_predictions(df, models, ics_dict, encoding_kwargs):
     return output_df
 
 
-def get_metrics(y_true, y_score, y_pred=None, threshold=0.20,
-                keep=False, reduced=True, round_digit = 4):
+def get_metrics(y_true, y_score, y_pred=None, threshold=0.50, keep=False, reduced=True, round_digit=4):
     """
     Computes all classification metrics & returns a dictionary containing the various key/metrics
     incl. ROC curve, AUC, AUC_01, F1 score, Accuracy, Recall

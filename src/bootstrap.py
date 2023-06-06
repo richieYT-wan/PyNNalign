@@ -9,7 +9,7 @@ import math
 N_CORES = multiprocessing.cpu_count() - 2
 
 
-def bootstrap_wrapper(y_score, y_true, seed, auc01=False, add_roc=False, reduced=True):
+def bootstrap_wrapper(y_true, y_score, seed, auc01=False, add_roc=False, reduced=True):
     np.random.seed(seed)
     sample_idx = np.random.randint(0, len(y_score), len(y_score))
     sample_score = y_score[sample_idx]
@@ -91,7 +91,7 @@ def bootstrap_downsample(df, downsample_label, downsample_number, score_col, tar
     return result_df, mean_roc_curve
 
 
-def bootstrap_eval(y_score, y_true, n_rounds=10000, n_jobs=N_CORES, auc01=False, add_roc=False, reduced=True):
+def bootstrap_eval(y_true, y_score, n_rounds=10000, n_jobs=N_CORES, auc01=False, add_roc=False, reduced=True):
     """
     Takes the score, true labels, returns bootstrapped DF + mean rocs
     Args:
