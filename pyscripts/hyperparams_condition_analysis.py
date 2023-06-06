@@ -25,8 +25,8 @@ def args_parser():
     """
     parser.add_argument('-d', '--dir', dest='dir', required=True, type=str,
                         help='Path that contains all KCV subfolders for a given condition')
-    parser.add_argument('-t', '--test', dest='test', required=True, type=str,
-                        help='Whether a test file was also included, otherwise only run analysis for validation')
+    # parser.add_argument('-t', '--test', dest='test', required=True, type=str,
+    #                     help='Whether a test file was also included, otherwise only run analysis for validation')
     parser.add_argument('-x', '--pred_col', dest='pred_col', default='pred', type=str, required=False,
                         help='Name of the column containing sequences (inputs)')
     parser.add_argument('-y', '--target_col', dest='target_col', default='target', type=str, required=False,
