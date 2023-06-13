@@ -12,7 +12,7 @@ from torch import nn
 from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
-from src.models import NNAlignEFTest
+from src.models import NNAlignEF2
 from src.train_eval import predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
 from src.datasets import get_NNAlign_dataloader
@@ -123,7 +123,7 @@ def main():
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # instantiate objects
-    model = NNAlignEFTest(activation=nn.SELU(), activation_ef=nn.SELU(), n_extrafeatures=len(args['feature_cols']), indel=False, **model_params)
+    model = NNAlignEF2(activation=nn.SELU(), activation_ef=nn.SELU(), n_extrafeatures=len(args['feature_cols']), indel=False, **model_params)
     criterion = nn.BCEWithLogitsLoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
     train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, sampler=RandomSampler, **dataset_params)

@@ -11,7 +11,7 @@ class NNAlignDataset(Dataset):
     """
 
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
-                 seq_col: str = 'Peptide', target_col: str = 'agg_label',
+                 seq_col: str = 'sequence', target_col: str = 'target',
                  pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW',
                  feature_cols: list = None):
@@ -21,10 +21,7 @@ class NNAlignDataset(Dataset):
         if feature_cols is None:
             feature_cols = []
         df['len'] = df[seq_col].apply(len)
-        # l_start = len(df)
         df = df.query('len<=@max_len')
-        # l_end = len(df)
-        # print(f'Pruning sequences longer than length={max_len}. \nNseqs Before:\t{l_start}\nNseqs After:\t{l_end}')
         matrix_dim = 21 if indel else 20
 
         # TODO: Implement the IC weights stuff at some point here
@@ -46,8 +43,7 @@ class NNAlignDataset(Dataset):
         self.y = y.contiguous()
 
         # Add extra features
-
-        if len(feature_cols)>0:
+        if len(feature_cols) > 0:
             self.x_features = torch.from_numpy(df[feature_cols].values).float()
             self.extra_features_flag = True
         else:

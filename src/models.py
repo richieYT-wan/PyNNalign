@@ -595,7 +595,7 @@ class NNAlignEF(NetParent):
         self.init_params = state_dict['init_params']
 
 
-class NNAlignEFTest(NetParent):
+class NNAlignEF2(NetParent):
     """ This class here used to test the difference using the class ExtraLayerXX instead of spelling out the layers here.
     """
 
@@ -604,7 +604,7 @@ class NNAlignEFTest(NetParent):
                  extra_layer='single',
                  n_extrafeatures=0, n_hidden_ef=5, activation_ef=nn.SELU(), batchnorm_ef=False, dropout_ef=0.0,
                  **kwargs):
-        super(NNAlignEFTest, self).__init__()
+        super(NNAlignEF2, self).__init__()
         # NNAlign part
         self.nnalign_model = NNAlign(n_hidden, window_size, activation, batchnorm, dropout, indel, standardize)
         # Extra layer part
@@ -656,7 +656,7 @@ class NNAlignEFTest(NetParent):
             return z, max_idx
 
     def state_dict(self, **kwargs):
-        state_dict = super(NNAlignEFTest, self).state_dict()
+        state_dict = super(NNAlignEF2, self).state_dict()
         state_dict['nnalign_model'] = self.nnalign_model.state_dict()
         state_dict['ef_standardizer'] = self.ef_standardizer.state_dict()
         state_dict['ef_layer'] = self.ef_layer.state_dict()
