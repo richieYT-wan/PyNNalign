@@ -122,8 +122,8 @@ def pipeline(fold_dir, args):
         per_fold.append(pd.concat([valid_metrics, test_metrics], axis=1).assign(fold=fold))
 
     per_fold, valid_preds, test_preds = pd.concat(per_fold), pd.concat(valid_preds), pd.concat(test_preds)
-    # Adding mean perf
-    per_fold = pd.concat([per_fold.sort_values('fold'), per_fold.mean(axis=0)], axis=1).replace(
+    # Adding mean perf STUPID FN FIX BECAUSE PD 2.0 DEPRECATED APPEND NTR
+    per_fold = pd.concat([per_fold.sort_values('fold'), pd.DataFrame(per_fold.mean(axis=0)).T], axis=0, ignore_index=True).replace(
         to_replace={'fold': 4.5}, value='average')
     # Adding HP
     per_fold = pd.concat([per_fold, pd.concat([pd.DataFrame(hyperparams, index=[i]) for i in range(len(per_fold))])],
