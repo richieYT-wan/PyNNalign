@@ -1,6 +1,6 @@
 #! /usr/bin/bash
 
-cd /home/projects/vaccine/people/yatwan//PyNNalign/pyscripts/
+cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts/
 pids=()
 for f in $(seq 0 4);
 do
