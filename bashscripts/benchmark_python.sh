@@ -1,4 +1,6 @@
 #! /usr/bin/bash
+source /home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh
+source activate pynn
 
 cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts/
 pids=()
