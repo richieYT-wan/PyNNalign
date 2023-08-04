@@ -17,6 +17,6 @@ mkdir 230525_FixedPadding_MHCII_DRB1_0301_kcvs
 
 for dir in $(ls ./ | grep 230525_FixedPadding_DRB1);
 do
-  mv "${dir}" "230525_FixedPadding_MHCII_DRB1_0301_kcvs/${f}"
+  mv "${dir}" "230525_FixedPadding_MHCII_DRB1_0301_kcvs/${dir}"
 done
 

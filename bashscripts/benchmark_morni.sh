@@ -5,7 +5,7 @@ seq2logo="/home/projects/vaccine/people/morni/seq2logo-2.1/seq2logo"
 
 motif_length=9
 hidden_neurons=50
-epochs=200
+epochs=100
 trainset=${1}
 testset=${2}
 name=${3}
