@@ -1,0 +1,596 @@
+# /home/projects/vaccine/people/morni/nnalign-2.1/bin/Linux_x86_64/nnalign_gaps_pan-2.1a -bls 50 -a ARNDCQEGHILKMFPSTWYV -eplen 0 -elpfr 0 -i 100 -l 9 -s 2 -burn 10 -gl 0 -il 0 -nh 50 -fl 3 -blf /home/projects/vaccine/people/morni/nnalign-2.1/data/blosum62.freq_rownorm -mpat /home/projects/vaccine/people/morni/nnalign-2.1/data/BLOSUM%i -syn /home/projects/vaccine/people/morni/nnalign-2.1/test/HLA_example_17213.tmp/syn/0.10.bl.2.lg9.syn -ft /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt -bl -eta 0.05 /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_train.txt
+# Wed Aug  9 13:43:09 2023
+# User: yatwan
+# PWD : /home/projects/vaccine/people/yatwan/PyNNalign/bashscripts
+# Host: Linux g-10-c0647 3.10.0-1062.4.1.el7.x86_64 x86_64
+# -bls     50                   BLOSUM SCORE MATRIX
+# -a       ARNDCQEGHILKMFPSTWYV Amino acid alphabet
+# -eplen   0                    Optimal Peptide length (set to -1 for no Pep length encoding)
+# -elpfr   0                    Maximum PRF length ([-1] for no PFR length encoding, [0] for unbounded encoding)
+# -i       100                  Number of minization cycles
+# -l       9                    Motif length
+# -s       2                    Seed [-1] Default, [0] Time [>0] Specific seed
+# -burn    10                   Number of burn-in cycles without insertions/deletions
+# -gl      0                    Max length of gaps
+# -il      0                    Max length of insertions
+# -nh      50                   Number of hidden neurons
+# -fl      3                    Optimal length of Flanking region (set to 0 for no PFR encoding)
+# -blf     /home/projects/vaccine/people/morni/nnalign-2.1/data/blosum62.freq_rownorm Real value blosum matrix filename
+# -mpat    /home/projects/vaccine/people/morni/nnalign-2.1/data/BLOSUM%i Blosum Matrix pattern
+# -syn     /home/projects/vaccine/people/morni/nnalign-2.1/test/HLA_example_17213.tmp/syn/0.10.bl.2.lg9.syn Name of synaps file
+# -ft      /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt File with test data
+# -bl      1                    Use Blosum encoding [default is sparse]
+# -eta     0.050000             Eta for weight update
+# Command line parameters set to:
+#	[-s int]             2                    Seed [-1] Default, [0] Time [>0] Specific seed
+#	[-a string]          ARNDCQEGHILKMFPSTWYV Amino acid alphabet
+#	[-i int]             100                  Number of minization cycles
+#	[-burn int]          10                   Number of burn-in cycles without insertions/deletions
+#	[-ft filename]       /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt File with test data
+#	[-v]                 0                    Verbose mode
+#	[-l int]             9                    Motif length
+#	[-dtype int]         0                    Test performance type [0] Square Error [1] Pearsons CC
+#	[-mpat filename]     /home/projects/vaccine/people/morni/nnalign-2.1/data/BLOSUM%i Blosum Matrix pattern
+#	[-bln float]         5.000000             Normalizing factor for blosum score
+#	[-bl]                1                    Use Blosum encoding [default is sparse]
+#	[-bls int]           50                   BLOSUM SCORE MATRIX
+#	[-fl int]            3                    Optimal length of Flanking region (set to 0 for no PFR encoding)
+#	[-freq]              0                    Use amino acid frequency for PFR encoding [default is Blosum]
+#	[-blf filename]      /home/projects/vaccine/people/morni/nnalign-2.1/data/blosum62.freq_rownorm Real value blosum matrix filename
+#	[-max float]         0.900000             Max value in sparse encoding
+#	[-min float]         0.050000             Min value in sparse encoding
+#	[-eta float]         0.050000             Eta for weight update
+#	[-blim float]        0.000010             Limit for backpropagation
+#	[-ppred]             0                    Print predictions
+#	[-iw]                0                    Init weights randomly [defaults is as HOWLIN]
+#	[-w float]           0.100000             Initial value for weight
+#	[-nh int]            50                   Number of hidden neurons
+#	[-syn filename]      /home/projects/vaccine/people/morni/nnalign-2.1/test/HLA_example_17213.tmp/syn/0.10.bl.2.lg9.syn Name of synaps file
+#	[-elpfr int]         0                    Maximum PRF length ([-1] for no PFR length encoding, [0] for unbounded encoding)
+#	[-eplen int]         0                    Optimal Peptide length (set to -1 for no Pep length encoding)
+#	[-teststop]          0                    Stop training on best test performance
+#	[-nt int]            10                   Test interval
+#	[-strict]            0                    Strict mode
+#	[-gl int]            0                    Max length of gaps
+#	[-il int]            0                    Max length of insertions
+#	[-encgl]             0                    Encode gap length
+#	[-encil]             0                    Encode insert length
+#	[-normenc]           0                    Normalize Del/Ins length by the maximum Del/Ins length (-gl and -il)
+#	[-encpg]             0                    Encode gap position
+#	[-classI string]     UNDEF                MHC-I style of encoding for peptide length, as 8,9,10,11
+#	[-max_classI float]  0.900000             Max values for MHC-I style of encoding
+#	[-xrsc]              0                    Exclude rescale synapse to binary encoding
+#	[-encmhc]            0                    Encode MHC pseudo sequence (is set to 1 if -mhc used)
+#	[-mhc filename]                           File with MHC pseudo sequences
+#	[-aX]                0                    Allow X in MHC pseudo sequence
+#	[-mix]               0                    Mixed encoding; pep as sparse, HLA as blosum
+#	[-ishort]            0                    Make only insertions in peptides with length < core
+#	[-j0short int]       0                    Start postion of inserts in short peps
+#	[-j0long int]        1                    Start postion of inserts in long peps
+#	[-p1a]               0                    Allow only Hydrophobic AA at P1
+#	[-p1l filename]      ILVMFYW              Allowed letters at P1 [Only with -p1a option]
+# Random seed is 2
+# Read 18600 elements on seqlist /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_train.txt
+# Read 4650 elements on seqlist /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt
+# Blosum matrix 50 initialized
+# Read_realblosum done. Alphabet ARNDCQEGHILKMFPSTWYV
+# Number of training sequences 18600
+# Number of testset data 4650
+# Ninput 224. Noutput 1
+# Nlayer 0 NNlay 224
+# Nlayer 1 NNlay 50
+# Nlayer 2 NNlay 1
+# Number of weights in network 11301
+# 0 XYCORR 0.497122 0.071120
+# 1 XYCORR 0.690295 0.048459
+# 2 XYCORR 0.720096 0.044371
+# 3 XYCORR 0.736110 0.042157
+# 4 XYCORR 0.748224 0.040476
+# 5 XYCORR 0.760805 0.038740
+# 6 XYCORR 0.766441 0.037940
+# 7 XYCORR 0.773252 0.036968
+# 8 XYCORR 0.781216 0.035846
+# 9 XYCORR 0.789138 0.034692
+# 10 XYCORR 0.795324 0.033793
+# Train epoch 10 N Train 18600 Pearson 0.795324 Err 0.033793 Test Pearson 0.769243 Err 0.034721
+# 11 XYCORR 0.801071 0.032957
+# 12 XYCORR 0.807279 0.032056
+# 13 XYCORR 0.813990 0.031049
+# 14 XYCORR 0.818165 0.030434
+# 15 XYCORR 0.823982 0.029556
+# 16 XYCORR 0.831012 0.028506
+# 17 XYCORR 0.834324 0.027982
+# 18 XYCORR 0.840586 0.027034
+# 19 XYCORR 0.844332 0.026474
+# 20 XYCORR 0.849917 0.025608
+# Train epoch 20 N Train 18600 Pearson 0.849917 Err 0.025608 Test Pearson 0.803206 Err 0.029249
+# 21 XYCORR 0.852749 0.025151
+# 22 XYCORR 0.857673 0.024397
+# 23 XYCORR 0.861983 0.023706
+# 24 XYCORR 0.867529 0.022842
+# 25 XYCORR 0.869522 0.022523
+# 26 XYCORR 0.873474 0.021892
+# 27 XYCORR 0.877349 0.021269
+# 28 XYCORR 0.880688 0.020744
+# 29 XYCORR 0.885543 0.019973
+# 30 XYCORR 0.888517 0.019474
+# Train epoch 30 N Train 18600 Pearson 0.888517 Err 0.019474 Test Pearson 0.820010 Err 0.026907
+# 31 XYCORR 0.890758 0.019112
+# 32 XYCORR 0.894960 0.018427
+# 33 XYCORR 0.897628 0.018004
+# 34 XYCORR 0.898566 0.017822
+# 35 XYCORR 0.901779 0.017303
+# 36 XYCORR 0.906552 0.016534
+# 37 XYCORR 0.907976 0.016270
+# 38 XYCORR 0.909923 0.015953
+# 39 XYCORR 0.911742 0.015631
+# 40 XYCORR 0.914431 0.015207
+# Train epoch 40 N Train 18600 Pearson 0.914431 Err 0.015207 Test Pearson 0.828104 Err 0.026315
+# 41 XYCORR 0.916320 0.014880
+# 42 XYCORR 0.918705 0.014479
+# 43 XYCORR 0.920750 0.014168
+# 44 XYCORR 0.922438 0.013853
+# 45 XYCORR 0.924545 0.013500
+# 46 XYCORR 0.926296 0.013209
+# 47 XYCORR 0.927941 0.012932
+# 48 XYCORR 0.929561 0.012654
+# 49 XYCORR 0.930652 0.012455
+# 50 XYCORR 0.933223 0.012032
+# Train epoch 50 N Train 18600 Pearson 0.933223 Err 0.012032 Test Pearson 0.840348 Err 0.024374
+# 51 XYCORR 0.934501 0.011812
+# 52 XYCORR 0.935888 0.011549
+# 53 XYCORR 0.936481 0.011443
+# 54 XYCORR 0.938365 0.011137
+# 55 XYCORR 0.939387 0.010959
+# 56 XYCORR 0.940721 0.010728
+# 57 XYCORR 0.941677 0.010533
+# 58 XYCORR 0.943003 0.010332
+# 59 XYCORR 0.944272 0.010122
+# 60 XYCORR 0.945367 0.009917
+# Train epoch 60 N Train 18600 Pearson 0.945367 Err 0.009917 Test Pearson 0.847070 Err 0.023194
+# 61 XYCORR 0.946715 0.009676
+# 62 XYCORR 0.948086 0.009442
+# 63 XYCORR 0.948887 0.009295
+# 64 XYCORR 0.949923 0.009106
+# 65 XYCORR 0.950902 0.008959
+# 66 XYCORR 0.951494 0.008830
+# 67 XYCORR 0.952207 0.008704
+# 68 XYCORR 0.952925 0.008579
+# 69 XYCORR 0.953607 0.008454
+# 70 XYCORR 0.954305 0.008326
+# Train epoch 70 N Train 18600 Pearson 0.954305 Err 0.008326 Test Pearson 0.844174 Err 0.024129
+# 71 XYCORR 0.955145 0.008172
+# 72 XYCORR 0.955294 0.008144
+# 73 XYCORR 0.956160 0.008003
+# 74 XYCORR 0.956258 0.007976
+# 75 XYCORR 0.956886 0.007880
+# 76 XYCORR 0.957395 0.007787
+# 77 XYCORR 0.957804 0.007699
+# 78 XYCORR 0.958100 0.007650
+# 79 XYCORR 0.958760 0.007534
+# 80 XYCORR 0.958684 0.007544
+# Train epoch 80 N Train 18600 Pearson 0.958684 Err 0.007544 Test Pearson 0.847056 Err 0.023781
+# 81 XYCORR 0.958943 0.007494
+# 82 XYCORR 0.959303 0.007429
+# 83 XYCORR 0.959627 0.007371
+# 84 XYCORR 0.959942 0.007311
+# 85 XYCORR 0.960032 0.007293
+# 86 XYCORR 0.960331 0.007240
+# 87 XYCORR 0.960647 0.007150
+# 88 XYCORR 0.960742 0.007130
+# 89 XYCORR 0.961072 0.007076
+# 90 XYCORR 0.961122 0.007092
+# Train epoch 90 N Train 18600 Pearson 0.961122 Err 0.007092 Test Pearson 0.846336 Err 0.024090
+# 91 XYCORR 0.961145 0.007056
+# 92 XYCORR 0.961425 0.007005
+# 93 XYCORR 0.961684 0.006959
+# 94 XYCORR 0.961615 0.006964
+# 95 XYCORR 0.961834 0.006928
+# 96 XYCORR 0.962053 0.006886
+# 97 XYCORR 0.961896 0.006912
+# 98 XYCORR 0.962178 0.006857
+# 99 XYCORR 0.962307 0.006837
+# Best XYCORR 0.963218 0.006695
+# Best_TCC 0.000000 TCC 0.850813 TERR 0.023237
+# Rescale SYN
+# Test rescaled syn
+# Encode reset done
+# After rescale Test XYCORR 0.850813 0.023237
+# /home/projects/vaccine/people/morni/nnalign-2.1/bin/Linux_x86_64/nnalign_gaps_pan-2.1a -bls 50 -a ARNDCQEGHILKMFPSTWYV -eplen 0 -elpfr 0 -i 100 -l 9 -s 2 -burn 10 -gl 0 -il 0 -nh 50 -fl 3 -blf /home/projects/vaccine/people/morni/nnalign-2.1/data/blosum62.freq_rownorm -mpat /home/projects/vaccine/people/morni/nnalign-2.1/data/BLOSUM%i -syn /home/projects/vaccine/people/morni/nnalign-2.1/test/HLA_example_17213.tmp/syn/0.10.bl.2.lg9.syn -ft /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt -bl -eta 0.05 /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_train.txt
+# Wed Aug  9 13:48:55 2023
+# User: yatwan
+# PWD : /home/projects/vaccine/people/yatwan/PyNNalign/bashscripts
+# Host: Linux g-10-c0647 3.10.0-1062.4.1.el7.x86_64 x86_64
+# -bls     50                   BLOSUM SCORE MATRIX
+# -a       ARNDCQEGHILKMFPSTWYV Amino acid alphabet
+# -eplen   0                    Optimal Peptide length (set to -1 for no Pep length encoding)
+# -elpfr   0                    Maximum PRF length ([-1] for no PFR length encoding, [0] for unbounded encoding)
+# -i       100                  Number of minization cycles
+# -l       9                    Motif length
+# -s       2                    Seed [-1] Default, [0] Time [>0] Specific seed
+# -burn    10                   Number of burn-in cycles without insertions/deletions
+# -gl      0                    Max length of gaps
+# -il      0                    Max length of insertions
+# -nh      50                   Number of hidden neurons
+# -fl      3                    Optimal length of Flanking region (set to 0 for no PFR encoding)
+# -blf     /home/projects/vaccine/people/morni/nnalign-2.1/data/blosum62.freq_rownorm Real value blosum matrix filename
+# -mpat    /home/projects/vaccine/people/morni/nnalign-2.1/data/BLOSUM%i Blosum Matrix pattern
+# -syn     /home/projects/vaccine/people/morni/nnalign-2.1/test/HLA_example_17213.tmp/syn/0.10.bl.2.lg9.syn Name of synaps file
+# -ft      /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt File with test data
+# -bl      1                    Use Blosum encoding [default is sparse]
+# -eta     0.050000             Eta for weight update
+# Command line parameters set to:
+#	[-s int]             2                    Seed [-1] Default, [0] Time [>0] Specific seed
+#	[-a string]          ARNDCQEGHILKMFPSTWYV Amino acid alphabet
+#	[-i int]             100                  Number of minization cycles
+#	[-burn int]          10                   Number of burn-in cycles without insertions/deletions
+#	[-ft filename]       /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt File with test data
+#	[-v]                 0                    Verbose mode
+#	[-l int]             9                    Motif length
+#	[-dtype int]         0                    Test performance type [0] Square Error [1] Pearsons CC
+#	[-mpat filename]     /home/projects/vaccine/people/morni/nnalign-2.1/data/BLOSUM%i Blosum Matrix pattern
+#	[-bln float]         5.000000             Normalizing factor for blosum score
+#	[-bl]                1                    Use Blosum encoding [default is sparse]
+#	[-bls int]           50                   BLOSUM SCORE MATRIX
+#	[-fl int]            3                    Optimal length of Flanking region (set to 0 for no PFR encoding)
+#	[-freq]              0                    Use amino acid frequency for PFR encoding [default is Blosum]
+#	[-blf filename]      /home/projects/vaccine/people/morni/nnalign-2.1/data/blosum62.freq_rownorm Real value blosum matrix filename
+#	[-max float]         0.900000             Max value in sparse encoding
+#	[-min float]         0.050000             Min value in sparse encoding
+#	[-eta float]         0.050000             Eta for weight update
+#	[-blim float]        0.000010             Limit for backpropagation
+#	[-ppred]             0                    Print predictions
+#	[-iw]                0                    Init weights randomly [defaults is as HOWLIN]
+#	[-w float]           0.100000             Initial value for weight
+#	[-nh int]            50                   Number of hidden neurons
+#	[-syn filename]      /home/projects/vaccine/people/morni/nnalign-2.1/test/HLA_example_17213.tmp/syn/0.10.bl.2.lg9.syn Name of synaps file
+#	[-elpfr int]         0                    Maximum PRF length ([-1] for no PFR length encoding, [0] for unbounded encoding)
+#	[-eplen int]         0                    Optimal Peptide length (set to -1 for no Pep length encoding)
+#	[-teststop]          0                    Stop training on best test performance
+#	[-nt int]            10                   Test interval
+#	[-strict]            0                    Strict mode
+#	[-gl int]            0                    Max length of gaps
+#	[-il int]            0                    Max length of insertions
+#	[-encgl]             0                    Encode gap length
+#	[-encil]             0                    Encode insert length
+#	[-normenc]           0                    Normalize Del/Ins length by the maximum Del/Ins length (-gl and -il)
+#	[-encpg]             0                    Encode gap position
+#	[-classI string]     UNDEF                MHC-I style of encoding for peptide length, as 8,9,10,11
+#	[-max_classI float]  0.900000             Max values for MHC-I style of encoding
+#	[-xrsc]              0                    Exclude rescale synapse to binary encoding
+#	[-encmhc]            0                    Encode MHC pseudo sequence (is set to 1 if -mhc used)
+#	[-mhc filename]                           File with MHC pseudo sequences
+#	[-aX]                0                    Allow X in MHC pseudo sequence
+#	[-mix]               0                    Mixed encoding; pep as sparse, HLA as blosum
+#	[-ishort]            0                    Make only insertions in peptides with length < core
+#	[-j0short int]       0                    Start postion of inserts in short peps
+#	[-j0long int]        1                    Start postion of inserts in long peps
+#	[-p1a]               0                    Allow only Hydrophobic AA at P1
+#	[-p1l filename]      ILVMFYW              Allowed letters at P1 [Only with -p1a option]
+# Random seed is 2
+# Read 18600 elements on seqlist /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_train.txt
+# Read 4650 elements on seqlist /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt
+# Blosum matrix 50 initialized
+# Read_realblosum done. Alphabet ARNDCQEGHILKMFPSTWYV
+# Number of training sequences 18600
+# Number of testset data 4650
+# Ninput 224. Noutput 1
+# Nlayer 0 NNlay 224
+# Nlayer 1 NNlay 50
+# Nlayer 2 NNlay 1
+# Number of weights in network 11301
+# 0 XYCORR 0.497122 0.071120
+# 1 XYCORR 0.690295 0.048459
+# 2 XYCORR 0.720096 0.044371
+# 3 XYCORR 0.736110 0.042157
+# 4 XYCORR 0.748224 0.040476
+# 5 XYCORR 0.760805 0.038740
+# 6 XYCORR 0.766441 0.037940
+# 7 XYCORR 0.773252 0.036968
+# 8 XYCORR 0.781216 0.035846
+# 9 XYCORR 0.789138 0.034692
+# 10 XYCORR 0.795324 0.033793
+# Train epoch 10 N Train 18600 Pearson 0.795324 Err 0.033793 Test Pearson 0.769243 Err 0.034721
+# 11 XYCORR 0.801071 0.032957
+# 12 XYCORR 0.807279 0.032056
+# 13 XYCORR 0.813990 0.031049
+# 14 XYCORR 0.818165 0.030434
+# 15 XYCORR 0.823982 0.029556
+# 16 XYCORR 0.831012 0.028506
+# 17 XYCORR 0.834324 0.027982
+# 18 XYCORR 0.840586 0.027034
+# 19 XYCORR 0.844332 0.026474
+# 20 XYCORR 0.849917 0.025608
+# Train epoch 20 N Train 18600 Pearson 0.849917 Err 0.025608 Test Pearson 0.803206 Err 0.029249
+# 21 XYCORR 0.852749 0.025151
+# 22 XYCORR 0.857673 0.024397
+# 23 XYCORR 0.861983 0.023706
+# 24 XYCORR 0.867529 0.022842
+# 25 XYCORR 0.869522 0.022523
+# 26 XYCORR 0.873474 0.021892
+# 27 XYCORR 0.877349 0.021269
+# 28 XYCORR 0.880688 0.020744
+# 29 XYCORR 0.885543 0.019973
+# 30 XYCORR 0.888517 0.019474
+# Train epoch 30 N Train 18600 Pearson 0.888517 Err 0.019474 Test Pearson 0.820010 Err 0.026907
+# 31 XYCORR 0.890758 0.019112
+# 32 XYCORR 0.894960 0.018427
+# 33 XYCORR 0.897628 0.018004
+# 34 XYCORR 0.898566 0.017822
+# 35 XYCORR 0.901779 0.017303
+# 36 XYCORR 0.906552 0.016534
+# 37 XYCORR 0.907976 0.016270
+# 38 XYCORR 0.909923 0.015953
+# 39 XYCORR 0.911742 0.015631
+# 40 XYCORR 0.914431 0.015207
+# Train epoch 40 N Train 18600 Pearson 0.914431 Err 0.015207 Test Pearson 0.828104 Err 0.026315
+# 41 XYCORR 0.916320 0.014880
+# 42 XYCORR 0.918705 0.014479
+# 43 XYCORR 0.920750 0.014168
+# 44 XYCORR 0.922438 0.013853
+# 45 XYCORR 0.924545 0.013500
+# 46 XYCORR 0.926296 0.013209
+# 47 XYCORR 0.927941 0.012932
+# 48 XYCORR 0.929561 0.012654
+# 49 XYCORR 0.930652 0.012455
+# 50 XYCORR 0.933223 0.012032
+# Train epoch 50 N Train 18600 Pearson 0.933223 Err 0.012032 Test Pearson 0.840348 Err 0.024374
+# 51 XYCORR 0.934501 0.011812
+# 52 XYCORR 0.935888 0.011549
+# 53 XYCORR 0.936481 0.011443
+# 54 XYCORR 0.938365 0.011137
+# 55 XYCORR 0.939387 0.010959
+# 56 XYCORR 0.940721 0.010728
+# 57 XYCORR 0.941677 0.010533
+# 58 XYCORR 0.943003 0.010332
+# 59 XYCORR 0.944272 0.010122
+# 60 XYCORR 0.945367 0.009917
+# Train epoch 60 N Train 18600 Pearson 0.945367 Err 0.009917 Test Pearson 0.847070 Err 0.023194
+# 61 XYCORR 0.946715 0.009676
+# 62 XYCORR 0.948086 0.009442
+# 63 XYCORR 0.948887 0.009295
+# 64 XYCORR 0.949923 0.009106
+# 65 XYCORR 0.950902 0.008959
+# 66 XYCORR 0.951494 0.008830
+# 67 XYCORR 0.952207 0.008704
+# 68 XYCORR 0.952925 0.008579
+# 69 XYCORR 0.953607 0.008454
+# 70 XYCORR 0.954305 0.008326
+# Train epoch 70 N Train 18600 Pearson 0.954305 Err 0.008326 Test Pearson 0.844174 Err 0.024129
+# 71 XYCORR 0.955145 0.008172
+# 72 XYCORR 0.955294 0.008144
+# 73 XYCORR 0.956160 0.008003
+# 74 XYCORR 0.956258 0.007976
+# 75 XYCORR 0.956886 0.007880
+# 76 XYCORR 0.957395 0.007787
+# 77 XYCORR 0.957804 0.007699
+# 78 XYCORR 0.958100 0.007650
+# 79 XYCORR 0.958760 0.007534
+# 80 XYCORR 0.958684 0.007544
+# Train epoch 80 N Train 18600 Pearson 0.958684 Err 0.007544 Test Pearson 0.847056 Err 0.023781
+# 81 XYCORR 0.958943 0.007494
+# 82 XYCORR 0.959303 0.007429
+# 83 XYCORR 0.959627 0.007371
+# 84 XYCORR 0.959942 0.007311
+# 85 XYCORR 0.960032 0.007293
+# 86 XYCORR 0.960331 0.007240
+# 87 XYCORR 0.960647 0.007150
+# 88 XYCORR 0.960742 0.007130
+# 89 XYCORR 0.961072 0.007076
+# 90 XYCORR 0.961122 0.007092
+# Train epoch 90 N Train 18600 Pearson 0.961122 Err 0.007092 Test Pearson 0.846336 Err 0.024090
+# 91 XYCORR 0.961145 0.007056
+# 92 XYCORR 0.961425 0.007005
+# 93 XYCORR 0.961684 0.006959
+# 94 XYCORR 0.961615 0.006964
+# 95 XYCORR 0.961834 0.006928
+# 96 XYCORR 0.962053 0.006886
+# 97 XYCORR 0.961896 0.006912
+# 98 XYCORR 0.962178 0.006857
+# 99 XYCORR 0.962307 0.006837
+# Best XYCORR 0.963218 0.006695
+# Best_TCC 0.000000 TCC 0.850813 TERR 0.023237
+# Rescale SYN
+# Test rescaled syn
+# Encode reset done
+# After rescale Test XYCORR 0.850813 0.023237
+# /home/projects/vaccine/people/morni/nnalign-2.1/bin/Linux_x86_64/nnalign_gaps_pan-2.1a -bls 50 -a ARNDCQEGHILKMFPSTWYV -eplen 0 -elpfr 0 -i 100 -l 9 -s 2 -burn 10 -gl 0 -il 0 -nh 50 -fl 3 -blf /home/projects/vaccine/people/morni/nnalign-2.1/data/blosum62.freq_rownorm -mpat /home/projects/vaccine/people/morni/nnalign-2.1/data/BLOSUM%i -syn /home/projects/vaccine/people/morni/nnalign-2.1/test/HLA_example_17213.tmp/syn/0.10.bl.2.lg9.syn -ft /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt -bl -eta 0.05 /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_train.txt
+# Wed Aug  9 13:54:41 2023
+# User: yatwan
+# PWD : /home/projects/vaccine/people/yatwan/PyNNalign/bashscripts
+# Host: Linux g-10-c0647 3.10.0-1062.4.1.el7.x86_64 x86_64
+# -bls     50                   BLOSUM SCORE MATRIX
+# -a       ARNDCQEGHILKMFPSTWYV Amino acid alphabet
+# -eplen   0                    Optimal Peptide length (set to -1 for no Pep length encoding)
+# -elpfr   0                    Maximum PRF length ([-1] for no PFR length encoding, [0] for unbounded encoding)
+# -i       100                  Number of minization cycles
+# -l       9                    Motif length
+# -s       2                    Seed [-1] Default, [0] Time [>0] Specific seed
+# -burn    10                   Number of burn-in cycles without insertions/deletions
+# -gl      0                    Max length of gaps
+# -il      0                    Max length of insertions
+# -nh      50                   Number of hidden neurons
+# -fl      3                    Optimal length of Flanking region (set to 0 for no PFR encoding)
+# -blf     /home/projects/vaccine/people/morni/nnalign-2.1/data/blosum62.freq_rownorm Real value blosum matrix filename
+# -mpat    /home/projects/vaccine/people/morni/nnalign-2.1/data/BLOSUM%i Blosum Matrix pattern
+# -syn     /home/projects/vaccine/people/morni/nnalign-2.1/test/HLA_example_17213.tmp/syn/0.10.bl.2.lg9.syn Name of synaps file
+# -ft      /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt File with test data
+# -bl      1                    Use Blosum encoding [default is sparse]
+# -eta     0.050000             Eta for weight update
+# Command line parameters set to:
+#	[-s int]             2                    Seed [-1] Default, [0] Time [>0] Specific seed
+#	[-a string]          ARNDCQEGHILKMFPSTWYV Amino acid alphabet
+#	[-i int]             100                  Number of minization cycles
+#	[-burn int]          10                   Number of burn-in cycles without insertions/deletions
+#	[-ft filename]       /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt File with test data
+#	[-v]                 0                    Verbose mode
+#	[-l int]             9                    Motif length
+#	[-dtype int]         0                    Test performance type [0] Square Error [1] Pearsons CC
+#	[-mpat filename]     /home/projects/vaccine/people/morni/nnalign-2.1/data/BLOSUM%i Blosum Matrix pattern
+#	[-bln float]         5.000000             Normalizing factor for blosum score
+#	[-bl]                1                    Use Blosum encoding [default is sparse]
+#	[-bls int]           50                   BLOSUM SCORE MATRIX
+#	[-fl int]            3                    Optimal length of Flanking region (set to 0 for no PFR encoding)
+#	[-freq]              0                    Use amino acid frequency for PFR encoding [default is Blosum]
+#	[-blf filename]      /home/projects/vaccine/people/morni/nnalign-2.1/data/blosum62.freq_rownorm Real value blosum matrix filename
+#	[-max float]         0.900000             Max value in sparse encoding
+#	[-min float]         0.050000             Min value in sparse encoding
+#	[-eta float]         0.050000             Eta for weight update
+#	[-blim float]        0.000010             Limit for backpropagation
+#	[-ppred]             0                    Print predictions
+#	[-iw]                0                    Init weights randomly [defaults is as HOWLIN]
+#	[-w float]           0.100000             Initial value for weight
+#	[-nh int]            50                   Number of hidden neurons
+#	[-syn filename]      /home/projects/vaccine/people/morni/nnalign-2.1/test/HLA_example_17213.tmp/syn/0.10.bl.2.lg9.syn Name of synaps file
+#	[-elpfr int]         0                    Maximum PRF length ([-1] for no PFR length encoding, [0] for unbounded encoding)
+#	[-eplen int]         0                    Optimal Peptide length (set to -1 for no Pep length encoding)
+#	[-teststop]          0                    Stop training on best test performance
+#	[-nt int]            10                   Test interval
+#	[-strict]            0                    Strict mode
+#	[-gl int]            0                    Max length of gaps
+#	[-il int]            0                    Max length of insertions
+#	[-encgl]             0                    Encode gap length
+#	[-encil]             0                    Encode insert length
+#	[-normenc]           0                    Normalize Del/Ins length by the maximum Del/Ins length (-gl and -il)
+#	[-encpg]             0                    Encode gap position
+#	[-classI string]     UNDEF                MHC-I style of encoding for peptide length, as 8,9,10,11
+#	[-max_classI float]  0.900000             Max values for MHC-I style of encoding
+#	[-xrsc]              0                    Exclude rescale synapse to binary encoding
+#	[-encmhc]            0                    Encode MHC pseudo sequence (is set to 1 if -mhc used)
+#	[-mhc filename]                           File with MHC pseudo sequences
+#	[-aX]                0                    Allow X in MHC pseudo sequence
+#	[-mix]               0                    Mixed encoding; pep as sparse, HLA as blosum
+#	[-ishort]            0                    Make only insertions in peptides with length < core
+#	[-j0short int]       0                    Start postion of inserts in short peps
+#	[-j0long int]        1                    Start postion of inserts in long peps
+#	[-p1a]               0                    Allow only Hydrophobic AA at P1
+#	[-p1l filename]      ILVMFYW              Allowed letters at P1 [Only with -p1a option]
+# Random seed is 2
+# Read 18600 elements on seqlist /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_train.txt
+# Read 4650 elements on seqlist /home/projects/vaccine/people/yatwan/PyNNalign/data/NetMHCIIpan_train/benchmark_test.txt
+# Blosum matrix 50 initialized
+# Read_realblosum done. Alphabet ARNDCQEGHILKMFPSTWYV
+# Number of training sequences 18600
+# Number of testset data 4650
+# Ninput 224. Noutput 1
+# Nlayer 0 NNlay 224
+# Nlayer 1 NNlay 50
+# Nlayer 2 NNlay 1
+# Number of weights in network 11301
+# 0 XYCORR 0.497122 0.071120
+# 1 XYCORR 0.690295 0.048459
+# 2 XYCORR 0.720096 0.044371
+# 3 XYCORR 0.736110 0.042157
+# 4 XYCORR 0.748224 0.040476
+# 5 XYCORR 0.760805 0.038740
+# 6 XYCORR 0.766441 0.037940
+# 7 XYCORR 0.773252 0.036968
+# 8 XYCORR 0.781216 0.035846
+# 9 XYCORR 0.789138 0.034692
+# 10 XYCORR 0.795324 0.033793
+# Train epoch 10 N Train 18600 Pearson 0.795324 Err 0.033793 Test Pearson 0.769243 Err 0.034721
+# 11 XYCORR 0.801071 0.032957
+# 12 XYCORR 0.807279 0.032056
+# 13 XYCORR 0.813990 0.031049
+# 14 XYCORR 0.818165 0.030434
+# 15 XYCORR 0.823982 0.029556
+# 16 XYCORR 0.831012 0.028506
+# 17 XYCORR 0.834324 0.027982
+# 18 XYCORR 0.840586 0.027034
+# 19 XYCORR 0.844332 0.026474
+# 20 XYCORR 0.849917 0.025608
+# Train epoch 20 N Train 18600 Pearson 0.849917 Err 0.025608 Test Pearson 0.803206 Err 0.029249
+# 21 XYCORR 0.852749 0.025151
+# 22 XYCORR 0.857673 0.024397
+# 23 XYCORR 0.861983 0.023706
+# 24 XYCORR 0.867529 0.022842
+# 25 XYCORR 0.869522 0.022523
+# 26 XYCORR 0.873474 0.021892
+# 27 XYCORR 0.877349 0.021269
+# 28 XYCORR 0.880688 0.020744
+# 29 XYCORR 0.885543 0.019973
+# 30 XYCORR 0.888517 0.019474
+# Train epoch 30 N Train 18600 Pearson 0.888517 Err 0.019474 Test Pearson 0.820010 Err 0.026907
+# 31 XYCORR 0.890758 0.019112
+# 32 XYCORR 0.894960 0.018427
+# 33 XYCORR 0.897628 0.018004
+# 34 XYCORR 0.898566 0.017822
+# 35 XYCORR 0.901779 0.017303
+# 36 XYCORR 0.906552 0.016534
+# 37 XYCORR 0.907976 0.016270
+# 38 XYCORR 0.909923 0.015953
+# 39 XYCORR 0.911742 0.015631
+# 40 XYCORR 0.914431 0.015207
+# Train epoch 40 N Train 18600 Pearson 0.914431 Err 0.015207 Test Pearson 0.828104 Err 0.026315
+# 41 XYCORR 0.916320 0.014880
+# 42 XYCORR 0.918705 0.014479
+# 43 XYCORR 0.920750 0.014168
+# 44 XYCORR 0.922438 0.013853
+# 45 XYCORR 0.924545 0.013500
+# 46 XYCORR 0.926296 0.013209
+# 47 XYCORR 0.927941 0.012932
+# 48 XYCORR 0.929561 0.012654
+# 49 XYCORR 0.930652 0.012455
+# 50 XYCORR 0.933223 0.012032
+# Train epoch 50 N Train 18600 Pearson 0.933223 Err 0.012032 Test Pearson 0.840348 Err 0.024374
+# 51 XYCORR 0.934501 0.011812
+# 52 XYCORR 0.935888 0.011549
+# 53 XYCORR 0.936481 0.011443
+# 54 XYCORR 0.938365 0.011137
+# 55 XYCORR 0.939387 0.010959
+# 56 XYCORR 0.940721 0.010728
+# 57 XYCORR 0.941677 0.010533
+# 58 XYCORR 0.943003 0.010332
+# 59 XYCORR 0.944272 0.010122
+# 60 XYCORR 0.945367 0.009917
+# Train epoch 60 N Train 18600 Pearson 0.945367 Err 0.009917 Test Pearson 0.847070 Err 0.023194
+# 61 XYCORR 0.946715 0.009676
+# 62 XYCORR 0.948086 0.009442
+# 63 XYCORR 0.948887 0.009295
+# 64 XYCORR 0.949923 0.009106
+# 65 XYCORR 0.950902 0.008959
+# 66 XYCORR 0.951494 0.008830
+# 67 XYCORR 0.952207 0.008704
+# 68 XYCORR 0.952925 0.008579
+# 69 XYCORR 0.953607 0.008454
+# 70 XYCORR 0.954305 0.008326
+# Train epoch 70 N Train 18600 Pearson 0.954305 Err 0.008326 Test Pearson 0.844174 Err 0.024129
+# 71 XYCORR 0.955145 0.008172
+# 72 XYCORR 0.955294 0.008144
+# 73 XYCORR 0.956160 0.008003
+# 74 XYCORR 0.956258 0.007976
+# 75 XYCORR 0.956886 0.007880
+# 76 XYCORR 0.957395 0.007787
+# 77 XYCORR 0.957804 0.007699
+# 78 XYCORR 0.958100 0.007650
+# 79 XYCORR 0.958760 0.007534
+# 80 XYCORR 0.958684 0.007544
+# Train epoch 80 N Train 18600 Pearson 0.958684 Err 0.007544 Test Pearson 0.847056 Err 0.023781
+# 81 XYCORR 0.958943 0.007494
+# 82 XYCORR 0.959303 0.007429
+# 83 XYCORR 0.959627 0.007371
+# 84 XYCORR 0.959942 0.007311
+# 85 XYCORR 0.960032 0.007293
+# 86 XYCORR 0.960331 0.007240
+# 87 XYCORR 0.960647 0.007150
+# 88 XYCORR 0.960742 0.007130
+# 89 XYCORR 0.961072 0.007076
+# 90 XYCORR 0.961122 0.007092
+# Train epoch 90 N Train 18600 Pearson 0.961122 Err 0.007092 Test Pearson 0.846336 Err 0.024090
+# 91 XYCORR 0.961145 0.007056
+# 92 XYCORR 0.961425 0.007005
+# 93 XYCORR 0.961684 0.006959
+# 94 XYCORR 0.961615 0.006964
+# 95 XYCORR 0.961834 0.006928
+# 96 XYCORR 0.962053 0.006886
+# 97 XYCORR 0.961896 0.006912
+# 98 XYCORR 0.962178 0.006857
+# 99 XYCORR 0.962307 0.006837
+# Best XYCORR 0.963218 0.006695
+# Best_TCC 0.000000 TCC 0.850813 TERR 0.023237
+# Rescale SYN
+# Test rescaled syn
+# Encode reset done
+# After rescale Test XYCORR 0.850813 0.023237
+Total execution time for ./benchmark_morni_basenn.sh: 1038.62 seconds
+Average execution time for ./benchmark_morni_basenn.sh: 346.207 seconds
