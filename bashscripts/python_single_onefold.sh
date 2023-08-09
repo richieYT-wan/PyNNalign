@@ -41,5 +41,5 @@ run_script() {
 }
 
 # Run the scripts and get average execution time
-run_script "$SCRIPT2" > /home/projects/vaccine/people/yatwan/PyNNalign/python_benchmark_onefold.txt
+run_script "$SCRIPT2" > /home/projects/vaccine/people/yatwan/PyNNalign/python_benchmark_onefold_300epochs.txt
 

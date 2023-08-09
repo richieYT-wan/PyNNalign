@@ -1,6 +1,6 @@
 #! /usr/bin/bash
 
-epochs=100
+epochs=300
 motif_length=9
 hidden_neurons=50
 
