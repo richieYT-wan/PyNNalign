@@ -1,0 +1,151 @@
+import pandas as pd
+from tqdm.auto import tqdm
+import os, sys
+
+module_path = os.path.abspath(os.path.join('..'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+
+import torch
+from torch import optim
+from torch import nn
+from torch.utils.data import RandomSampler, SequentialSampler
+from datetime import datetime as dt
+from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
+from src.torch_utils import save_checkpoint, load_checkpoint
+from src.models import NNAlign
+from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
+from sklearn.model_selection import train_test_split
+from src.datasets import get_NNAlign_dataloader
+from matplotlib import pyplot as plt
+import seaborn as sns
+
+import argparse
+
+
+def args_parser():
+    parser = argparse.ArgumentParser(description='Script to train and evaluate a NNAlign model ')
+    #
+    # parser.add_argument('-tf', '--train_file', dest='train', required=True,
+    #                     type=str, help='filename of the train_file, w/ extension & full path' \
+    #                                    'ex: /path/to/file/train.csv')
+    # parser.add_argument('-vf', '--valid_file', dest='valid', required=True,
+    #                     type=str, help='filename of the valid_file, w/ extension & full path' \
+    #                                    'ex: /path/to/file/valid.csv')
+
+    """
+    Data processing args
+    """
+    parser.add_argument('-f', '--file', dest='file', required=True, type=str,
+                        default='../data/NetMHCIIpan_train/drb1_0301.csv',
+                        help='filename of the input file')
+    parser.add_argument('-o', '--out', dest='out', required=False,
+                        type=str, default='', help='Additional output name')
+    parser.add_argument('-s', '--split', dest='split', required=False, type=int,
+                        default=5, help=('How to split the train/test data (test size=1/X)'))
+    parser.add_argument('-kf', '--fold', dest='fold', required=False, type=int, default=None,
+                        help='If added, will split the input file into the train/valid for kcv')
+    parser.add_argument('-x', '--seq_col', dest='seq_col', default='Sequence', type=str, required=False,
+                        help='Name of the column containing sequences (inputs)')
+    parser.add_argument('-y', '--target_col', dest='target_col', default='target', type=str, required=False,
+                        help='Name of the column containing sequences (inputs)')
+    parser.add_argument('-enc', '--encoding', dest='encoding', type=str, default='BL50LO', required=False,
+                        help='Which encoding to use: onehot, BL50L0, BL62LO, BL62FREQ (default = BL50LO)')
+    parser.add_argument('-ml', '--max_len', dest='max_len', type=int, required=True,
+                        help='Maximum sequence length admitted ;' \
+                             'Sequences longer than max_len will be removed from the datasets')
+    parser.add_argument('-pad', '--pad_scale', dest='pad_scale', type=float, default=None, required=False,
+                        help='Number with which to pad the inputs if needed; ' \
+                             'Default behaviour is 0 if onehot, -12 is BLOSUM')
+    """
+    Neural Net & Encoding args 
+    """
+    parser.add_argument('-nh', '--n_hidden', dest='n_hidden', required=True,
+                        type=int, help='Number of hidden units')
+    parser.add_argument('-std', '--standardize', dest='standardize', type=str2bool, required=True,
+                        help='Whether to include standardization (True/False)')
+    parser.add_argument('-bn', '--batchnorm', dest='batchnorm', type=str2bool, required=True,
+                        help='Whether to add BatchNorm to the model (True/False)')
+    parser.add_argument('-do', '--dropout', dest='dropout', type=float, default=0.0, required=False,
+                        help='Whether to add DropOut to the model (p in float e[0,1], default = 0.0)')
+    parser.add_argument('-ws', '--window_size', dest='window_size', type=int, default=6, required=False,
+                        help='Window size for sub-mers selection (default = 6)')
+    """
+    Training hyperparameters & args
+    """
+    parser.add_argument('-br', '--burn_in', dest='burn_in', required=False, type=int, default=None,
+                        help='Burn-in period (in int) to align motifs to P0. Disabled by default')
+    parser.add_argument('-lr', '--learning_rate', dest='lr', type=float, default=1e-4, required=False,
+                        help='Learning rate for the optimizer')
+    parser.add_argument('-wd', '--weight_decay', dest='weight_decay', type=float, default=1e-2, required=False,
+                        help='Weight decay for the optimizer')
+    parser.add_argument('-bs', '--batch_size', dest='batch_size', type=int, default=128, required=False,
+                        help='Batch size for mini-batch optimization')
+    parser.add_argument('-ne', '--n_epochs', dest='n_epochs', type=int, default=500, required=False,
+                        help='Number of epochs to train')
+    parser.add_argument('-tol', '--tolerance', dest='tolerance', type=float, default=1e-5, required=False,
+                        help='Tolerance for loss variation to log best model')
+    return parser.parse_args()
+
+
+def main():
+    start = dt.now()
+    # I like dictionary for args :-)
+    args = vars(args_parser())
+    # File-saving stuff
+    connector = '' if args["out"] == '' else '_'
+    unique_filename = f'{args["out"]}{connector}{get_datetime_string()}_{get_random_id(5)}'
+    checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
+    outdir = os.path.join('../output/', unique_filename) + '/'
+    mkdirs(outdir)
+
+    print(args)
+    # TODO: Deprecate this behaviour for now because I don't want to deal with it
+    # train_df = pd.read_csv(args['train'])
+    # valid_df = pd.read_csv(args['valid'])
+    df = pd.read_csv(args['file'])
+    if args['fold'] is not None:
+        fold = args['fold']
+        dfname = args['file'].split('/')[-1].split('.')[0]
+        train_df = df.query('fold!=@fold')
+        valid_df = df.query('fold==@fold')
+        unique_filename = f'kcv_{dfname}_f{fold}_{unique_filename}'
+        checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
+    else:
+        train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
+    # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
+    # Def params so it's ✨tidy✨
+    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize']
+    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size']
+    model_params = {k: args[k] for k in model_keys}
+    dataset_params = {k: args[k] for k in dataset_keys}
+    optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
+    # instantiate objects
+    model = NNAlign(activation=nn.SELU(), indel=False, **model_params)
+    criterion = nn.BCEWithLogitsLoss(reduction='mean')
+    optimizer = optim.Adam(model.parameters(), **optim_params)
+    train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, sampler=RandomSampler, **dataset_params)
+    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, return_dataset=True, indel=False, sampler=SequentialSampler, **dataset_params)
+
+    model, train_metrics, valid_metrics, train_losses, valid_losses, \
+        best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model, criterion, optimizer,
+                                                                   train_dataset, train_loader, valid_loader, checkpoint_filename,
+                                                                   outdir, args['burn_in'])
+
+
+
+    print('Reloading best model and returning validation predictions')
+    model = load_checkpoint(model, filename=checkpoint_filename,
+                            dir_path=outdir)
+    valid_preds = predict_model(model, valid_dataset, valid_loader)
+    print('Saving valid predictions from best model')
+    valid_preds.to_csv(f'{outdir}valid_predictions_{unique_filename}.csv', index=False)
+
+    end = dt.now()
+    elapsed = divmod((end - start).seconds, 60)
+    print(f'Program finished in {elapsed[0]} minutes, {elapsed[1]} seconds.')
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
