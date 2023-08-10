@@ -505,6 +505,7 @@ class ExtraLayerDouble(NetParent):
 class NNAlignEF(NetParent):
     """ EF == ExtraFeatures
     TODO: Currently assumes that I need an extra in_layer + an extra out_layer
+          This does not use ExtraLayerSingle/Double, that's in EF2, but this is an easier way if we don't need those classes
           Could also be changed to take a single extra layer of nn.Linear(1+n_extrafeatures, 1)
           That takes as input the logits from NNAlign + the extra features and directly returns a score without 2 layers.
           Can maybe write another class EFModel that just takes the ef_xx part here
@@ -593,6 +594,12 @@ class NNAlignEF(NetParent):
         self.nnalign_model.load_state_dict(state_dict['nnalign_model'])
         self.ef_standardizer.load_state_dict(state_dict['ef_standardizer'])
         self.init_params = state_dict['init_params']
+        # This is really a bit of a mess.
+        to_filter = ['nnalign_model', 'ef_standardizer', 'init_params']
+        custom_state_dict = {k: state_dict[k] for k in [k for k in state_dict.keys() if k not in to_filter]}
+        # strict = False allows the loading of only the base layers and ignore the errors but this is
+        # a massive source of problem maybe ??
+        super(NNAlignEF, self).load_state_dict(custom_state_dict, strict= False)
 
 
 class NNAlignEF2(NetParent):
