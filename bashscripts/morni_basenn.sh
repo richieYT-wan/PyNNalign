@@ -41,5 +41,5 @@ run_script() {
 }
 
 # Run the scripts and get average execution time
-run_script "$SCRIPT2" > /home/projects/vaccine/people/yatwan/PyNNalign/morni_benchmark_baseNN_300epochs.txt
+run_script "$SCRIPT2" > /home/projects/vaccine/people/yatwan/PyNNalign/morni_benchmark_baseNN_300epochs_rerunNoFlanking.txt
 
