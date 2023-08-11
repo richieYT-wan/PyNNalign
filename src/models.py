@@ -509,6 +509,7 @@ class NNAlignEF(NetParent):
           Could also be changed to take a single extra layer of nn.Linear(1+n_extrafeatures, 1)
           That takes as input the logits from NNAlign + the extra features and directly returns a score without 2 layers.
           Can maybe write another class EFModel that just takes the ef_xx part here
+
     """
 
     def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0,
@@ -603,7 +604,9 @@ class NNAlignEF(NetParent):
 
 
 class NNAlignEF2(NetParent):
-    """ This class here used to test the difference using the class ExtraLayerXX instead of spelling out the layers here.
+    """
+    This class here used to test the difference using the class ExtraLayerXX instead of spelling out the layers here.
+    TODO: EF2 actually works more correctly when reloading weights because the ef_layer is in its own module
     """
 
     def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0,
