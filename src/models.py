@@ -195,6 +195,37 @@ class StandardizerFeatures(nn.Module):
         self.fitted = state_dict['fitted']
 
 
+class StandardizerSequenceVector(nn.Module):
+    def __init__(self, input_dim=20, max_len=12):
+        super(StandardizerSequenceVector, self).__init__()
+        self.mu = nn.Parameter(torch.zeros((max_len, input_dim)), requires_grad=False)
+        self.sigma = nn.Parameter(torch.ones((max_len, input_dim)), requires_grad=False)
+        self.fitted = nn.Parameter(torch.tensor(False), requires_grad=False)
+        self.input_dim = input_dim
+        self.max_len = max_len
+
+    def fit(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
+        assert self.training, 'Can not fit while in eval mode. Please set model to training mode'
+        with torch.no_grad():
+            masked_values = x_tensor * x_mask
+            mu = masked_values.mean(dim=0)
+            sigma = masked_values.std(dim=0)
+            sigma[torch.where(sigma == 0)] = 1e-12
+            self.mu.data.copy_(mu)
+            self.sigma.data.copy_(sigma)
+            self.fitted.data = torch.tensor(True)
+
+    def forward(self, x):
+        assert self.fitted, 'Standardizer not fitted!'
+        return (x - self.mu) / self.sigma
+
+    def reset_parameters(self, **kwargs):
+        with torch.no_grad():
+            self.mu.data.copy_(torch.zeros((self.max_len, self.input_dim)))
+            self.sigma.data.copy_(torch.ones((self.max_len, self.input_dim)))
+            self.fitted.data = torch.tensor(False)
+
+
 class StdBypass(nn.Module):
     def __init__(self, **kwargs):
         super(StdBypass, self).__init__()
