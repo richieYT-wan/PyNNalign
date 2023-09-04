@@ -1,12 +1,6 @@
-from abc import ABC, abstractmethod, abstractstaticmethod
-from collections import OrderedDict
-from typing import Union
-import numpy as np
-import sklearn
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import copy
 
 
 class NetParent(nn.Module):
@@ -48,37 +42,28 @@ class NetParent(nn.Module):
         self.device = device
 
 
+
 class StandardizerSequence(nn.Module):
-    def __init__(self):
+    def __init__(self, n_feats=20):
         super(StandardizerSequence, self).__init__()
-        self.mu = 0
-        self.sigma = 1
-        self.fitted = False
+        # Here using 20 because 20 AA alphabet. With this implementation, it shouldn't need custom state_dict fct
+        self.mu = nn.Parameter(torch.zeros(n_feats), requires_grad=False)
+        self.sigma = nn.Parameter(torch.ones(n_feats), requires_grad=False)
+        self.fitted = nn.Parameter(torch.tensor(False), requires_grad=False)
+        self.n_feats = n_feats
         self.dimensions = None
 
     def fit(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
-        """ Will consider the mask (padded position) and ignore them before computing the mean/std
-        Args:
-            x_tensor:
-            x_mask:
-
-        Returns:
-
-        """
-
         assert self.training, 'Can not fit while in eval mode. Please set model to training mode'
         with torch.no_grad():
-            # TODO: deprecated 3d to 2d here / 2d to 3d here, but will stay in forward.
-            # x = self.view_3d_to_2d(x)
-            # Updated version with masking
             masked_values = x_tensor * x_mask
             mu = (torch.sum(masked_values, dim=1) / torch.sum(x_mask, dim=1))
             sigma = (torch.sqrt(torch.sum((masked_values - mu.unsqueeze(1)) ** 2, dim=1) / torch.sum(x_mask, dim=1)))
-            self.mu = mu.mean(dim=0)
-            self.sigma = sigma.mean(dim=0)
-            # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
-            self.sigma[torch.where(self.sigma == 0)] = 1e-12
-            self.fitted = True
+            self.mu.data.copy_(mu.mean(dim=0))
+            sigma = sigma.mean(dim=0)
+            sigma[torch.where(sigma == 0)] = 1e-12
+            self.sigma.data.copy_(sigma)
+            self.fitted.data = torch.tensor(True)
 
     def forward(self, x):
         assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
@@ -100,9 +85,9 @@ class StandardizerSequence(nn.Module):
 
     def reset_parameters(self, **kwargs):
         with torch.no_grad():
-            self.mu = 0
-            self.sigma = 0
-            self.fitted = False
+            self.mu.data.copy_(torch.zeros(self.n_feats))
+            self.sigma.data.copy_(torch.ones(self.n_feats))
+            self.fitted.data = torch.tensor(False)
 
     def view_3d_to_2d(self, x):
         with torch.no_grad():
@@ -119,34 +104,14 @@ class StandardizerSequence(nn.Module):
             else:
                 return x
 
-    def state_dict(self, **kwargs):
-        """overwrites the state_dict with the custom attributes
-
-        Returns: state_dict
-
-        Args:
-            **kwargs:
-        """
-        state_dict = super(StandardizerSequence, self).state_dict()
-        state_dict['mu'] = self.mu
-        state_dict['sigma'] = self.sigma
-        state_dict['fitted'] = self.fitted
-        state_dict['dimensions'] = self.dimensions
-        return state_dict
-
-    def load_state_dict(self, state_dict, **kwargs):
-        self.mu = state_dict['mu']
-        self.sigma = state_dict['sigma']
-        self.fitted = state_dict['fitted']
-        self.dimensions = state_dict['dimensions']
-
 
 class StandardizerFeatures(nn.Module):
-    def __init__(self):
+    def __init__(self, n_feats=2):
         super(StandardizerFeatures, self).__init__()
-        self.mu = 0
-        self.sigma = 1
-        self.fitted = False
+        self.mu = nn.Parameter(torch.zeros(n_feats), requires_grad=False)
+        self.sigma = nn.Parameter(torch.ones(n_feats), requires_grad=False)
+        self.fitted = nn.Parameter(torch.tensor(False), requires_grad=False)
+        self.n_feats = n_feats
 
     def fit(self, x_features: torch.Tensor):
         """ Will consider the mask (padded position) and ignore them before computing the mean/std
@@ -158,11 +123,11 @@ class StandardizerFeatures(nn.Module):
         """
         assert self.training, 'Can not fit while in eval mode. Please set model to training mode'
         with torch.no_grad():
-            self.mu = x_features.mean(dim=0)
-            self.sigma = x_features.std(dim=0)
+            self.mu.data.copy_(x_features.mean(dim=0))
+            self.sigma.data.copy_(x_features.std(dim=0))
             # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
-            self.sigma[torch.where(self.sigma == 0)] = 1e-12
-            self.fitted = True
+            self.sigma.data[torch.where(self.sigma.data == 0)] = 1e-12
+            self.fitted.data = torch.tensor(True)
 
     def forward(self, x):
         assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
@@ -171,28 +136,29 @@ class StandardizerFeatures(nn.Module):
 
     def reset_parameters(self, **kwargs):
         with torch.no_grad():
-            self.mu = 0
-            self.sigma = 0
-            self.fitted = False
+            self.mu.data.copy(torch.zeros(self.n_feats))
+            self.sigma.data.copy(torch.ones(self.n_feats))
+            self.fitted.data = torch.tensor(False)
 
-    def state_dict(self, **kwargs):
-        """overwrites the state_dict with the custom attributes
 
-        Returns: state_dict
-
-        Args:
-            **kwargs:
-        """
-        state_dict = super(StandardizerFeatures, self).state_dict()
-        state_dict['mu'] = self.mu
-        state_dict['sigma'] = self.sigma
-        state_dict['fitted'] = self.fitted
-        return state_dict
-
-    def load_state_dict(self, state_dict, **kwargs):
-        self.mu = state_dict['mu']
-        self.sigma = state_dict['sigma']
-        self.fitted = state_dict['fitted']
+    # def state_dict(self, **kwargs):
+    #     """overwrites the state_dict with the custom attributes
+    #
+    #     Returns: state_dict
+    #
+    #     Args:
+    #         **kwargs:
+    #     """
+    #     state_dict = super(StandardizerFeatures, self).state_dict()
+    #     state_dict['mu'] = self.mu
+    #     state_dict['sigma'] = self.sigma
+    #     state_dict['fitted'] = self.fitted
+    #     return state_dict
+    #
+    # def load_state_dict(self, state_dict, **kwargs):
+    #     self.mu = state_dict['mu']
+    #     self.sigma = state_dict['sigma']
+    #     self.fitted = state_dict['fitted']
 
 
 class StandardizerSequenceVector(nn.Module):
@@ -403,19 +369,19 @@ class NNAlign(NetParent):
                 try:
                     child.reset_parameters(**kwargs)
                 except:
-                    print('here xd', child)
-
-    def state_dict(self, **kwargs):
-        state_dict = super(NNAlign, self).state_dict()
-        state_dict['nnalign'] = self.nnalign.state_dict()
-        state_dict['standardizer'] = self.standardizer.state_dict()
-        state_dict['init_params'] = self.init_params
-        return state_dict
-
-    def load_state_dict(self, state_dict, **kwargs):
-        self.nnalign.load_state_dict(state_dict['nnalign'])
-        self.standardizer.load_state_dict(state_dict['standardizer'])
-        self.init_params = state_dict['init_params']
+                    print('debug HERE', child)
+    #
+    # def state_dict(self, **kwargs):
+    #     state_dict = super(NNAlign, self).state_dict()
+    #     state_dict['nnalign'] = self.nnalign.state_dict()
+    #     state_dict['standardizer'] = self.standardizer.state_dict()
+    #     state_dict['init_params'] = self.init_params
+    #     return state_dict
+    #
+    # def load_state_dict(self, state_dict, **kwargs):
+    #     self.nnalign.load_state_dict(state_dict['nnalign'])
+    #     self.standardizer.load_state_dict(state_dict['standardizer'])
+    #     self.init_params = state_dict['init_params']
 
 
 class ExtraLayerSingle(NetParent):
@@ -461,21 +427,21 @@ class ExtraLayerSingle(NetParent):
         """
         return F.sigmoid(self(x_concat))
 
-    def state_dict(self, **kwargs):
-        state_dict = super(ExtraLayerSingle, self).state_dict()
-        state_dict['n_input'] = self.n_input
-        state_dict['n_hidden'] = self.n_hidden
-        # state_dict['dropout'] = self.dropout.p
-        state_dict['batchnorm'] = self.batchnorm
-        state_dict['act'] = self.act
-        return state_dict
-
-    def load_state_dict(self, state_dict, **kwargs):
-        self.n_input = state_dict['n_input']
-        self.n_hidden = state_dict['n_hidden']
-        # self.dropout = state_dict['dropout']
-        self.batchnorm = state_dict['batchnorm']
-        self.act = state_dict['act']
+    # def state_dict(self, **kwargs):
+    #     state_dict = super(ExtraLayerSingle, self).state_dict()
+    #     state_dict['n_input'] = self.n_input
+    #     state_dict['n_hidden'] = self.n_hidden
+    #     # state_dict['dropout'] = self.dropout.p
+    #     state_dict['batchnorm'] = self.batchnorm
+    #     state_dict['act'] = self.act
+    #     return state_dict
+    #
+    # def load_state_dict(self, state_dict, **kwargs):
+    #     self.n_input = state_dict['n_input']
+    #     self.n_hidden = state_dict['n_hidden']
+    #     # self.dropout = state_dict['dropout']
+    #     self.batchnorm = state_dict['batchnorm']
+    #     self.act = state_dict['act']
 
 
 class ExtraLayerDouble(NetParent):
@@ -516,21 +482,21 @@ class ExtraLayerDouble(NetParent):
         """
         return F.sigmoid(self(x_concat))
 
-    def state_dict(self, **kwargs):
-        state_dict = super(ExtraLayerDouble, self).state_dict()
-        state_dict['n_input'] = self.n_input
-        state_dict['n_hidden'] = self.n_hidden
-        # state_dict['dropout'] = self.dropout.p
-        state_dict['batchnorm'] = self.batchnorm
-        state_dict['act'] = self.act
-        return state_dict
-
-    def load_state_dict(self, state_dict, **kwargs):
-        self.n_input = state_dict['n_input']
-        self.n_hidden = state_dict['n_hidden']
-        # self.dropout = state_dict['dropout']
-        self.batchnorm = state_dict['batchnorm']
-        self.act = state_dict['act']
+    # def state_dict(self, **kwargs):
+    #     state_dict = super(ExtraLayerDouble, self).state_dict()
+    #     state_dict['n_input'] = self.n_input
+    #     state_dict['n_hidden'] = self.n_hidden
+    #     # state_dict['dropout'] = self.dropout.p
+    #     state_dict['batchnorm'] = self.batchnorm
+    #     state_dict['act'] = self.act
+    #     return state_dict
+    #
+    # def load_state_dict(self, state_dict, **kwargs):
+    #     self.n_input = state_dict['n_input']
+    #     self.n_hidden = state_dict['n_hidden']
+    #     # self.dropout = state_dict['dropout']
+    #     self.batchnorm = state_dict['batchnorm']
+    #     self.act = state_dict['act']
 
 
 class NNAlignEF(NetParent):
@@ -615,23 +581,25 @@ class NNAlignEF(NetParent):
             z = F.sigmoid(self.ef_outlayer(z))
             return z, max_idx
 
-    def state_dict(self, **kwargs):
-        state_dict = super(NNAlignEF, self).state_dict()
-        state_dict['nnalign_model'] = self.nnalign_model.state_dict()
-        state_dict['ef_standardizer'] = self.ef_standardizer.state_dict()
-        state_dict['init_params'] = self.init_params
-        return state_dict
 
-    def load_state_dict(self, state_dict, **kwargs):
-        self.nnalign_model.load_state_dict(state_dict['nnalign_model'])
-        self.ef_standardizer.load_state_dict(state_dict['ef_standardizer'])
-        self.init_params = state_dict['init_params']
-        # This is really a bit of a mess.
-        to_filter = ['nnalign_model', 'ef_standardizer', 'init_params']
-        custom_state_dict = {k: state_dict[k] for k in [k for k in state_dict.keys() if k not in to_filter]}
-        # strict = False allows the loading of only the base layers and ignore the errors but this is
-        # a massive source of problem maybe ??
-        super(NNAlignEF, self).load_state_dict(custom_state_dict, strict= False)
+# TODO REFACTORING HERE REMOVE ALL THESE
+    # def state_dict(self, **kwargs):
+    #     state_dict = super(NNAlignEF, self).state_dict()
+    #     state_dict['nnalign_model'] = self.nnalign_model.state_dict()
+    #     state_dict['ef_standardizer'] = self.ef_standardizer.state_dict()
+    #     state_dict['init_params'] = self.init_params
+    #     return state_dict
+    #
+    # def load_state_dict(self, state_dict, **kwargs):
+    #     self.nnalign_model.load_state_dict(state_dict['nnalign_model'])
+    #     self.ef_standardizer.load_state_dict(state_dict['ef_standardizer'])
+    #     self.init_params = state_dict['init_params']
+    #     # This is really a bit of a mess.
+    #     to_filter = ['nnalign_model', 'ef_standardizer', 'init_params']
+    #     custom_state_dict = {k: state_dict[k] for k in [k for k in state_dict.keys() if k not in to_filter]}
+    #     # strict = False allows the loading of only the base layers and ignore the errors but this is
+    #     # a massive source of problem maybe ??
+    #     super(NNAlignEF, self).load_state_dict(custom_state_dict, strict= False)
 
 
 class NNAlignEF2(NetParent):
@@ -696,16 +664,20 @@ class NNAlignEF2(NetParent):
             z = self.ef_layer.predict(z)
             return z, max_idx
 
-    def state_dict(self, **kwargs):
-        state_dict = super(NNAlignEF2, self).state_dict()
-        state_dict['nnalign_model'] = self.nnalign_model.state_dict()
-        state_dict['ef_standardizer'] = self.ef_standardizer.state_dict()
-        state_dict['ef_layer'] = self.ef_layer.state_dict()
-        state_dict['init_params'] = self.init_params
-        return state_dict
+# TODO: REFACTORING THESE HERE SHOULD BE PHASED OUT WHEN EVERYTHING ELSE WORKS
+#       To check : In a notebook, create a model, fit standardizer, print weights, save checkpoint
+#                  change seed, re-create a model, print weights etc, load checkpoint, re-check weights
 
-    def load_state_dict(self, state_dict, **kwargs):
-        self.nnalign_model.load_state_dict(state_dict['nnalign_model'])
-        self.ef_standardizer.load_state_dict(state_dict['ef_standardizer'])
-        self.ef_layer.load_state_dict(state_dict['ef_layer'])
-        self.init_params = state_dict['init_params']
+    # def state_dict(self, **kwargs):
+    #     state_dict = super(NNAlignEF2, self).state_dict()
+    #     state_dict['nnalign_model'] = self.nnalign_model.state_dict()
+    #     state_dict['ef_standardizer'] = self.ef_standardizer.state_dict()
+    #     state_dict['ef_layer'] = self.ef_layer.state_dict()
+    #     state_dict['init_params'] = self.init_params
+    #     return state_dict
+    #
+    # def load_state_dict(self, state_dict, **kwargs):
+    #     self.nnalign_model.load_state_dict(state_dict['nnalign_model'])
+    #     self.ef_standardizer.load_state_dict(state_dict['ef_standardizer'])
+    #     self.ef_layer.load_state_dict(state_dict['ef_layer'])
+    #     self.init_params = state_dict['init_params']
