@@ -25,13 +25,6 @@ import argparse
 
 def args_parser():
     parser = argparse.ArgumentParser(description='Script to train and evaluate a NNAlign model ')
-    #
-    # parser.add_argument('-tf', '--train_file', dest='train', required=True,
-    #                     type=str, help='filename of the train_file, w/ extension & full path' \
-    #                                    'ex: /path/to/file/train.csv')
-    # parser.add_argument('-vf', '--valid_file', dest='valid', required=True,
-    #                     type=str, help='filename of the valid_file, w/ extension & full path' \
-    #                                    'ex: /path/to/file/valid.csv')
 
     """
     Data processing args
@@ -68,7 +61,7 @@ def args_parser():
                         help='Whether to add BatchNorm to the model (True/False)')
     parser.add_argument('-do', '--dropout', dest='dropout', type=float, default=0.0, required=False,
                         help='Whether to add DropOut to the model (p in float e[0,1], default = 0.0)')
-    parser.add_argument('-ws', '--window_size', dest='window_size', type=int, default=6, required=False,
+    parser.add_argument('-ws', '--window_size', dest='window_size', type=int, default=9, required=False,
                         help='Window size for sub-mers selection (default = 6)')
     """
     Training hyperparameters & args

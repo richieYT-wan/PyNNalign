@@ -41,7 +41,6 @@ class NNAlignDataset(Dataset):
         self.x_tensor = x.unfold(1, window_size, 1).transpose(2, 3) \
             .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3).contiguous()
         self.y = y.contiguous()
-
         # Add extra features
         if len(feature_cols) > 0:
             self.x_features = torch.from_numpy(df[feature_cols].values).float()
