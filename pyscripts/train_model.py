@@ -117,8 +117,10 @@ def main():
     model = NNAlign(activation=nn.SELU(), indel=False, **model_params)
     criterion = nn.BCEWithLogitsLoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
-    train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, sampler=RandomSampler, **dataset_params)
-    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, return_dataset=True, indel=False, sampler=SequentialSampler, **dataset_params)
+    train_loader, train_dataset = get_NNAlign_dataloader(train_df, indel=False, sampler=RandomSampler,
+                                                         return_dataset=True, **dataset_params)
+    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, indel=False, sampler=SequentialSampler,
+                                                         return_dataset=True, **dataset_params)
 
     model, train_metrics, valid_metrics, train_losses, valid_losses, \
         best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model, criterion, optimizer,

@@ -13,7 +13,7 @@ from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
 from src.torch_utils import save_checkpoint, load_checkpoint
-from src.models import NNAlignEF
+from src.models import NNAlignEF_OLD
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
 from src.datasets import get_NNAlign_dataloader
@@ -131,11 +131,13 @@ def main():
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # instantiate objects
-    model = NNAlignEF(activation=nn.SELU(), activation_ef=nn.SELU(), n_extrafeatures=len(args['feature_cols']), indel=False, **model_params)
+    model = NNAlignEF_OLD(activation=nn.SELU(), activation_ef=nn.SELU(), n_extrafeatures=len(args['feature_cols']), indel=False, **model_params)
     criterion = nn.BCEWithLogitsLoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
-    train_loader, train_dataset = get_NNAlign_dataloader(train_df, return_dataset=True, indel=False, sampler=RandomSampler, **dataset_params)
-    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, return_dataset=True, indel=False, sampler=SequentialSampler, **dataset_params)
+    train_loader, train_dataset = get_NNAlign_dataloader(train_df, indel=False, sampler=RandomSampler,
+                                                         return_dataset=True, **dataset_params)
+    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, indel=False, sampler=SequentialSampler,
+                                                         return_dataset=True, **dataset_params)
 
     model, train_metrics, valid_metrics, train_losses, valid_losses, \
         best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model, criterion, optimizer,

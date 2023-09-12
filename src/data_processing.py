@@ -32,7 +32,7 @@ def _init(DATADIR):
 
     CHAR_TO_INT = dict((c, i) for i, c in enumerate(AA_KEYS))
     INT_TO_CHAR = dict((i, c) for i, c in enumerate(AA_KEYS))
-
+    CHAR_TO_INT['X'] = -1
     CHAR_TO_INT['-'] = -1
     INT_TO_CHAR[-1] = '-'
 
@@ -208,7 +208,11 @@ def encode(sequence, max_len=None, encoding='onehot', pad_scale=None):
 
         tmp = np.zeros([size, len(AA_KEYS)], dtype=np.float32)
         for idx in range(size):
-            tmp[idx, :] = blosum_matrix[sequence[idx]]
+            # Here, the way Morten takes cares of Xs is to leave it blank, i.e. as zeros
+            # So only use blosum matrix to encode if sequence[idx] != 'X'
+            if sequence[idx]!='X':
+                tmp[idx, :] = blosum_matrix[sequence[idx]]
+
 
     # Padding if max_len is provided
     if max_len is not None and max_len > size:
