@@ -67,9 +67,11 @@ class Old_StandardizerSequence_(nn.Module):
             # Updated version with masking
             masked_values = x_tensor * x_mask
             mu = (torch.sum(masked_values, dim=1) / torch.sum(x_mask, dim=1))
-            sigma = (torch.sqrt(torch.sum((masked_values - mu.unsqueeze(1)) ** 2, dim=1) / torch.sum(x_mask, dim=1))).mean(dim=0)
+            sigma = (
+                torch.sqrt(torch.sum((masked_values - mu.unsqueeze(1)) ** 2, dim=1) / torch.sum(x_mask, dim=1))).mean(
+                dim=0)
             mu = mu.mean(dim=0)
-            sigma[torch.where(sigma==0)]=1e-12
+            sigma[torch.where(sigma == 0)] = 1e-12
             self.mu = mu.mean(dim=0)
             self.sigma = sigma.mean(dim=0)
             # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
@@ -422,15 +424,15 @@ class NNAlignSinglePass(NetParent):
             return z, max_idx
 
 
-
 class NNAlignEFSinglePass(NetParent):
     """
+    # TODO : Carlos, this is the class that you will be using. extrafeat_dim should be 680 when only adding MHC pseudo sequences
     NNAlign implementation with a single forward pass where best score selection + indexing is done in one pass.
     """
 
     def __init__(self, n_hidden, window_size,
-                 activation, extrafeat_dim = 0, batchnorm=False,
-                 dropout=0.0, indel=False):
+                 activation, extrafeat_dim=0, batchnorm=False,
+                 dropout=0.0, indel=False, standardize=False):
         super(NNAlignEFSinglePass, self).__init__()
         self.matrix_dim = 21 if indel else 20
         self.window_size = window_size
@@ -443,8 +445,18 @@ class NNAlignEFSinglePass(NetParent):
             self.bn1 = nn.BatchNorm1d(n_hidden)
         self.dropout = nn.Dropout(p=dropout)
         self.act = activation
+        self.standardizer_sequence = StandardizerSequence(n_feats=self.matrix_dim) if standardize else StdBypass()
+        # For mhc pseudosequences, extrafeat_dim would be 680 (34x20, flattened)
+        self.standardizer_features = StandardizerFeatures(n_feats=extrafeat_dim) if standardize else StdBypass()
 
-    def forward(self, x_tensor: torch.Tensor, x_mask: torch.tensor, x_feats:torch.tensor=None):
+    def fit_standardizer(self, x_tensor, x_mask, x_feats=None):
+        assert self.training, 'Must be in training mode to fit!'
+        with torch.no_grad():
+            self.standardizer_sequence.fit(x_tensor, x_mask)
+            if x_feats is not None:
+                self.standardizer_features.fit(x_feats)
+
+    def forward(self, x_tensor: torch.Tensor, x_mask: torch.tensor, x_feats: torch.tensor = None):
 
         """
         Single forward pass for layers + best score selection without w/o grad
@@ -459,10 +471,13 @@ class NNAlignEFSinglePass(NetParent):
         # FIRST FORWARD PASS: best scoring selection, with no grad
 
         # Here concatenate whatever extra features (like the flattened MHC pseudosequence)
-        if x_feats is not None:
-            x_tensor = torch.cat([x_tensor, x_feats], dim = 2)
+        with torch.no_grad():
+            x_tensor = self.standardizer_sequence(x_tensor)
+            if x_feats is not None:
+                x_feats = self.standardizer_features(x_feats)
+                x_tensor = torch.cat([x_tensor, x_feats], dim=2)
 
-        z = self.in_layer(x_tensor)  # Inlayer
+        z = self.in_layer(x_tensor)
         # Flip dimensions to allow for batchnorm then flip back
         if self.batchnorm:
             z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
@@ -480,7 +495,7 @@ class NNAlignEFSinglePass(NetParent):
         z = F.sigmoid(torch.gather(z, 1, max_idx).squeeze(1))  # Indexing the best submers
         return z
 
-    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
+    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
         """Works like forward but also returns the index (for the motif selection/return)
 
         This should be done with torch no_grad as this shouldn't be used during/for training
@@ -494,6 +509,10 @@ class NNAlignEFSinglePass(NetParent):
                      used to find the predicted core
         """
         with torch.no_grad():
+            x_tensor = self.standardizer_sequence(x_tensor)
+            if x_feats is not None:
+                x_feats = self.standardizer_features(x_feats)
+                x_tensor = torch.cat([x_tensor, x_feats], dim=2)
             z = self.in_layer(x_tensor)
             if self.batchnorm:
                 z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
@@ -506,7 +525,7 @@ class NNAlignEFSinglePass(NetParent):
             z = F.sigmoid(torch.gather(z, 1, max_idx).squeeze(1))
             return z, max_idx
 
-    def predict_logits(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
+    def predict_logits(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
         """ QOL method to return the predictions without Sigmoid + return the indices
         To be used elsewhere down the line (in EF model)
 
@@ -518,6 +537,10 @@ class NNAlignEFSinglePass(NetParent):
 
         """
         with torch.no_grad():
+            x_tensor = self.standardizer_sequence(x_tensor)
+            if x_feats is not None:
+                x_feats = self.standardizer_features(x_feats)
+                x_tensor = torch.cat([x_tensor, x_feats], dim=2)
             z = self.in_layer(x_tensor)
             if self.batchnorm:
                 z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
@@ -530,12 +553,13 @@ class NNAlignEFSinglePass(NetParent):
             z = torch.gather(z, 1, max_idx).squeeze(1)
             return z, max_idx
 
+
 class NNAlign(NetParent):
     def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0, indel=False,
                  standardize=True, **kwargs):
         super(NNAlign, self).__init__()
         self.nnalign = NNAlignSinglePass(n_hidden, window_size, activation, batchnorm, dropout, indel)
-        self.standardizer = StandardizerSequence(window_size*20) if standardize else StdBypass()
+        self.standardizer = StandardizerSequence(window_size * 20) if standardize else StdBypass()
         # Save here to make reloading a model potentially easier
         self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
                             'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel,
@@ -781,4 +805,3 @@ class NNAlignEF_OLD(NetParent):
             # Returning probs [0, 1]
             z = F.sigmoid(self.ef_outlayer(z))
             return z, max_idx
-

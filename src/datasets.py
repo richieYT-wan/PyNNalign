@@ -108,10 +108,8 @@ class NNAlignDatasetEFSinglePass(Dataset):
     """
 
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
-                 seq_col: str = 'sequence', target_col: str = 'target',
-                 pad_scale: float = None, indel: bool = False,
-                 burnin_alphabet: str = 'ILVMFYW',
-                 feature_cols: list = None):
+                 seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
+                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False):
 
         super(NNAlignDatasetEFSinglePass, self).__init__()
         # Encoding stuff
@@ -140,8 +138,14 @@ class NNAlignDatasetEFSinglePass(Dataset):
         # Add extra features
         if len(feature_cols) > 0:
             # these are NUMERICAL FEATURES like %Rank, expression, etc. of shape (N, len(feature_cols))
-            x_features = torch.from_numpy(df[feature_cols].values).float()
+            # x_features = torch.from_numpy(df[feature_cols].values).float()
 
+            self.extra_features_flag = True
+        else:
+            self.x_features = torch.empty((len(x),))
+            self.extra_features_flag = False
+
+        if add_pseudo_sequence:
             # TODO: Carlos, here you need to create the MHC feature vector and flatten it.
             #       Basically, if you have the pseudo sequence in a column called 'pseudoseq' in your dataframe,
             #       You can use my function encode_batch like
@@ -152,13 +156,7 @@ class NNAlignDatasetEFSinglePass(Dataset):
             # x_pseudoseq = x_pseudoseq.flatten(start_dim=1)
             # x_pseudoseq = x_pseudoseq.unsqueeze(1).repeat(1, x_tensor.shape[1], 1)
             # self.x_features = x_pseudoseqs
-            self.extra_features_flag = True
-        else:
-            self.x_features = torch.empty((len(x),))
-            self.extra_features_flag = False
-
-
-
+            # self.extra_features_flag = True
         # Saving df in case it's needed
         self.df = df
         self.len = len(x)
@@ -201,9 +199,10 @@ class NNAlignDatasetEFSinglePass(Dataset):
 def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                                        seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
                                        indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
-                                       batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True):
+                                       batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+                                       add_pseudo_sequence=False):
     dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
-                                         burnin_alphabet, feature_cols)
+                                         burnin_alphabet, feature_cols, add_pseudo_sequence)
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
     if return_dataset:
         return dataloader, dataset
