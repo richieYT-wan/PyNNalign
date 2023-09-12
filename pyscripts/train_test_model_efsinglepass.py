@@ -150,7 +150,9 @@ def main():
 
     # extrafeat_dim = len(args['feature_cols']) + ...
     model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, indel=False, **model_params)
-    criterion = nn.BCEWithLogitsLoss(reduction='mean')
+
+    # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
+    criterion = nn.MSELoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
     train_loader, train_dataset = get_NNAlign_dataloaderEFSinglePass(train_df, indel=False, sampler=RandomSampler,
                                                          return_dataset=True, **dataset_params)
