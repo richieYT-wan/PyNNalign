@@ -137,6 +137,7 @@ class NNAlignDatasetEFSinglePass(Dataset):
         self.y = y.contiguous()
         # Add extra features
         if len(feature_cols) > 0:
+            # TODO: When you add more features you need to concatenate to x_pseudosequence and save it to self.x_features
             # these are NUMERICAL FEATURES like %Rank, expression, etc. of shape (N, len(feature_cols))
             # x_features = torch.from_numpy(df[feature_cols].values).float()
 
@@ -157,6 +158,7 @@ class NNAlignDatasetEFSinglePass(Dataset):
             # x_pseudoseq = x_pseudoseq.unsqueeze(1).repeat(1, x_tensor.shape[1], 1)
             # self.x_features = x_pseudoseqs
             # self.extra_features_flag = True
+        
         # Saving df in case it's needed
         self.df = df
         self.len = len(x)
