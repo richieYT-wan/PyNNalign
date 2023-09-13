@@ -152,13 +152,12 @@ class NNAlignDatasetEFSinglePass(Dataset):
             #       You can use my function encode_batch like
             #       x_pseudoseq = encode_batch(df['pseudoseq'], max_len=34, encoding, pad_scale)
 
-            # UNCOMMENT HERE WHEN YOU ARE DONE WITH THAT, check in a notebook that these dimension are correct
-            # Then these should be working
-            # x_pseudoseq = x_pseudoseq.flatten(start_dim=1)
-            # x_pseudoseq = x_pseudoseq.unsqueeze(1).repeat(1, x_tensor.shape[1], 1)
+            # UNCOMMENT HERE WHEN YOU ARE DONE WITH THAT, check in a notebook that
+            # these dimension (N, 34*20) = (N, 680) are correct (you need to FLATTEN the vector using tensor.flatten(start_dim=1)
+            # then these should be working because my model forward() takes care of everything
             # self.x_features = x_pseudoseqs
             # self.extra_features_flag = True
-        
+
         # Saving df in case it's needed
         self.df = df
         self.len = len(x)

@@ -454,7 +454,14 @@ class NNAlignEFSinglePass(NetParent):
         with torch.no_grad():
             self.standardizer_sequence.fit(x_tensor, x_mask)
             if x_feats is not None:
-                self.standardizer_features.fit(x_feats)
+                self.standardizer_features.fit(self.reshape_features(x_tensor,x_feats))
+
+    @staticmethod
+    def reshape_features(x_tensor, x_feats):
+        """
+        Reshapes and repeats the feature tensors in order to concatenate them to the x_tensor
+        """
+        return x_feats.unsqueeze(1).repeat(1, x_tensor.shape[1], 1)
 
     def forward(self, x_tensor: torch.Tensor, x_mask: torch.tensor, x_feats: torch.tensor = None):
 
@@ -474,7 +481,8 @@ class NNAlignEFSinglePass(NetParent):
         with torch.no_grad():
             x_tensor = self.standardizer_sequence(x_tensor)
             if x_feats is not None:
-                x_feats = self.standardizer_features(x_feats)
+                # Takes the flattened x_features tensor and repeats it for each icore
+                x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
                 x_tensor = torch.cat([x_tensor, x_feats], dim=2)
 
         z = self.in_layer(x_tensor)
@@ -511,7 +519,8 @@ class NNAlignEFSinglePass(NetParent):
         with torch.no_grad():
             x_tensor = self.standardizer_sequence(x_tensor)
             if x_feats is not None:
-                x_feats = self.standardizer_features(x_feats)
+                # Takes the flattened x_features tensor and repeats it for each icore
+                x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
                 x_tensor = torch.cat([x_tensor, x_feats], dim=2)
             z = self.in_layer(x_tensor)
             if self.batchnorm:
@@ -539,7 +548,8 @@ class NNAlignEFSinglePass(NetParent):
         with torch.no_grad():
             x_tensor = self.standardizer_sequence(x_tensor)
             if x_feats is not None:
-                x_feats = self.standardizer_features(x_feats)
+                # Takes the flattened x_features tensor and repeats it for each icore
+                x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
                 x_tensor = torch.cat([x_tensor, x_feats], dim=2)
             z = self.in_layer(x_tensor)
             if self.batchnorm:
@@ -595,18 +605,7 @@ class NNAlign(NetParent):
                     child.reset_parameters(**kwargs)
                 except:
                     print('debug HERE', child)
-    #
-    # def state_dict(self, **kwargs):
-    #     state_dict = super(NNAlign, self).state_dict()
-    #     state_dict['nnalign'] = self.nnalign.state_dict()
-    #     state_dict['standardizer'] = self.standardizer.state_dict()
-    #     state_dict['init_params'] = self.init_params
-    #     return state_dict
-    #
-    # def load_state_dict(self, state_dict, **kwargs):
-    #     self.nnalign.load_state_dict(state_dict['nnalign'])
-    #     self.standardizer.load_state_dict(state_dict['standardizer'])
-    #     self.init_params = state_dict['init_params']
+    
 
 
 class ExtraLayerSingle(NetParent):
