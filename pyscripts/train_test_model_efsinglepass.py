@@ -154,7 +154,10 @@ def main():
         else:
             extrafeat_dim = (20*34) + len(args['feature_cols']) - 1
     else:
-        extrafeat_dim = len(args['feature_cols'])
+        if args['feature_cols']:
+            extrafeat_dim = len(args['feature_cols'])
+        else:
+            extrafeat_dim = 0
 
     model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, indel=False, **model_params)
 
