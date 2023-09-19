@@ -162,7 +162,7 @@ class StandardizerSequence(nn.Module):
             self.fitted.data = torch.tensor(True)
 
     def forward(self, x):
-        assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
+        assert self.fitted.data, 'StandardizerSequence has not been fitted. Please fit to x_train'
         with torch.no_grad():
             # Flatten to 2d if needed
             x = (self.view_3d_to_2d(x) - self.mu) / self.sigma
@@ -170,7 +170,7 @@ class StandardizerSequence(nn.Module):
             return self.view_2d_to_3d(x)
 
     def recover(self, x):
-        assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
+        # assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
         with torch.no_grad():
             # Flatten to 2d if needed
             x = self.view_3d_to_2d(x)
@@ -219,14 +219,14 @@ class StandardizerFeatures(nn.Module):
         """
         assert self.training, 'Can not fit while in eval mode. Please set model to training mode'
         with torch.no_grad():
-            self.mu.data.copy_(x_features.mean(dim=0))
-            self.sigma.data.copy_(x_features.std(dim=0))
+            self.mu.data.copy_(x_features.mean(dim=(0, 1)))
+            self.sigma.data.copy_(x_features.std(dim=(0, 1)))
             # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
             self.sigma.data[torch.where(self.sigma.data == 0)] = 1e-12
             self.fitted.data = torch.tensor(True)
 
     def forward(self, x):
-        assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
+        assert self.fitted.data, 'StandardizerSequence has not been fitted. Please fit to x_train'
         with torch.no_grad():
             return x - self.mu / self.sigma
 
@@ -445,7 +445,7 @@ class NNAlignEFSinglePass(NetParent):
             self.bn1 = nn.BatchNorm1d(n_hidden)
         self.dropout = nn.Dropout(p=dropout)
         self.act = activation
-        self.standardizer_sequence = StandardizerSequence(n_feats=self.matrix_dim) if standardize else StdBypass()
+        self.standardizer_sequence = StandardizerSequence(n_feats=self.matrix_dim*window_size) if standardize else StdBypass()
         # For mhc pseudosequences, extrafeat_dim would be 680 (34x20, flattened)
         self.standardizer_features = StandardizerFeatures(n_feats=extrafeat_dim) if standardize else StdBypass()
 

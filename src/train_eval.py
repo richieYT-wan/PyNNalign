@@ -168,7 +168,7 @@ def predict_model(model, dataset: NNAlignDataset, dataloader: torch.utils.data.D
 
 
 def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dataset, train_loader, valid_loader,
-                     checkpoint_filename, outdir, burn_in: int = None):
+                     checkpoint_filename, outdir, burn_in: int = None, std: bool = False):
     """ Trains and validates a model over n_epochs, then reloads the best checkpoint
 
 
@@ -194,14 +194,17 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
         best_val_loss
         best_val_auc
     """
-
-    if any([(hasattr(child, 'standardizer') or hasattr(child, 'ef_standardizer')) for child in [model.children()]+[model]]):
-        # TODO: Not sure about this workaround (works the same as in above with *data & pop(-1))
-        xs = train_dataset[:][:-1]
-        model.fit_standardizer(*xs)
+    if std == True:
+        if any([(hasattr(child, 'standardizer_sequence') or hasattr(child, 'ef_standardizer')) for child in [model.children()]+[model]]):
+            # TODO: Not sure about this workaround (works the same as in above with *data & pop(-1))
+            xs = train_dataset[:][:-1]
+            print('Standardizing input data (including additional features)\n')
+            model.fit_standardizer(*xs)
+    else:
+        print('No standardizing of the data\n')
 
     if burn_in is not None:  # doing burn-in if it's not None
-        print('Doing burn-in period')
+        print('Doing burn-in period\n')
         train_dataset.burn_in(True)
         for e in tqdm(range(0, burn_in), desc='Burn-in period'):
             _, _ = train_model_step(model, criterion, optimizer, train_loader)

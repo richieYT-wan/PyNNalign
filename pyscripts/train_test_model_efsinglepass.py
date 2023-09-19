@@ -65,7 +65,8 @@ def args_parser():
     #       Reminder you have to define the number of extrafeatures (extrafeat_dim) when creating the NNAlignEFSinglePass model
     parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=False,
                         help = 'Whether to add pseudo sequence to the model (true/false)')
-    parser.add_argument()
+    parser.add_argument('-ps', '--pseudo_seq_col', dest='pseudo_seq_col', default='pseudoseq', type=str, required=False,
+                        help='Name of the column containing the MHC pseudo-sequences')
     """
     Neural Net & Encoding args 
     """
@@ -127,28 +128,34 @@ def main():
     tmp = args['seq_col']
     # Filtering from training set
     test_df = pd.read_csv(args['test_file']).query(f'{tmp} not in @df.{tmp}.values')
-    if args['fold'] is not None:
-        torch.manual_seed(args['fold'])
-        fold = args['fold']
-        dfname = os.path.basename(args['train_file']).split('.')[0]
-        train_df = df.query('fold!=@fold')
-        valid_df = df.query('fold==@fold')
-        unique_filename = f'kcv_{dfname}_f{fold}_{unique_filename}'
-        checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
-    else:
-        train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
+    # if args['fold'] is not None:
+    #     torch.manual_seed(args['fold'])
+    #     fold = args['fold']
+    #     dfname = os.path.basename(args['train_file']).split('.')[0]
+    #     train_df = df.query('fold!=@fold')
+    #     valid_df = df.query('fold==@fold')
+    #     unique_filename = f'kcv_{dfname}_f{fold}_{unique_filename}'
+    #     checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
+    # else:
+    train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
     # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
     # Def params so it's ✨tidy✨
     model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize']
     dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size',
-                    'feature_cols', 'add_pseudo_sequence']
+                    'feature_cols', 'add_pseudo_sequence', 'pseudo_seq_col']
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # instantiate objects
     # TODO: Carlos here you define extrafeat_dim :
+    if args['add_pseudo_sequence'] == True:
+        if len(args['feature_cols']) == 1:
+            extrafeat_dim = (20*34)
+        else:
+            extrafeat_dim = (20*34) + len(args['feature_cols']) - 1
+    else:
+        extrafeat_dim = len(args['feature_cols'])
 
-    # extrafeat_dim = len(args['feature_cols']) + ...
     model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, indel=False, **model_params)
 
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
@@ -167,7 +174,7 @@ def main():
                                                                optimizer,
                                                                train_dataset, train_loader, valid_loader,
                                                                checkpoint_filename,
-                                                               outdir, args['burn_in'])
+                                                               outdir, args['burn_in'], args['standardize'])
     pkl_dump(train_losses, f'{outdir}/train_losses_{unique_filename}.pkl')
     pkl_dump(valid_losses, f'{outdir}/valid_losses_{unique_filename}.pkl')
     pkl_dump(train_metrics, f'{outdir}/train_metrics_{unique_filename}.pkl')

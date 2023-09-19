@@ -109,7 +109,8 @@ class NNAlignDatasetEFSinglePass(Dataset):
 
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
-                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False):
+                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False, 
+                 pseudo_seq_col: str='pseudoseq'):
 
         super(NNAlignDatasetEFSinglePass, self).__init__()
         # Encoding stuff
@@ -150,13 +151,14 @@ class NNAlignDatasetEFSinglePass(Dataset):
             # TODO: Carlos, here you need to create the MHC feature vector and flatten it.
             #       Basically, if you have the pseudo sequence in a column called 'pseudoseq' in your dataframe,
             #       You can use my function encode_batch like
-            #       x_pseudoseq = encode_batch(df['pseudoseq'], max_len=34, encoding, pad_scale)
+            x_pseudoseq = encode_batch(df[pseudo_seq_col], 34, encoding, pad_scale)
 
             # UNCOMMENT HERE WHEN YOU ARE DONE WITH THAT, check in a notebook that
             # these dimension (N, 34*20) = (N, 680) are correct (you need to FLATTEN the vector using tensor.flatten(start_dim=1)
             # then these should be working because my model forward() takes care of everything
-            # self.x_features = x_pseudoseqs
-            # self.extra_features_flag = True
+            x_pseudoseq = x_pseudoseq.flatten(start_dim=1)
+            self.x_features = x_pseudoseq
+            self.extra_features_flag = True
 
         # Saving df in case it's needed
         self.df = df
@@ -201,9 +203,9 @@ def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_si
                                        seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
                                        indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
                                        batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
-                                       add_pseudo_sequence=False):
+                                       add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq'):
     dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
-                                         burnin_alphabet, feature_cols, add_pseudo_sequence)
+                                         burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col)
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
     if return_dataset:
         return dataloader, dataset
