@@ -1,0 +1,39 @@
+####################################################################################################
+#                                          PARAMETERS
+####################################################################################################
+train_file: ../data/carlos/Train_1_MHCps.txt
+test_file: ../data/carlos/Test_1_MHCps.txt
+out: CSL_mhc_nostd_burn_60nh_nobnorm
+split: 5
+fold: None
+seq_col: Sequence
+target_col: BA
+encoding: BL50LO
+max_len: 35
+pad_scale: None
+feature_cols: ['pseudoseq']
+add_pseudo_sequence: True
+pseudo_seq_col: pseudoseq
+n_hidden: 60
+standardize: False
+batchnorm: False
+dropout: 0.0
+window_size: 9
+n_hidden_ef: 5
+batchnorm_ef: False
+dropout_ef: 0.0
+burn_in: 10
+lr: 0.0001
+weight_decay: 0.01
+batch_size: 128
+n_epochs: 500
+tolerance: 1e-05
+####################################################################################################
+#                                          VALID-TEST
+####################################################################################################
+Best valid epoch: 155
+Best valid loss: 0.039339114202412005
+Best valid auc: 0.8953
+Test file: ../data/carlos/Test_1_MHCps.txt
+Test loss: 0.04283784324165023
+Test AUC: 0.8662
