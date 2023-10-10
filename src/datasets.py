@@ -109,8 +109,8 @@ class NNAlignDatasetEFSinglePass(Dataset):
 
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
-                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False, 
-                 pseudo_seq_col: str='pseudoseq'):
+                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'],
+                 add_pseudo_sequence=False, pseudo_seq_col: str='pseudoseq', add_pfr=False):
 
         super(NNAlignDatasetEFSinglePass, self).__init__()
         # Encoding stuff
@@ -136,6 +136,7 @@ class NNAlignDatasetEFSinglePass(Dataset):
         self.x_tensor = x.unfold(1, window_size, 1).transpose(2, 3) \
             .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3).contiguous()
         self.y = y.contiguous()
+        self.x_features = torch.empty((len(x),))
         # Add extra features
         if len(feature_cols) > 0:
             # TODO: When you add more features you need to concatenate to x_pseudosequence and save it to self.x_features
@@ -144,9 +145,7 @@ class NNAlignDatasetEFSinglePass(Dataset):
 
             self.extra_features_flag = True
         else:
-            self.x_features = torch.empty((len(x),))
             self.extra_features_flag = False
-
         if add_pseudo_sequence:
             # TODO: Carlos, here you need to create the MHC feature vector and flatten it.
             #       Basically, if you have the pseudo sequence in a column called 'pseudoseq' in your dataframe,
@@ -159,6 +158,10 @@ class NNAlignDatasetEFSinglePass(Dataset):
             x_pseudoseq = x_pseudoseq.flatten(start_dim=1)
             self.x_features = x_pseudoseq
             self.extra_features_flag = True
+        if add_pfr:
+            # CARLOS CHANGE HERE
+            x_pfr = 0#get_pfr(...)
+            self.x_tensor = torch.cat([self.x_tensor, x_pfr], dim=2)
 
         # Saving df in case it's needed
         self.df = df

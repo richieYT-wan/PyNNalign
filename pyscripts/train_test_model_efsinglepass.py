@@ -64,7 +64,7 @@ def args_parser():
     #       takes care of the concatenation (see the forward and predict). You just need to have your dataloader return it.
     #       Reminder you have to define the number of extrafeatures (extrafeat_dim) when creating the NNAlignEFSinglePass model
     parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=False,
-                        help = 'Whether to add pseudo sequence to the model (true/false)')
+                        help='Whether to add pseudo sequence to the model (true/false)')
     parser.add_argument('-ps', '--pseudo_seq_col', dest='pseudo_seq_col', default='pseudoseq', type=str, required=False,
                         help='Name of the column containing the MHC pseudo-sequences')
     """
@@ -103,6 +103,9 @@ def args_parser():
                         help='Number of epochs to train')
     parser.add_argument('-tol', '--tolerance', dest='tolerance', type=float, default=1e-5, required=False,
                         help='Tolerance for loss variation to log best model')
+    parser.add_argument('-rid', '--random_id', dest='random_id', type=str, default=None,
+                        help='Adding a random ID taken from a batchscript that will start all crossvalidation folds. Default = ""')
+
     return parser.parse_args()
 
 
@@ -120,24 +123,31 @@ def main():
     args = vars(args_parser())
     # File-saving stuff
     connector = '' if args["out"] == '' else '_'
-    unique_filename = f'{args["out"]}{connector}{get_datetime_string()}_{get_random_id(5)}'
+    kf = 'XX' if args["fold"] is None else args['fold']
+    rid = args['random_id'] if (args['random_id'] is not None and args['random_id'] != '') \
+        else get_random_id() if args['random_id'] == '' else args['random_id']
+    unique_filename = f'{args["out"]}{connector}KFold_{kf}_{get_datetime_string()}_{rid}'
+
     checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
     outdir = os.path.join('../output/', unique_filename) + '/'
     mkdirs(outdir)
     df = pd.read_csv(args['train_file'])
     tmp = args['seq_col']
     # Filtering from training set
-    test_df = pd.read_csv(args['test_file']).query(f'{tmp} not in @df.{tmp}.values')
-    # if args['fold'] is not None:
-    #     torch.manual_seed(args['fold'])
-    #     fold = args['fold']
-    #     dfname = os.path.basename(args['train_file']).split('.')[0]
-    #     train_df = df.query('fold!=@fold')
-    #     valid_df = df.query('fold==@fold')
-    #     unique_filename = f'kcv_{dfname}_f{fold}_{unique_filename}'
-    #     checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
-    # else:
-    train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
+    test_df = pd.read_csv(args['test_file'])
+
+    if args['fold'] is not None:
+        torch.manual_seed(args['fold'])
+        fold = args['fold']
+        dfname = os.path.basename(args['train_file']).split('.')[0]
+        train_df = df.query('fold!=@fold')
+        valid_df = df.query('fold==@fold')
+        unique_filename = f'kcv_{dfname}_f{fold:02}_{unique_filename}'
+        checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
+    else:
+        train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
+
+    test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
     # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
     # Def params so it's ✨tidy✨
     model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize']
@@ -148,11 +158,11 @@ def main():
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # instantiate objects
     # TODO: Carlos here you define extrafeat_dim :
-    if args['add_pseudo_sequence'] == True:
+    if args['add_pseudo_sequence']:
         if len(args['feature_cols']) == 1:
-            extrafeat_dim = (20*34)
+            extrafeat_dim = (20 * 34)
         else:
-            extrafeat_dim = (20*34) + len(args['feature_cols']) - 1
+            extrafeat_dim = (20 * 34) + len(args['feature_cols']) - 1
     else:
         if args['feature_cols']:
             extrafeat_dim = len(args['feature_cols'])
@@ -165,11 +175,11 @@ def main():
     criterion = nn.MSELoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
     train_loader, train_dataset = get_NNAlign_dataloaderEFSinglePass(train_df, indel=False, sampler=RandomSampler,
-                                                         return_dataset=True, **dataset_params)
+                                                                     return_dataset=True, **dataset_params)
     valid_loader, valid_dataset = get_NNAlign_dataloaderEFSinglePass(valid_df, indel=False, sampler=SequentialSampler,
-                                                         return_dataset=True, **dataset_params)
+                                                                     return_dataset=True, **dataset_params)
     test_loader, test_dataset = get_NNAlign_dataloaderEFSinglePass(test_df, indel=False, sampler=SequentialSampler,
-                                                       return_dataset=True, **dataset_params)
+                                                                   return_dataset=True, **dataset_params)
 
     # Training loop & train/valid results
     model, train_metrics, valid_metrics, train_losses, valid_losses, \
@@ -204,11 +214,11 @@ def main():
 
     # Saving text file for the run:
     with open(f'{outdir}args_{unique_filename}.txt', 'w') as file:
-        header = "#" * 100 + "\n#" + " "*42 + "PARAMETERS" + "\n" + '#' * 100 + '\n'
+        header = "#" * 100 + "\n#" + " " * 42 + "PARAMETERS" + "\n" + '#' * 100 + '\n'
         file.write(header)
         for key, value in args.items():
             file.write(f"{key}: {value}\n")
-        header2 = "#" * 100 + "\n#" + " "*42 + "VALID-TEST\n" + '#' * 100 + '\n'
+        header2 = "#" * 100 + "\n#" + " " * 42 + "VALID-TEST\n" + '#' * 100 + '\n'
         file.write(header2)
         file.write(f"Best valid epoch: {best_epoch}\n")
         file.write(f"Best valid loss: {best_val_loss}\n")
