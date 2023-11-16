@@ -1,0 +1,39 @@
+####################################################################################################
+#                                          PARAMETERS
+####################################################################################################
+train_file: ../data/carlos/train_all5_correct.txt
+test_file: ../data/carlos/short_random_peptides_fakemhc.txt
+out: CSL_mhc_pfr_nostd_burn_60nh_all
+split: 5
+fold: 2
+seq_col: Sequence
+target_col: BA
+encoding: BL50LO
+max_len: 37
+pad_scale: None
+feature_cols: ['pseudoseq']
+add_pseudo_sequence: True
+pseudo_seq_col: pseudoseq
+add_pfr: True
+n_hidden: 60
+standardize: False
+batchnorm: True
+dropout: 0.0
+window_size: 9
+n_hidden_ef: 5
+batchnorm_ef: False
+dropout_ef: 0.0
+burn_in: 10
+lr: 0.0001
+weight_decay: 0.01
+batch_size: 128
+n_epochs: 500
+tolerance: 1e-05
+random_id: None
+####################################################################################################
+#                                          VALID-TEST
+####################################################################################################
+Best valid epoch: 2
+Best valid loss: 0.047033299435656414
+Best valid auc: 0.8514
+Test file: ../data/carlos/short_random_peptides_fakemhc.txt

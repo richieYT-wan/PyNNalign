@@ -508,3 +508,105 @@ def get_dataset(df, ics_dict, max_len=12, encoding='onehot', seq_col='icore_mut'
                                            '\nYou provided {mask_aa}, and the alphabet is {AA_KEYS}'
         x[:, AA_KEYS.index(mask_aa.upper())] = 0
     return x, y
+
+# Function to calculate the mean position values of fixed-size (3) flanking regions of each motif
+def PFR_calculation(df_seq, all_xmask, max_len, window_size=9):
+    
+    # Define output
+    data = encode_batch(df_seq, max_len, 'BL62FREQ', None)   # Coding according the FREQ Blosum matrix (better for PFR)
+    all_pfr = torch.empty((data.shape[0], max_len - window_size + 1, 2, 20))    # Initialize the output tensor
+    for j in range(0, data.shape[0], 1):
+        
+        seq = data[j,:]
+
+        # Previous PFR mask definition
+        PFR_mask_before = 3 * torch.ones((max_len - window_size + 1, 1))
+        PFR_mask_before[:3,0] = torch.tensor([0, 1, 2], dtype=torch.float32)   # First three elements to 1 and 2
+
+        # After PFR mask definition (according to their x_mask)
+        PFR_mask_after = torch.clone(all_xmask[j])*3
+
+        # Modification of the previous values before 0 (only if zero exists)
+        zero_indices = torch.where(PFR_mask_after == 0)[0]
+        if zero_indices.numel() > 0:  # Check if there are any zero indices
+            zero_index = zero_indices[0]  # Get the first zero index
+            PFR_mask_after[zero_index - 3] = 2 if zero_index >= 3 else PFR_mask_after[zero_index - 3]
+            PFR_mask_after[zero_index - 2] = 1 if zero_index >= 2 else PFR_mask_after[zero_index - 2]
+            PFR_mask_after[zero_index - 1] = 0 if zero_index >= 1 else PFR_mask_after[zero_index - 1]
+        
+        for i in range(0, seq.shape[0] - window_size + 1, 1):
+
+            # Define the WS-mer
+            peptide = seq[i:i + window_size]
+
+            # Store the resulting PFR tensors
+            prev_pfr = torch.sum(seq[i - int(PFR_mask_before[i]):i], dim=0, keepdim=True) / 3
+            after_pfr = torch.sum(seq[i + window_size:i + window_size + int(PFR_mask_after[i])], dim=0, keepdim=True) / 3
+
+            # Store the PFR tensors in the output tensor
+            all_pfr[j, i, 0] = prev_pfr
+            all_pfr[j, i, 1] = after_pfr
+    
+    # print('PFR for this dataset completed')
+    
+    return all_pfr.flatten(start_dim=2)
+
+# Function to calculate the length of the flanking regions of each motif
+def FR_lengths(all_xmask, max_len, window_size=9):
+    
+    # Define output
+    all_FR_len = torch.empty((all_xmask.shape[0], max_len - window_size + 1, 2, 2))
+    # Number of total windows for each sequence
+    len_masks = all_xmask.shape[1]
+    
+    for j in range(0, all_xmask.shape[0], 1):
+        
+        # After FR mask
+        FR_mask_after = np.array(all_xmask[j]).reshape(-1)
+        # Count of non-zero values
+        count_nonzero = np.count_nonzero(FR_mask_after) - 1
+        # Filling with 0 according to the mask
+        FR_len_after = np.concatenate([np.arange(count_nonzero, 0, -1), np.zeros(len_masks - count_nonzero)])
+
+        # Before FR mask is always the same
+        FR_len_before = np.arange(max_len - window_size + 1)
+        
+        # Transformation of length arrays
+        FR_len_before = FR_len_before / (FR_len_before + 1)
+        FR_len_after = FR_len_after / (FR_len_after + 1)
+        
+        # Store the LEN_FR arrays as tensors in the output tensor
+        all_FR_len[j, :, 0, 0] = (torch.tensor(FR_len_before))
+        all_FR_len[j, :, 0, 1] = (torch.tensor(1 - FR_len_before))
+        all_FR_len[j, :, 1, 0] = (torch.tensor(FR_len_after))
+        all_FR_len[j, :, 1, 1] = (torch.tensor(1 - FR_len_after))
+    
+    # print('FR lengths for this dataset completed')
+    
+    return all_FR_len.flatten(start_dim=2)
+
+# Function for encoding the peptide lengths as one-hot
+def pep_len_1hot(df_seq, min_length, max_length):
+    
+    # Define the range of possible sequence lengths
+    seq_lens = df_seq.str.len()
+    min_length = 13
+    max_length = 21
+
+    # Create an empty NumPy array for one-hot encoding
+    seq_lens_1hot = np.zeros((len(df_seq), (max_length - min_length) + 2), dtype=int)
+
+    # Fill the one-hot array
+    for i, length in enumerate(seq_lens):
+        if length < min_length:
+            seq_lens_1hot[i, 0] = 1   # Group peptides below length 13
+        elif length > max_length:
+            seq_lens_1hot[i, -1] = 1  # Group peptides above length 21
+        else:
+            seq_lens_1hot[i, length - min_length + 1] = 1   # Group peptides in between
+
+    expanded_tensor = torch.from_numpy(seq_lens_1hot).unsqueeze(1).expand(-1, 29, -1)
+
+    # print('Peptide lengths encoded for this dataset completed')
+    
+    return(expanded_tensor)

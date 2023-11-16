@@ -1,0 +1,743 @@
+INFO: activate-binutils_linux-64.sh made the following environmental changes:
++ADDR2LINE=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-addr2line
++AR=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ar
++AS=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-as
++CXXFILT=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-c++filt
++ELFEDIT=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-elfedit
++GPROF=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gprof
++HOST=x86_64-conda_cos6-linux-gnu
++LD=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ld
++LD_GOLD=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ld.gold
++NM=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-nm
++OBJCOPY=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-objcopy
++OBJDUMP=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-objdump
++RANLIB=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ranlib
++READELF=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-readelf
++SIZE=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-size
++STRINGS=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-strings
++STRIP=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-strip
+INFO: activate-gcc_linux-64.sh made the following environmental changes:
++CC=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-cc
++CFLAGS=-march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++CPP=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-cpp
++CPPFLAGS=-DNDEBUG -D_FORTIFY_SOURCE=2 -O2
++DEBUG_CFLAGS=-march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fvar-tracking-assignments -pipe
++DEBUG_CPPFLAGS=-D_DEBUG -D_FORTIFY_SOURCE=2 -Og
++GCC=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc
++GCC_AR=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc-ar
++GCC_NM=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc-nm
++GCC_RANLIB=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc-ranlib
++LDFLAGS=-Wl,-O2 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now
++_CONDA_PYTHON_SYSCONFIGDATA_NAME=_sysconfigdata_x86_64_conda_cos6_linux_gnu
+INFO: activate-gfortran_linux-64.sh made the following environmental changes:
++DEBUG_FFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe -fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fcheck=all -fbacktrace -fimplicit-none -fvar-tracking-assignments -pipe
++DEBUG_FORTRANFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe -fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fcheck=all -fbacktrace -fimplicit-none -fvar-tracking-assignments -pipe
++F77=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gfortran
++F95=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-f95
++FC=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gfortran
++FFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++FORTRANFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++GFORTRAN=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gfortran
+INFO: activate-gxx_linux-64.sh made the following environmental changes:
++CXX=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-c++
++CXXFLAGS=-fvisibility-inlines-hidden -std=c++17 -fmessage-length=0 -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++DEBUG_CXXFLAGS=-fvisibility-inlines-hidden -std=c++17 -fmessage-length=0 -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fvar-tracking-assignments -pipe
++GXX=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-g++
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/pyscripts
+"Starting PyScript"
+Running iteration 1
+torch.Size([106949, 37, 20])
+PFR for this dataset completed
+torch.Size([27332, 37, 20])
+PFR for this dataset completed
+torch.Size([17, 37, 20])
+PFR for this dataset completed
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0376,	0.904
+Epoch 50: valid loss, AUC:	0.0396,	0.867
+
+Epoch 100: train loss, AUC:	0.0374,	0.903
+Epoch 100: valid loss, AUC:	0.0399,	0.873
+
+Epoch 150: train loss, AUC:	0.0374,	0.905
+Epoch 150: valid loss, AUC:	0.0401,	0.868
+
+Epoch 200: train loss, AUC:	0.0373,	0.903
+Epoch 200: valid loss, AUC:	0.0392,	0.876
+
+Epoch 250: train loss, AUC:	0.0375,	0.902
+Epoch 250: valid loss, AUC:	0.0391,	0.876
+
+Epoch 300: train loss, AUC:	0.0374,	0.904
+Epoch 300: valid loss, AUC:	0.0395,	0.874
+
+Epoch 350: train loss, AUC:	0.0374,	0.903
+Epoch 350: valid loss, AUC:	0.0396,	0.879
+
+Epoch 400: train loss, AUC:	0.0374,	0.903
+Epoch 400: valid loss, AUC:	0.0397,	0.866
+
+Epoch 450: train loss, AUC:	0.0374,	0.903
+Epoch 450: valid loss, AUC:	0.0387,	0.868
+
+Epoch 500: train loss, AUC:	0.0374,	0.904
+Epoch 500: valid loss, AUC:	0.0395,	0.874
+Shape of trainset: (tensor([[ -2.0000,  -2.0000,   2.0000,  ...,  -2.6667,  -0.3333,  -2.0000],
+        [ -2.0000,  -3.0000,  -4.0000,  ...,  -2.6667,  -1.6667,  -1.6667],
+        [ -2.0000,  -2.0000,   2.0000,  ...,  -2.0000,  -1.3333,  -2.0000],
+        ...,
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000],
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000],
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000]]), tensor([[1.],
+        [1.],
+        [1.],
+        [1.],
+        [1.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.]]), tensor([-2., -1., -2., -3., -3., -1., -2., -3.,  2., -1., -1., -2.,  0.,  4.,
+        -3., -2., -2.,  2.,  8., -1.,  5., -2., -1., -2., -1., -1., -1.,  0.,
+        -2., -1., -2., -1., -1., -3., -1.,  1.,  0., -3., -2.,  0., -3., -3.,
+        -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8., -4., -3.,
+        -2.,  1.,  4., -1., -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,
+         1., -4.,  0.,  8., -4., -3., -2.,  1.,  4., -1., -1., -2., -2., -4.,
+        -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0., -3., -2., -1., -1.,
+         0.,  1., -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,
+         0.,  8., -4., -3., -2.,  1.,  4., -1.,  1., -1.,  1.,  0., -1.,  0.,
+        -1.,  0., -1., -3., -3.,  0., -2., -3., -1.,  5.,  2., -4., -2., -2.,
+         0., -3.,  0., -1., -3., -2., -3.,  8., -2., -4., -4., -2., -3., -4.,
+        -2.,  0., -2., -3., -3., -4.,  0., -3.,  0., -1., -3., -2., -3.,  8.,
+        -2., -4., -4., -2., -3., -4., -2.,  0., -2., -3., -3., -4.,  5., -2.,
+        -1., -2., -1., -1., -1.,  0., -2., -1., -2., -1., -1., -3., -1.,  1.,
+         0., -3., -2.,  0., -1., -4., -3., -4., -2., -3., -4., -4., -4.,  5.,
+         2., -3.,  2.,  0., -3., -3., -1., -3., -1.,  4., -2., -3., -4., -4.,
+        -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1., -4., -3., -1., -2.,
+        -1.,  1., -1., -1.,  7.,  2., -2.,  0.,  0.,  0.,  1., -3., -4.,  0.,
+        -2., -4., -2.,  1.,  0., -4., -2., -3.,  0., -1.,  0., -1., -1., -1.,
+        -1., -2., -2., -1., -1., -1., -1., -2., -1.,  2.,  5., -3., -2.,  0.,
+        -2., -3., -4., -4., -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1.,
+        -4., -3., -1., -2., -1.,  1., -3., -3., -4., -5., -2., -4., -3., -4.,
+        -1.,  0.,  1., -4.,  0.,  8., -4., -3., -2.,  1.,  4., -1.,  0., -3.,
+         0., -1., -3., -2., -3.,  8., -2., -4., -4., -2., -3., -4., -2.,  0.,
+        -2., -3., -3., -4., -1.,  1.,  0.,  0., -3.,  7.,  2., -2.,  1., -3.,
+        -2.,  2.,  0., -4., -1.,  0., -1., -1., -1., -3., -3., -3., -4., -5.,
+        -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8., -4., -3., -2.,  1.,
+         4., -1., -1.,  0.,  0.,  2., -3.,  2.,  6., -3.,  0., -4., -3.,  1.,
+        -2., -3., -1., -1., -1., -3., -2., -3., -2., -1., -2., -3., -3., -1.,
+        -2., -3.,  2., -1., -1., -2.,  0.,  4., -3., -2., -2.,  2.,  8., -1.,
+        -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8.,
+        -4., -3., -2.,  1.,  4., -1., -2., -2.,  2.,  8., -4.,  0.,  2., -1.,
+        -1., -4., -4., -1., -4., -5., -1.,  0., -1., -5., -3., -4., -1., -4.,
+        -3., -4., -2., -3., -4., -4., -4.,  5.,  2., -3.,  2.,  0., -3., -3.,
+        -1., -3., -1.,  4., -1.,  0.,  0.,  2., -3.,  2.,  6., -3.,  0., -4.,
+        -3.,  1., -2., -3., -1., -1., -1., -3., -2., -3., -1.,  0.,  0.,  2.,
+        -3.,  2.,  6., -3.,  0., -4., -3.,  1., -2., -3., -1., -1., -1., -3.,
+        -2., -3.,  0., -3., -3., -4., -1., -3., -3., -4., -4.,  4.,  1., -3.,
+         1., -1., -3., -2.,  0., -3., -1.,  5., -2.,  7., -1., -2., -4.,  1.,
+         0., -3.,  0., -4., -3.,  3., -2., -3., -3., -1., -1., -3., -1., -3.,
+        -1., -2., -2., -4., -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0.,
+        -3., -2., -1., -1.,  0.,  1., -2.,  0.,  1., -1., -3.,  1.,  0., -2.,
+        10., -4., -3.,  0., -1., -1., -2., -1., -2., -3.,  2., -4., -2., -3.,
+        -4., -4., -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1., -4., -3.,
+        -1., -2., -1.,  1.,  0., -3.,  0., -1., -3., -2., -3.,  8., -2., -4.,
+        -4., -2., -3., -4., -2.,  0., -2., -3., -3., -4., -1., -2., -2., -4.,
+        -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0., -3., -2., -1., -1.,
+         0.,  1.,  0., -1.,  0., -1., -1., -1., -1., -2., -2., -1., -1., -1.,
+        -1., -2., -1.,  2.,  5., -3., -2.,  0.]), tensor([0.]))
+End of training cycles
+Best train loss:	3.727e-02, best train AUC:	0.9063
+Best valid epoch: 138
+Best valid loss :	4.078e-02, best valid AUC:	0.8855
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_1_231020_1205_None/checkpoint_best_kcv_train_all5_correct_f01_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_1_231020_1205_None.pt
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_1_231020_1205_None/train_losses_kcv_train_all5_correct_f01_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_1_231020_1205_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_1_231020_1205_None/valid_losses_kcv_train_all5_correct_f01_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_1_231020_1205_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_1_231020_1205_None/train_metrics_kcv_train_all5_correct_f01_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_1_231020_1205_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_1_231020_1205_None/valid_metrics_kcv_train_all5_correct_f01_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_1_231020_1205_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 57 minutes, 54 seconds.
+Iteration 1 completed
+Running iteration 2
+torch.Size([104523, 37, 20])
+PFR for this dataset completed
+torch.Size([29758, 37, 20])
+PFR for this dataset completed
+torch.Size([17, 37, 20])
+PFR for this dataset completed
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0380,	0.894
+Epoch 50: valid loss, AUC:	0.0418,	0.863
+
+Epoch 100: train loss, AUC:	0.0379,	0.894
+Epoch 100: valid loss, AUC:	0.0411,	0.861
+
+Epoch 150: train loss, AUC:	0.0379,	0.894
+Epoch 150: valid loss, AUC:	0.0403,	0.877
+
+Epoch 200: train loss, AUC:	0.0378,	0.896
+Epoch 200: valid loss, AUC:	0.0410,	0.865
+
+Epoch 250: train loss, AUC:	0.0379,	0.891
+Epoch 250: valid loss, AUC:	0.0407,	0.869
+
+Epoch 300: train loss, AUC:	0.0378,	0.893
+Epoch 300: valid loss, AUC:	0.0408,	0.865
+
+Epoch 350: train loss, AUC:	0.0378,	0.893
+Epoch 350: valid loss, AUC:	0.0412,	0.872
+
+Epoch 400: train loss, AUC:	0.0378,	0.894
+Epoch 400: valid loss, AUC:	0.0411,	0.864
+
+Epoch 450: train loss, AUC:	0.0378,	0.894
+Epoch 450: valid loss, AUC:	0.0407,	0.871
+
+Epoch 500: train loss, AUC:	0.0379,	0.895
+Epoch 500: valid loss, AUC:	0.0404,	0.871
+Shape of trainset: (tensor([[ -1.0000,  -3.0000,  -2.0000,  ...,  -2.6667,  -1.6667,  -0.6667],
+        [ -1.0000,   3.0000,   0.0000,  ...,  -2.6667,  -1.6667,   0.3333],
+        [ -2.0000,  -1.0000,  -2.0000,  ...,  -2.0000,  -1.3333,   0.0000],
+        ...,
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000],
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000],
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000]]), tensor([[1.],
+        [1.],
+        [1.],
+        [1.],
+        [1.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.]]), tensor([-2., -1., -2., -3., -3., -1., -2., -3.,  2., -1., -1., -2.,  0.,  4.,
+        -3., -2., -2.,  2.,  8., -1.,  5., -2., -1., -2., -1., -1., -1.,  0.,
+        -2., -1., -2., -1., -1., -3., -1.,  1.,  0., -3., -2.,  0., -3., -3.,
+        -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8., -4., -3.,
+        -2.,  1.,  4., -1., -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,
+         1., -4.,  0.,  8., -4., -3., -2.,  1.,  4., -1., -1., -2., -2., -4.,
+        -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0., -3., -2., -1., -1.,
+         0.,  1., -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,
+         0.,  8., -4., -3., -2.,  1.,  4., -1.,  1., -1.,  1.,  0., -1.,  0.,
+        -1.,  0., -1., -3., -3.,  0., -2., -3., -1.,  5.,  2., -4., -2., -2.,
+         0., -3.,  0., -1., -3., -2., -3.,  8., -2., -4., -4., -2., -3., -4.,
+        -2.,  0., -2., -3., -3., -4.,  0., -3.,  0., -1., -3., -2., -3.,  8.,
+        -2., -4., -4., -2., -3., -4., -2.,  0., -2., -3., -3., -4.,  5., -2.,
+        -1., -2., -1., -1., -1.,  0., -2., -1., -2., -1., -1., -3., -1.,  1.,
+         0., -3., -2.,  0., -1., -4., -3., -4., -2., -3., -4., -4., -4.,  5.,
+         2., -3.,  2.,  0., -3., -3., -1., -3., -1.,  4., -2., -3., -4., -4.,
+        -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1., -4., -3., -1., -2.,
+        -1.,  1., -1., -1.,  7.,  2., -2.,  0.,  0.,  0.,  1., -3., -4.,  0.,
+        -2., -4., -2.,  1.,  0., -4., -2., -3.,  0., -1.,  0., -1., -1., -1.,
+        -1., -2., -2., -1., -1., -1., -1., -2., -1.,  2.,  5., -3., -2.,  0.,
+        -2., -3., -4., -4., -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1.,
+        -4., -3., -1., -2., -1.,  1., -3., -3., -4., -5., -2., -4., -3., -4.,
+        -1.,  0.,  1., -4.,  0.,  8., -4., -3., -2.,  1.,  4., -1.,  0., -3.,
+         0., -1., -3., -2., -3.,  8., -2., -4., -4., -2., -3., -4., -2.,  0.,
+        -2., -3., -3., -4., -1.,  1.,  0.,  0., -3.,  7.,  2., -2.,  1., -3.,
+        -2.,  2.,  0., -4., -1.,  0., -1., -1., -1., -3., -3., -3., -4., -5.,
+        -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8., -4., -3., -2.,  1.,
+         4., -1., -1.,  0.,  0.,  2., -3.,  2.,  6., -3.,  0., -4., -3.,  1.,
+        -2., -3., -1., -1., -1., -3., -2., -3., -2., -1., -2., -3., -3., -1.,
+        -2., -3.,  2., -1., -1., -2.,  0.,  4., -3., -2., -2.,  2.,  8., -1.,
+        -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8.,
+        -4., -3., -2.,  1.,  4., -1., -2., -2.,  2.,  8., -4.,  0.,  2., -1.,
+        -1., -4., -4., -1., -4., -5., -1.,  0., -1., -5., -3., -4., -1., -4.,
+        -3., -4., -2., -3., -4., -4., -4.,  5.,  2., -3.,  2.,  0., -3., -3.,
+        -1., -3., -1.,  4., -1.,  0.,  0.,  2., -3.,  2.,  6., -3.,  0., -4.,
+        -3.,  1., -2., -3., -1., -1., -1., -3., -2., -3., -1.,  0.,  0.,  2.,
+        -3.,  2.,  6., -3.,  0., -4., -3.,  1., -2., -3., -1., -1., -1., -3.,
+        -2., -3.,  0., -3., -3., -4., -1., -3., -3., -4., -4.,  4.,  1., -3.,
+         1., -1., -3., -2.,  0., -3., -1.,  5., -2.,  7., -1., -2., -4.,  1.,
+         0., -3.,  0., -4., -3.,  3., -2., -3., -3., -1., -1., -3., -1., -3.,
+        -1., -2., -2., -4., -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0.,
+        -3., -2., -1., -1.,  0.,  1., -2.,  0.,  1., -1., -3.,  1.,  0., -2.,
+        10., -4., -3.,  0., -1., -1., -2., -1., -2., -3.,  2., -4., -2., -3.,
+        -4., -4., -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1., -4., -3.,
+        -1., -2., -1.,  1.,  0., -3.,  0., -1., -3., -2., -3.,  8., -2., -4.,
+        -4., -2., -3., -4., -2.,  0., -2., -3., -3., -4., -1., -2., -2., -4.,
+        -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0., -3., -2., -1., -1.,
+         0.,  1.,  0., -1.,  0., -1., -1., -1., -1., -2., -2., -1., -1., -1.,
+        -1., -2., -1.,  2.,  5., -3., -2.,  0.]), tensor([0.]))
+End of training cycles
+Best train loss:	3.773e-02, best train AUC:	0.898
+Best valid epoch: 11
+Best valid loss :	4.171e-02, best valid AUC:	0.8789
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_2_231020_1303_None/checkpoint_best_kcv_train_all5_correct_f02_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_2_231020_1303_None.pt
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_2_231020_1303_None/train_losses_kcv_train_all5_correct_f02_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_2_231020_1303_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_2_231020_1303_None/valid_losses_kcv_train_all5_correct_f02_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_2_231020_1303_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_2_231020_1303_None/train_metrics_kcv_train_all5_correct_f02_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_2_231020_1303_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_2_231020_1303_None/valid_metrics_kcv_train_all5_correct_f02_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_2_231020_1303_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 107 minutes, 49 seconds.
+Iteration 2 completed
+Running iteration 3
+torch.Size([105047, 37, 20])
+PFR for this dataset completed
+torch.Size([29234, 37, 20])
+PFR for this dataset completed
+torch.Size([17, 37, 20])
+PFR for this dataset completed
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0388,	0.876
+Epoch 50: valid loss, AUC:	0.0393,	0.896
+
+Epoch 100: train loss, AUC:	0.0385,	0.879
+Epoch 100: valid loss, AUC:	0.0397,	0.896
+
+Epoch 150: train loss, AUC:	0.0384,	0.878
+Epoch 150: valid loss, AUC:	0.0396,	0.892
+
+Epoch 200: train loss, AUC:	0.0385,	0.879
+Epoch 200: valid loss, AUC:	0.0399,	0.888
+
+Epoch 250: train loss, AUC:	0.0384,	0.880
+Epoch 250: valid loss, AUC:	0.0406,	0.907
+
+Epoch 300: train loss, AUC:	0.0384,	0.883
+Epoch 300: valid loss, AUC:	0.0387,	0.910
+
+Epoch 350: train loss, AUC:	0.0384,	0.880
+Epoch 350: valid loss, AUC:	0.0394,	0.906
+
+Epoch 400: train loss, AUC:	0.0384,	0.881
+Epoch 400: valid loss, AUC:	0.0396,	0.902
+
+Epoch 450: train loss, AUC:	0.0384,	0.882
+Epoch 450: valid loss, AUC:	0.0392,	0.905
+
+Epoch 500: train loss, AUC:	0.0384,	0.880
+Epoch 500: valid loss, AUC:	0.0384,	0.907
+Shape of trainset: (tensor([[ -1.0000,  -3.0000,  -2.0000,  ...,  -2.6667,  -1.6667,  -0.6667],
+        [ -1.0000,   3.0000,   0.0000,  ...,  -2.6667,  -1.6667,   0.3333],
+        [ -2.0000,  -1.0000,  -2.0000,  ...,  -2.0000,  -1.3333,   0.0000],
+        ...,
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000],
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000],
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000]]), tensor([[1.],
+        [1.],
+        [1.],
+        [1.],
+        [1.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.]]), tensor([-2., -1., -2., -3., -3., -1., -2., -3.,  2., -1., -1., -2.,  0.,  4.,
+        -3., -2., -2.,  2.,  8., -1.,  5., -2., -1., -2., -1., -1., -1.,  0.,
+        -2., -1., -2., -1., -1., -3., -1.,  1.,  0., -3., -2.,  0., -3., -3.,
+        -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8., -4., -3.,
+        -2.,  1.,  4., -1., -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,
+         1., -4.,  0.,  8., -4., -3., -2.,  1.,  4., -1., -1., -2., -2., -4.,
+        -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0., -3., -2., -1., -1.,
+         0.,  1., -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,
+         0.,  8., -4., -3., -2.,  1.,  4., -1.,  1., -1.,  1.,  0., -1.,  0.,
+        -1.,  0., -1., -3., -3.,  0., -2., -3., -1.,  5.,  2., -4., -2., -2.,
+         0., -3.,  0., -1., -3., -2., -3.,  8., -2., -4., -4., -2., -3., -4.,
+        -2.,  0., -2., -3., -3., -4.,  0., -3.,  0., -1., -3., -2., -3.,  8.,
+        -2., -4., -4., -2., -3., -4., -2.,  0., -2., -3., -3., -4.,  5., -2.,
+        -1., -2., -1., -1., -1.,  0., -2., -1., -2., -1., -1., -3., -1.,  1.,
+         0., -3., -2.,  0., -1., -4., -3., -4., -2., -3., -4., -4., -4.,  5.,
+         2., -3.,  2.,  0., -3., -3., -1., -3., -1.,  4., -2., -3., -4., -4.,
+        -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1., -4., -3., -1., -2.,
+        -1.,  1., -1., -1.,  7.,  2., -2.,  0.,  0.,  0.,  1., -3., -4.,  0.,
+        -2., -4., -2.,  1.,  0., -4., -2., -3.,  0., -1.,  0., -1., -1., -1.,
+        -1., -2., -2., -1., -1., -1., -1., -2., -1.,  2.,  5., -3., -2.,  0.,
+        -2., -3., -4., -4., -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1.,
+        -4., -3., -1., -2., -1.,  1., -3., -3., -4., -5., -2., -4., -3., -4.,
+        -1.,  0.,  1., -4.,  0.,  8., -4., -3., -2.,  1.,  4., -1.,  0., -3.,
+         0., -1., -3., -2., -3.,  8., -2., -4., -4., -2., -3., -4., -2.,  0.,
+        -2., -3., -3., -4., -1.,  1.,  0.,  0., -3.,  7.,  2., -2.,  1., -3.,
+        -2.,  2.,  0., -4., -1.,  0., -1., -1., -1., -3., -3., -3., -4., -5.,
+        -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8., -4., -3., -2.,  1.,
+         4., -1., -1.,  0.,  0.,  2., -3.,  2.,  6., -3.,  0., -4., -3.,  1.,
+        -2., -3., -1., -1., -1., -3., -2., -3., -2., -1., -2., -3., -3., -1.,
+        -2., -3.,  2., -1., -1., -2.,  0.,  4., -3., -2., -2.,  2.,  8., -1.,
+        -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8.,
+        -4., -3., -2.,  1.,  4., -1., -2., -2.,  2.,  8., -4.,  0.,  2., -1.,
+        -1., -4., -4., -1., -4., -5., -1.,  0., -1., -5., -3., -4., -1., -4.,
+        -3., -4., -2., -3., -4., -4., -4.,  5.,  2., -3.,  2.,  0., -3., -3.,
+        -1., -3., -1.,  4., -1.,  0.,  0.,  2., -3.,  2.,  6., -3.,  0., -4.,
+        -3.,  1., -2., -3., -1., -1., -1., -3., -2., -3., -1.,  0.,  0.,  2.,
+        -3.,  2.,  6., -3.,  0., -4., -3.,  1., -2., -3., -1., -1., -1., -3.,
+        -2., -3.,  0., -3., -3., -4., -1., -3., -3., -4., -4.,  4.,  1., -3.,
+         1., -1., -3., -2.,  0., -3., -1.,  5., -2.,  7., -1., -2., -4.,  1.,
+         0., -3.,  0., -4., -3.,  3., -2., -3., -3., -1., -1., -3., -1., -3.,
+        -1., -2., -2., -4., -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0.,
+        -3., -2., -1., -1.,  0.,  1., -2.,  0.,  1., -1., -3.,  1.,  0., -2.,
+        10., -4., -3.,  0., -1., -1., -2., -1., -2., -3.,  2., -4., -2., -3.,
+        -4., -4., -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1., -4., -3.,
+        -1., -2., -1.,  1.,  0., -3.,  0., -1., -3., -2., -3.,  8., -2., -4.,
+        -4., -2., -3., -4., -2.,  0., -2., -3., -3., -4., -1., -2., -2., -4.,
+        -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0., -3., -2., -1., -1.,
+         0.,  1.,  0., -1.,  0., -1., -1., -1., -1., -2., -2., -1., -1., -1.,
+        -1., -2., -1.,  2.,  5., -3., -2.,  0.]), tensor([0.]))
+End of training cycles
+Best train loss:	3.825e-02, best train AUC:	0.8847
+Best valid epoch: 262
+Best valid loss :	3.855e-02, best valid AUC:	0.9161
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_3_231020_1451_None/checkpoint_best_kcv_train_all5_correct_f03_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_3_231020_1451_None.pt
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_3_231020_1451_None/train_losses_kcv_train_all5_correct_f03_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_3_231020_1451_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_3_231020_1451_None/valid_losses_kcv_train_all5_correct_f03_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_3_231020_1451_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_3_231020_1451_None/train_metrics_kcv_train_all5_correct_f03_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_3_231020_1451_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_3_231020_1451_None/valid_metrics_kcv_train_all5_correct_f03_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_3_231020_1451_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 95 minutes, 50 seconds.
+Iteration 3 completed
+Running iteration 4
+torch.Size([110618, 37, 20])
+PFR for this dataset completed
+torch.Size([23663, 37, 20])
+PFR for this dataset completed
+torch.Size([17, 37, 20])
+PFR for this dataset completed
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0374,	0.896
+Epoch 50: valid loss, AUC:	0.0406,	0.890
+
+Epoch 100: train loss, AUC:	0.0372,	0.897
+Epoch 100: valid loss, AUC:	0.0408,	0.885
+
+Epoch 150: train loss, AUC:	0.0371,	0.898
+Epoch 150: valid loss, AUC:	0.0411,	0.880
+
+Epoch 200: train loss, AUC:	0.0372,	0.897
+Epoch 200: valid loss, AUC:	0.0413,	0.880
+
+Epoch 250: train loss, AUC:	0.0371,	0.896
+Epoch 250: valid loss, AUC:	0.0409,	0.877
+
+Epoch 300: train loss, AUC:	0.0372,	0.897
+Epoch 300: valid loss, AUC:	0.0409,	0.887
+
+Epoch 350: train loss, AUC:	0.0372,	0.895
+Epoch 350: valid loss, AUC:	0.0408,	0.886
+
+Epoch 400: train loss, AUC:	0.0371,	0.897
+Epoch 400: valid loss, AUC:	0.0410,	0.875
+
+Epoch 450: train loss, AUC:	0.0372,	0.895
+Epoch 450: valid loss, AUC:	0.0409,	0.882
+
+Epoch 500: train loss, AUC:	0.0372,	0.897
+Epoch 500: valid loss, AUC:	0.0410,	0.881
+Shape of trainset: (tensor([[ -1.0000,  -3.0000,  -2.0000,  ...,  -2.6667,  -1.6667,  -0.6667],
+        [ -1.0000,   3.0000,   0.0000,  ...,  -2.6667,  -1.6667,   0.3333],
+        [ -2.0000,  -1.0000,  -2.0000,  ...,  -2.0000,  -1.3333,   0.0000],
+        ...,
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000],
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000],
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000]]), tensor([[1.],
+        [1.],
+        [1.],
+        [1.],
+        [1.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.]]), tensor([-2., -1., -2., -3., -3., -1., -2., -3.,  2., -1., -1., -2.,  0.,  4.,
+        -3., -2., -2.,  2.,  8., -1.,  5., -2., -1., -2., -1., -1., -1.,  0.,
+        -2., -1., -2., -1., -1., -3., -1.,  1.,  0., -3., -2.,  0., -3., -3.,
+        -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8., -4., -3.,
+        -2.,  1.,  4., -1., -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,
+         1., -4.,  0.,  8., -4., -3., -2.,  1.,  4., -1., -1., -2., -2., -4.,
+        -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0., -3., -2., -1., -1.,
+         0.,  1., -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,
+         0.,  8., -4., -3., -2.,  1.,  4., -1.,  1., -1.,  1.,  0., -1.,  0.,
+        -1.,  0., -1., -3., -3.,  0., -2., -3., -1.,  5.,  2., -4., -2., -2.,
+         0., -3.,  0., -1., -3., -2., -3.,  8., -2., -4., -4., -2., -3., -4.,
+        -2.,  0., -2., -3., -3., -4.,  0., -3.,  0., -1., -3., -2., -3.,  8.,
+        -2., -4., -4., -2., -3., -4., -2.,  0., -2., -3., -3., -4.,  5., -2.,
+        -1., -2., -1., -1., -1.,  0., -2., -1., -2., -1., -1., -3., -1.,  1.,
+         0., -3., -2.,  0., -1., -4., -3., -4., -2., -3., -4., -4., -4.,  5.,
+         2., -3.,  2.,  0., -3., -3., -1., -3., -1.,  4., -2., -3., -4., -4.,
+        -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1., -4., -3., -1., -2.,
+        -1.,  1., -1., -1.,  7.,  2., -2.,  0.,  0.,  0.,  1., -3., -4.,  0.,
+        -2., -4., -2.,  1.,  0., -4., -2., -3.,  0., -1.,  0., -1., -1., -1.,
+        -1., -2., -2., -1., -1., -1., -1., -2., -1.,  2.,  5., -3., -2.,  0.,
+        -2., -3., -4., -4., -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1.,
+        -4., -3., -1., -2., -1.,  1., -3., -3., -4., -5., -2., -4., -3., -4.,
+        -1.,  0.,  1., -4.,  0.,  8., -4., -3., -2.,  1.,  4., -1.,  0., -3.,
+         0., -1., -3., -2., -3.,  8., -2., -4., -4., -2., -3., -4., -2.,  0.,
+        -2., -3., -3., -4., -1.,  1.,  0.,  0., -3.,  7.,  2., -2.,  1., -3.,
+        -2.,  2.,  0., -4., -1.,  0., -1., -1., -1., -3., -3., -3., -4., -5.,
+        -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8., -4., -3., -2.,  1.,
+         4., -1., -1.,  0.,  0.,  2., -3.,  2.,  6., -3.,  0., -4., -3.,  1.,
+        -2., -3., -1., -1., -1., -3., -2., -3., -2., -1., -2., -3., -3., -1.,
+        -2., -3.,  2., -1., -1., -2.,  0.,  4., -3., -2., -2.,  2.,  8., -1.,
+        -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8.,
+        -4., -3., -2.,  1.,  4., -1., -2., -2.,  2.,  8., -4.,  0.,  2., -1.,
+        -1., -4., -4., -1., -4., -5., -1.,  0., -1., -5., -3., -4., -1., -4.,
+        -3., -4., -2., -3., -4., -4., -4.,  5.,  2., -3.,  2.,  0., -3., -3.,
+        -1., -3., -1.,  4., -1.,  0.,  0.,  2., -3.,  2.,  6., -3.,  0., -4.,
+        -3.,  1., -2., -3., -1., -1., -1., -3., -2., -3., -1.,  0.,  0.,  2.,
+        -3.,  2.,  6., -3.,  0., -4., -3.,  1., -2., -3., -1., -1., -1., -3.,
+        -2., -3.,  0., -3., -3., -4., -1., -3., -3., -4., -4.,  4.,  1., -3.,
+         1., -1., -3., -2.,  0., -3., -1.,  5., -2.,  7., -1., -2., -4.,  1.,
+         0., -3.,  0., -4., -3.,  3., -2., -3., -3., -1., -1., -3., -1., -3.,
+        -1., -2., -2., -4., -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0.,
+        -3., -2., -1., -1.,  0.,  1., -2.,  0.,  1., -1., -3.,  1.,  0., -2.,
+        10., -4., -3.,  0., -1., -1., -2., -1., -2., -3.,  2., -4., -2., -3.,
+        -4., -4., -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1., -4., -3.,
+        -1., -2., -1.,  1.,  0., -3.,  0., -1., -3., -2., -3.,  8., -2., -4.,
+        -4., -2., -3., -4., -2.,  0., -2., -3., -3., -4., -1., -2., -2., -4.,
+        -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0., -3., -2., -1., -1.,
+         0.,  1.,  0., -1.,  0., -1., -1., -1., -1., -2., -2., -1., -1., -1.,
+        -1., -2., -1.,  2.,  5., -3., -2.,  0.]), tensor([0.]))
+End of training cycles
+Best train loss:	3.703e-02, best train AUC:	0.8997
+Best valid epoch: 28
+Best valid loss :	4.420e-02, best valid AUC:	0.8983
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_4_231020_1627_None/checkpoint_best_kcv_train_all5_correct_f04_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_4_231020_1627_None.pt
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_4_231020_1627_None/train_losses_kcv_train_all5_correct_f04_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_4_231020_1627_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_4_231020_1627_None/valid_losses_kcv_train_all5_correct_f04_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_4_231020_1627_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_4_231020_1627_None/train_metrics_kcv_train_all5_correct_f04_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_4_231020_1627_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_4_231020_1627_None/valid_metrics_kcv_train_all5_correct_f04_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_4_231020_1627_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 63 minutes, 1 seconds.
+Iteration 4 completed
+Running iteration 5
+torch.Size([109987, 37, 20])
+PFR for this dataset completed
+torch.Size([24294, 37, 20])
+PFR for this dataset completed
+torch.Size([17, 37, 20])
+PFR for this dataset completed
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0373,	0.893
+Epoch 50: valid loss, AUC:	0.0404,	0.902
+
+Epoch 100: train loss, AUC:	0.0373,	0.893
+Epoch 100: valid loss, AUC:	0.0401,	0.899
+
+Epoch 150: train loss, AUC:	0.0372,	0.891
+Epoch 150: valid loss, AUC:	0.0403,	0.900
+
+Epoch 200: train loss, AUC:	0.0372,	0.895
+Epoch 200: valid loss, AUC:	0.0405,	0.898
+
+Epoch 250: train loss, AUC:	0.0371,	0.894
+Epoch 250: valid loss, AUC:	0.0406,	0.900
+
+Epoch 300: train loss, AUC:	0.0372,	0.893
+Epoch 300: valid loss, AUC:	0.0408,	0.900
+
+Epoch 350: train loss, AUC:	0.0372,	0.892
+Epoch 350: valid loss, AUC:	0.0415,	0.901
+
+Epoch 400: train loss, AUC:	0.0371,	0.894
+Epoch 400: valid loss, AUC:	0.0402,	0.899
+
+Epoch 450: train loss, AUC:	0.0371,	0.895
+Epoch 450: valid loss, AUC:	0.0404,	0.898
+
+Epoch 500: train loss, AUC:	0.0372,	0.894
+Epoch 500: valid loss, AUC:	0.0428,	0.898
+Shape of trainset: (tensor([[ -1.0000,  -3.0000,  -2.0000,  ...,  -2.6667,  -1.6667,  -0.6667],
+        [ -1.0000,   3.0000,   0.0000,  ...,  -2.6667,  -1.6667,   0.3333],
+        [ -2.0000,  -1.0000,  -2.0000,  ...,  -2.0000,  -1.3333,   0.0000],
+        ...,
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000],
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000],
+        [-12.0000, -12.0000, -12.0000,  ...,   0.0000,   0.0000,   0.0000]]), tensor([[1.],
+        [1.],
+        [1.],
+        [1.],
+        [1.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.]]), tensor([-2., -1., -2., -3., -3., -1., -2., -3.,  2., -1., -1., -2.,  0.,  4.,
+        -3., -2., -2.,  2.,  8., -1.,  5., -2., -1., -2., -1., -1., -1.,  0.,
+        -2., -1., -2., -1., -1., -3., -1.,  1.,  0., -3., -2.,  0., -3., -3.,
+        -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8., -4., -3.,
+        -2.,  1.,  4., -1., -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,
+         1., -4.,  0.,  8., -4., -3., -2.,  1.,  4., -1., -1., -2., -2., -4.,
+        -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0., -3., -2., -1., -1.,
+         0.,  1., -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,
+         0.,  8., -4., -3., -2.,  1.,  4., -1.,  1., -1.,  1.,  0., -1.,  0.,
+        -1.,  0., -1., -3., -3.,  0., -2., -3., -1.,  5.,  2., -4., -2., -2.,
+         0., -3.,  0., -1., -3., -2., -3.,  8., -2., -4., -4., -2., -3., -4.,
+        -2.,  0., -2., -3., -3., -4.,  0., -3.,  0., -1., -3., -2., -3.,  8.,
+        -2., -4., -4., -2., -3., -4., -2.,  0., -2., -3., -3., -4.,  5., -2.,
+        -1., -2., -1., -1., -1.,  0., -2., -1., -2., -1., -1., -3., -1.,  1.,
+         0., -3., -2.,  0., -1., -4., -3., -4., -2., -3., -4., -4., -4.,  5.,
+         2., -3.,  2.,  0., -3., -3., -1., -3., -1.,  4., -2., -3., -4., -4.,
+        -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1., -4., -3., -1., -2.,
+        -1.,  1., -1., -1.,  7.,  2., -2.,  0.,  0.,  0.,  1., -3., -4.,  0.,
+        -2., -4., -2.,  1.,  0., -4., -2., -3.,  0., -1.,  0., -1., -1., -1.,
+        -1., -2., -2., -1., -1., -1., -1., -2., -1.,  2.,  5., -3., -2.,  0.,
+        -2., -3., -4., -4., -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1.,
+        -4., -3., -1., -2., -1.,  1., -3., -3., -4., -5., -2., -4., -3., -4.,
+        -1.,  0.,  1., -4.,  0.,  8., -4., -3., -2.,  1.,  4., -1.,  0., -3.,
+         0., -1., -3., -2., -3.,  8., -2., -4., -4., -2., -3., -4., -2.,  0.,
+        -2., -3., -3., -4., -1.,  1.,  0.,  0., -3.,  7.,  2., -2.,  1., -3.,
+        -2.,  2.,  0., -4., -1.,  0., -1., -1., -1., -3., -3., -3., -4., -5.,
+        -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8., -4., -3., -2.,  1.,
+         4., -1., -1.,  0.,  0.,  2., -3.,  2.,  6., -3.,  0., -4., -3.,  1.,
+        -2., -3., -1., -1., -1., -3., -2., -3., -2., -1., -2., -3., -3., -1.,
+        -2., -3.,  2., -1., -1., -2.,  0.,  4., -3., -2., -2.,  2.,  8., -1.,
+        -3., -3., -4., -5., -2., -4., -3., -4., -1.,  0.,  1., -4.,  0.,  8.,
+        -4., -3., -2.,  1.,  4., -1., -2., -2.,  2.,  8., -4.,  0.,  2., -1.,
+        -1., -4., -4., -1., -4., -5., -1.,  0., -1., -5., -3., -4., -1., -4.,
+        -3., -4., -2., -3., -4., -4., -4.,  5.,  2., -3.,  2.,  0., -3., -3.,
+        -1., -3., -1.,  4., -1.,  0.,  0.,  2., -3.,  2.,  6., -3.,  0., -4.,
+        -3.,  1., -2., -3., -1., -1., -1., -3., -2., -3., -1.,  0.,  0.,  2.,
+        -3.,  2.,  6., -3.,  0., -4., -3.,  1., -2., -3., -1., -1., -1., -3.,
+        -2., -3.,  0., -3., -3., -4., -1., -3., -3., -4., -4.,  4.,  1., -3.,
+         1., -1., -3., -2.,  0., -3., -1.,  5., -2.,  7., -1., -2., -4.,  1.,
+         0., -3.,  0., -4., -3.,  3., -2., -3., -3., -1., -1., -3., -1., -3.,
+        -1., -2., -2., -4., -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0.,
+        -3., -2., -1., -1.,  0.,  1., -2.,  0.,  1., -1., -3.,  1.,  0., -2.,
+        10., -4., -3.,  0., -1., -1., -2., -1., -2., -3.,  2., -4., -2., -3.,
+        -4., -4., -2., -2., -3., -4., -3.,  2.,  5., -3.,  3.,  1., -4., -3.,
+        -1., -2., -1.,  1.,  0., -3.,  0., -1., -3., -2., -3.,  8., -2., -4.,
+        -4., -2., -3., -4., -2.,  0., -2., -3., -3., -4., -1., -2., -2., -4.,
+        -2.,  0., -2., -3., -1.,  2.,  3., -2.,  7.,  0., -3., -2., -1., -1.,
+         0.,  1.,  0., -1.,  0., -1., -1., -1., -1., -2., -2., -1., -1., -1.,
+        -1., -2., -1.,  2.,  5., -3., -2.,  0.]), tensor([0.]))
+End of training cycles
+Best train loss:	3.703e-02, best train AUC:	0.8962
+Best valid epoch: 128
+Best valid loss :	4.003e-02, best valid AUC:	0.9073
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_5_231020_1730_None/checkpoint_best_kcv_train_all5_correct_f05_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_5_231020_1730_None.pt
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_5_231020_1730_None/train_losses_kcv_train_all5_correct_f05_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_5_231020_1730_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_5_231020_1730_None/valid_losses_kcv_train_all5_correct_f05_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_5_231020_1730_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_5_231020_1730_None/train_metrics_kcv_train_all5_correct_f05_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_5_231020_1730_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_5_231020_1730_None/valid_metrics_kcv_train_all5_correct_f05_CSL_mhc_pfr_nobnorm_nostd_burn_60nh_all_KFold_5_231020_1730_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 204 minutes, 6 seconds.
+Iteration 5 completed
+Script finished

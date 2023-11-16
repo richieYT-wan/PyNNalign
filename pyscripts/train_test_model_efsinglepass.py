@@ -35,7 +35,7 @@ def args_parser():
     parser.add_argument('-tef', '--test_file', dest='test_file', required=True, type=str,
                         default='../data/aligned_icore/230530_prime_aligned.csv',
                         help='filename of the test input file')
-
+    
     parser.add_argument('-o', '--out', dest='out', required=False,
                         type=str, default='', help='Additional output name')
     parser.add_argument('-s', '--split', dest='split', required=False, type=int,
@@ -67,6 +67,12 @@ def args_parser():
                         help='Whether to add pseudo sequence to the model (true/false)')
     parser.add_argument('-ps', '--pseudo_seq_col', dest='pseudo_seq_col', default='pseudoseq', type=str, required=False,
                         help='Name of the column containing the MHC pseudo-sequences')
+    parser.add_argument('-add_pfr', '--add_pfr', dest='add_pfr', type=str2bool, default=False,
+                        help='Whether to add fixed-size (3) mean peptide flanking regions to the model (true/false)')
+    parser.add_argument('-add_fr_len', '--add_fr_len', dest='add_fr_len', type=str2bool, default=False,
+                        help='Whether to add length of the flanking regions of each motif to the model (true/false)')
+    parser.add_argument('-add_pep_len', '--add_pep_len', dest='add_pep_len', type=str2bool, default=False,
+                        help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
     """
     Neural Net & Encoding args 
     """
@@ -95,10 +101,10 @@ def args_parser():
                         help='Burn-in period (in int) to align motifs to P0. Disabled by default')
     parser.add_argument('-lr', '--learning_rate', dest='lr', type=float, default=1e-4, required=False,
                         help='Learning rate for the optimizer')
-    parser.add_argument('-wd', '--weight_decay', dest='weight_decay', type=float, default=1e-2, required=False,
-                        help='Weight decay for the optimizer')
+    parser.add_argument('-wd', '--weight_decay', dest='weight_decay', type=float, default=1e-4, required=False,
+                        help='Weight decay for the optimizer') # try 1e-3, 1e-4, 1e-6
     parser.add_argument('-bs', '--batch_size', dest='batch_size', type=int, default=128, required=False,
-                        help='Batch size for mini-batch optimization')
+                        help='Batch size for mini-batch optimization') # try 32, 64, 256
     parser.add_argument('-ne', '--n_epochs', dest='n_epochs', type=int, default=500, required=False,
                         help='Number of epochs to train')
     parser.add_argument('-tol', '--tolerance', dest='tolerance', type=float, default=1e-5, required=False,
@@ -152,22 +158,34 @@ def main():
     # Def params so it's ✨tidy✨
     model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize']
     dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size',
-                    'feature_cols', 'add_pseudo_sequence', 'pseudo_seq_col']
+                    'feature_cols', 'add_pseudo_sequence', 'pseudo_seq_col', 'add_pfr', 'add_fr_len', 'add_pep_len']
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # instantiate objects
     # TODO: Carlos here you define extrafeat_dim :
     if args['add_pseudo_sequence']:
-        if len(args['feature_cols']) == 1:
-            extrafeat_dim = (20 * 34)
+        if args['add_pfr'] and args['add_fr_len']:
+            extrafeat_dim = (20 * 34) + (2 * 20) + 4
+        elif args['add_pfr'] and not args['add_fr_len']:
+            extrafeat_dim = (20 * 34) + (2 * 20)
+        elif not args['add_pfr'] and args['add_fr_len']:
+            extrafeat_dim = (20 * 34) + 4
         else:
-            extrafeat_dim = (20 * 34) + len(args['feature_cols']) - 1
+            extrafeat_dim = (20 * 34)
     else:
-        if args['feature_cols']:
-            extrafeat_dim = len(args['feature_cols'])
+        if args['add_pfr'] and args['add_fr_len']:
+            extrafeat_dim = (2 * 20) + 4
+        elif args['add_pfr'] and not args['add_fr_len']:
+            extrafeat_dim = (2 * 20)
+        elif not args['add_pfr'] and args['add_fr_len']:
+            extrafeat_dim = 4
         else:
             extrafeat_dim = 0
+    if args['add_pep_len']:
+        extrafeat_dim += (21 - 13) + 2
+    
+    # print(f'Extra-features dimensions: {extrafeat_dim}')
 
     model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, indel=False, **model_params)
 
@@ -207,7 +225,7 @@ def main():
     valid_preds.to_csv(f'{outdir}valid_predictions_{unique_filename}.csv', index=False)
     # Test set
     test_preds = predict_model(model, test_dataset, test_loader)
-    test_loss, test_metrics = eval_model_step(model, criterion, test_loader)
+    # test_loss, test_metrics = eval_model_step(model, criterion, test_loader)
     print('Saving test predictions from best model')
     test_fn = os.path.basename(args['test_file']).split('.')[0]
     test_preds.to_csv(f'{outdir}test_predictions_{test_fn}_{unique_filename}.csv', index=False)
@@ -224,8 +242,8 @@ def main():
         file.write(f"Best valid loss: {best_val_loss}\n")
         file.write(f"Best valid auc: {best_val_auc}\n")
         file.write(f"Test file: {args['test_file']}\n")
-        file.write(f"Test loss: {test_loss}\n")
-        file.write(f"Test AUC: {test_metrics['auc']}\n")
+        # file.write(f"Test loss: {test_loss}\n")
+        # file.write(f"Test AUC: {test_metrics['auc']}\n")
 
     end = dt.now()
     elapsed = divmod((end - start).seconds, 60)

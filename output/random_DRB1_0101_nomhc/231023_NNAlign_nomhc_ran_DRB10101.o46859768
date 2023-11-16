@@ -1,0 +1,308 @@
+INFO: activate-binutils_linux-64.sh made the following environmental changes:
++ADDR2LINE=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-addr2line
++AR=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ar
++AS=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-as
++CXXFILT=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-c++filt
++ELFEDIT=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-elfedit
++GPROF=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gprof
++HOST=x86_64-conda_cos6-linux-gnu
++LD=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ld
++LD_GOLD=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ld.gold
++NM=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-nm
++OBJCOPY=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-objcopy
++OBJDUMP=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-objdump
++RANLIB=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ranlib
++READELF=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-readelf
++SIZE=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-size
++STRINGS=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-strings
++STRIP=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-strip
+INFO: activate-gcc_linux-64.sh made the following environmental changes:
++CC=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-cc
++CFLAGS=-march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++CPP=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-cpp
++CPPFLAGS=-DNDEBUG -D_FORTIFY_SOURCE=2 -O2
++DEBUG_CFLAGS=-march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fvar-tracking-assignments -pipe
++DEBUG_CPPFLAGS=-D_DEBUG -D_FORTIFY_SOURCE=2 -Og
++GCC=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc
++GCC_AR=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc-ar
++GCC_NM=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc-nm
++GCC_RANLIB=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc-ranlib
++LDFLAGS=-Wl,-O2 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now
++_CONDA_PYTHON_SYSCONFIGDATA_NAME=_sysconfigdata_x86_64_conda_cos6_linux_gnu
+INFO: activate-gfortran_linux-64.sh made the following environmental changes:
++DEBUG_FFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe -fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fcheck=all -fbacktrace -fimplicit-none -fvar-tracking-assignments -pipe
++DEBUG_FORTRANFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe -fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fcheck=all -fbacktrace -fimplicit-none -fvar-tracking-assignments -pipe
++F77=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gfortran
++F95=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-f95
++FC=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gfortran
++FFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++FORTRANFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++GFORTRAN=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gfortran
+INFO: activate-gxx_linux-64.sh made the following environmental changes:
++CXX=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-c++
++CXXFLAGS=-fvisibility-inlines-hidden -std=c++17 -fmessage-length=0 -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++DEBUG_CXXFLAGS=-fvisibility-inlines-hidden -std=c++17 -fmessage-length=0 -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fvar-tracking-assignments -pipe
++GXX=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-g++
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/pyscripts
+"Starting PyScript"
+Running iteration 1
+torch.Size([8424, 37, 20])
+torch.Size([1988, 37, 20])
+torch.Size([179991, 37, 20])
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0422,	0.868
+Epoch 50: valid loss, AUC:	0.0478,	0.829
+
+Epoch 100: train loss, AUC:	0.0413,	0.872
+Epoch 100: valid loss, AUC:	0.0477,	0.830
+
+Epoch 150: train loss, AUC:	0.0432,	0.861
+Epoch 150: valid loss, AUC:	0.0485,	0.832
+
+Epoch 200: train loss, AUC:	0.0451,	0.855
+Epoch 200: valid loss, AUC:	0.0493,	0.834
+
+Epoch 250: train loss, AUC:	0.0448,	0.853
+Epoch 250: valid loss, AUC:	0.0494,	0.833
+
+Epoch 300: train loss, AUC:	0.0451,	0.848
+Epoch 300: valid loss, AUC:	0.0494,	0.836
+
+Epoch 350: train loss, AUC:	0.0451,	0.845
+Epoch 350: valid loss, AUC:	0.0498,	0.834
+
+Epoch 400: train loss, AUC:	0.0452,	0.846
+Epoch 400: valid loss, AUC:	0.0498,	0.833
+
+Epoch 450: train loss, AUC:	0.0451,	0.850
+Epoch 450: valid loss, AUC:	0.0498,	0.839
+
+Epoch 500: train loss, AUC:	0.0449,	0.854
+Epoch 500: valid loss, AUC:	0.0499,	0.834
+End of training cycles
+Best train loss:	4.066e-02, best train AUC:	0.8741
+Best valid epoch: 369
+Best valid loss :	5.032e-02, best valid AUC:	0.8417
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_1_231023_1956_None/checkpoint_best_kcv_train_all5_DRB1_0101_f01_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_1_231023_1956_None.pt
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_1_231023_1956_None/train_losses_kcv_train_all5_DRB1_0101_f01_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_1_231023_1956_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_1_231023_1956_None/valid_losses_kcv_train_all5_DRB1_0101_f01_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_1_231023_1956_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_1_231023_1956_None/train_metrics_kcv_train_all5_DRB1_0101_f01_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_1_231023_1956_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_1_231023_1956_None/valid_metrics_kcv_train_all5_DRB1_0101_f01_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_1_231023_1956_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 7 minutes, 19 seconds.
+Running iteration 2
+torch.Size([8307, 37, 20])
+torch.Size([2105, 37, 20])
+torch.Size([179992, 37, 20])
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0440,	0.849
+Epoch 50: valid loss, AUC:	0.0481,	0.861
+
+Epoch 100: train loss, AUC:	0.0426,	0.859
+Epoch 100: valid loss, AUC:	0.0470,	0.866
+
+Epoch 150: train loss, AUC:	0.0447,	0.845
+Epoch 150: valid loss, AUC:	0.0484,	0.863
+
+Epoch 200: train loss, AUC:	0.0462,	0.848
+Epoch 200: valid loss, AUC:	0.0498,	0.858
+
+Epoch 250: train loss, AUC:	0.0449,	0.852
+Epoch 250: valid loss, AUC:	0.0490,	0.857
+
+Epoch 300: train loss, AUC:	0.0449,	0.855
+Epoch 300: valid loss, AUC:	0.0490,	0.857
+
+Epoch 350: train loss, AUC:	0.0450,	0.852
+Epoch 350: valid loss, AUC:	0.0489,	0.856
+
+Epoch 400: train loss, AUC:	0.0450,	0.850
+Epoch 400: valid loss, AUC:	0.0494,	0.855
+
+Epoch 450: train loss, AUC:	0.0448,	0.851
+Epoch 450: valid loss, AUC:	0.0493,	0.859
+
+Epoch 500: train loss, AUC:	0.0448,	0.851
+Epoch 500: valid loss, AUC:	0.0486,	0.856
+End of training cycles
+Best train loss:	4.225e-02, best train AUC:	0.863
+Best valid epoch: 78
+Best valid loss :	4.750e-02, best valid AUC:	0.8686
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_2_231023_2004_None/checkpoint_best_kcv_train_all5_DRB1_0101_f02_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_2_231023_2004_None.pt
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_2_231023_2004_None/train_losses_kcv_train_all5_DRB1_0101_f02_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_2_231023_2004_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_2_231023_2004_None/valid_losses_kcv_train_all5_DRB1_0101_f02_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_2_231023_2004_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_2_231023_2004_None/train_metrics_kcv_train_all5_DRB1_0101_f02_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_2_231023_2004_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_2_231023_2004_None/valid_metrics_kcv_train_all5_DRB1_0101_f02_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_2_231023_2004_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 8 minutes, 2 seconds.
+Running iteration 3
+torch.Size([7992, 37, 20])
+torch.Size([2420, 37, 20])
+torch.Size([179991, 37, 20])
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0433,	0.865
+Epoch 50: valid loss, AUC:	0.0428,	0.830
+
+Epoch 100: train loss, AUC:	0.0417,	0.872
+Epoch 100: valid loss, AUC:	0.0428,	0.831
+
+Epoch 150: train loss, AUC:	0.0441,	0.865
+Epoch 150: valid loss, AUC:	0.0438,	0.830
+
+Epoch 200: train loss, AUC:	0.0456,	0.859
+Epoch 200: valid loss, AUC:	0.0441,	0.833
+
+Epoch 250: train loss, AUC:	0.0458,	0.858
+Epoch 250: valid loss, AUC:	0.0442,	0.835
+
+Epoch 300: train loss, AUC:	0.0458,	0.860
+Epoch 300: valid loss, AUC:	0.0442,	0.835
+
+Epoch 350: train loss, AUC:	0.0462,	0.856
+Epoch 350: valid loss, AUC:	0.0443,	0.840
+
+Epoch 400: train loss, AUC:	0.0461,	0.858
+Epoch 400: valid loss, AUC:	0.0438,	0.838
+
+Epoch 450: train loss, AUC:	0.0459,	0.857
+Epoch 450: valid loss, AUC:	0.0438,	0.840
+
+Epoch 500: train loss, AUC:	0.0462,	0.857
+Epoch 500: valid loss, AUC:	0.0440,	0.838
+End of training cycles
+Best train loss:	4.150e-02, best train AUC:	0.8737
+Best valid epoch: 429
+Best valid loss :	4.431e-02, best valid AUC:	0.846
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_3_231023_2012_None/checkpoint_best_kcv_train_all5_DRB1_0101_f03_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_3_231023_2012_None.pt
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_3_231023_2012_None/train_losses_kcv_train_all5_DRB1_0101_f03_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_3_231023_2012_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_3_231023_2012_None/valid_losses_kcv_train_all5_DRB1_0101_f03_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_3_231023_2012_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_3_231023_2012_None/train_metrics_kcv_train_all5_DRB1_0101_f03_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_3_231023_2012_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_3_231023_2012_None/valid_metrics_kcv_train_all5_DRB1_0101_f03_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_3_231023_2012_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 7 minutes, 31 seconds.
+Running iteration 4
+torch.Size([8430, 37, 20])
+torch.Size([1982, 37, 20])
+torch.Size([179992, 37, 20])
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0411,	0.872
+Epoch 50: valid loss, AUC:	0.0495,	0.805
+
+Epoch 100: train loss, AUC:	0.0407,	0.876
+Epoch 100: valid loss, AUC:	0.0494,	0.805
+
+Epoch 150: train loss, AUC:	0.0431,	0.871
+Epoch 150: valid loss, AUC:	0.0503,	0.799
+
+Epoch 200: train loss, AUC:	0.0454,	0.862
+Epoch 200: valid loss, AUC:	0.0513,	0.796
+
+Epoch 250: train loss, AUC:	0.0445,	0.867
+Epoch 250: valid loss, AUC:	0.0510,	0.794
+
+Epoch 300: train loss, AUC:	0.0447,	0.864
+Epoch 300: valid loss, AUC:	0.0510,	0.794
+
+Epoch 350: train loss, AUC:	0.0447,	0.864
+Epoch 350: valid loss, AUC:	0.0506,	0.794
+
+Epoch 400: train loss, AUC:	0.0448,	0.862
+Epoch 400: valid loss, AUC:	0.0507,	0.795
+
+Epoch 450: train loss, AUC:	0.0446,	0.866
+Epoch 450: valid loss, AUC:	0.0507,	0.799
+
+Epoch 500: train loss, AUC:	0.0448,	0.863
+Epoch 500: valid loss, AUC:	0.0508,	0.798
+End of training cycles
+Best train loss:	4.028e-02, best train AUC:	0.8802
+Best valid epoch: 66
+Best valid loss :	4.935e-02, best valid AUC:	0.8112
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_4_231023_2019_None/checkpoint_best_kcv_train_all5_DRB1_0101_f04_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_4_231023_2019_None.pt
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_4_231023_2019_None/train_losses_kcv_train_all5_DRB1_0101_f04_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_4_231023_2019_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_4_231023_2019_None/valid_losses_kcv_train_all5_DRB1_0101_f04_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_4_231023_2019_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_4_231023_2019_None/train_metrics_kcv_train_all5_DRB1_0101_f04_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_4_231023_2019_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_4_231023_2019_None/valid_metrics_kcv_train_all5_DRB1_0101_f04_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_4_231023_2019_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 6 minutes, 42 seconds.
+Running iteration 5
+torch.Size([8495, 37, 20])
+torch.Size([1917, 37, 20])
+torch.Size([179990, 37, 20])
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0424,	0.857
+Epoch 50: valid loss, AUC:	0.0505,	0.856
+
+Epoch 100: train loss, AUC:	0.0415,	0.866
+Epoch 100: valid loss, AUC:	0.0504,	0.859
+
+Epoch 150: train loss, AUC:	0.0433,	0.857
+Epoch 150: valid loss, AUC:	0.0516,	0.856
+
+Epoch 200: train loss, AUC:	0.0447,	0.850
+Epoch 200: valid loss, AUC:	0.0516,	0.851
+
+Epoch 250: train loss, AUC:	0.0445,	0.853
+Epoch 250: valid loss, AUC:	0.0518,	0.850
+
+Epoch 300: train loss, AUC:	0.0450,	0.853
+Epoch 300: valid loss, AUC:	0.0523,	0.849
+
+Epoch 350: train loss, AUC:	0.0445,	0.852
+Epoch 350: valid loss, AUC:	0.0522,	0.849
+
+Epoch 400: train loss, AUC:	0.0455,	0.849
+Epoch 400: valid loss, AUC:	0.0524,	0.845
+
+Epoch 450: train loss, AUC:	0.0449,	0.851
+Epoch 450: valid loss, AUC:	0.0520,	0.846
+
+Epoch 500: train loss, AUC:	0.0445,	0.852
+Epoch 500: valid loss, AUC:	0.0519,	0.848
+End of training cycles
+Best train loss:	4.108e-02, best train AUC:	0.87
+Best valid epoch: 84
+Best valid loss :	5.034e-02, best valid AUC:	0.8604
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_5_231023_2026_None/checkpoint_best_kcv_train_all5_DRB1_0101_f05_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_5_231023_2026_None.pt
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_5_231023_2026_None/train_losses_kcv_train_all5_DRB1_0101_f05_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_5_231023_2026_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_5_231023_2026_None/valid_losses_kcv_train_all5_DRB1_0101_f05_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_5_231023_2026_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_5_231023_2026_None/train_metrics_kcv_train_all5_DRB1_0101_f05_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_5_231023_2026_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_5_231023_2026_None/valid_metrics_kcv_train_all5_DRB1_0101_f05_CSL_nomhc_nostd_burn_60nh_ran_DRB1_0101_KFold_5_231023_2026_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 7 minutes, 59 seconds.
+Script finished
