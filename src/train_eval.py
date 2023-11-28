@@ -17,6 +17,7 @@ from src.datasets import NNAlignDataset
 from src.utils import get_motif
 from src.torch_utils import save_checkpoint, load_checkpoint
 from src.metrics import get_metrics
+from memory_profiler import profile
 
 
 class EarlyStopping:
@@ -166,7 +167,7 @@ def predict_model(model, dataset: NNAlignDataset, dataloader: torch.utils.data.D
     df['motif'] = df.apply(get_motif, seq_col=seq_col, window_size=window_size, axis=1)
     return df
 
-
+@profile
 def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dataset, train_loader, valid_loader,
                      checkpoint_filename, outdir, burn_in: int = None, std: bool = False):
     """ Trains and validates a model over n_epochs, then reloads the best checkpoint
@@ -230,8 +231,9 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
 
         # Doesn't allow saving the very first model as sometimes it gets stuck in a random state that has good
         # performance for whatever reasons
-        if e > 1 and ((valid_loss <= best_val_loss + tolerance and valid_metric['auc'] > best_val_auc)\
-                      or valid_metric['auc'] > best_val_auc):
+
+        # and ((valid_loss <= best_val_loss + tolerance and valid_metric['auc'] > best_val_auc) or valid_metric['auc'] > best_val_auc):
+        if e == n_epochs:
             best_epoch = e
             best_val_loss = valid_loss
             best_val_auc = valid_metric['auc']

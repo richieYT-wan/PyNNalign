@@ -586,7 +586,7 @@ def FR_lengths(all_xmask, max_len, window_size=9):
     return all_FR_len.flatten(start_dim=2)
 
 # Function for encoding the peptide lengths as one-hot
-def pep_len_1hot(df_seq, min_length, max_length):
+def pep_len_1hot(df_seq, max_len, window_size, min_length, max_length):
     
     # Define the range of possible sequence lengths
     seq_lens = df_seq.str.len()
@@ -605,7 +605,7 @@ def pep_len_1hot(df_seq, min_length, max_length):
         else:
             seq_lens_1hot[i, length - min_length + 1] = 1   # Group peptides in between
 
-    expanded_tensor = torch.from_numpy(seq_lens_1hot).unsqueeze(1).expand(-1, 29, -1)
+    expanded_tensor = torch.from_numpy(seq_lens_1hot).unsqueeze(1).expand(-1, max_len - window_size + 1, -1)
 
     # print('Peptide lengths encoded for this dataset completed')
     

@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from src.data_processing import encode_batch, encode_batch_weighted, PFR_calculation, FR_lengths, pep_len_1hot
+from memory_profiler import profile
 
 
 class NNAlignDataset(Dataset):
@@ -166,7 +167,7 @@ class NNAlignDatasetEFSinglePass(Dataset):
             x_fr_len = FR_lengths(self.x_mask, max_len, window_size)
             self.x_tensor = torch.cat([self.x_tensor, x_fr_len], dim=2)
         if add_pep_len:
-            x_pep_len = pep_len_1hot(df[seq_col], min_length = 13, max_length = 21)
+            x_pep_len = pep_len_1hot(df[seq_col], max_len, window_size, min_length = 13, max_length = 21)
             self.x_tensor = torch.cat([self.x_tensor, x_pep_len], dim=2)
 
         # Saving df in case it's needed
@@ -207,7 +208,7 @@ class NNAlignDatasetEFSinglePass(Dataset):
     def burn_in(self, flag):
         self.burn_in_flag = flag
 
-
+@profile
 def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                                        seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
                                        indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,

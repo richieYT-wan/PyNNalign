@@ -19,6 +19,7 @@ from sklearn.model_selection import train_test_split
 from src.datasets import get_NNAlign_dataloaderEFSinglePass
 from matplotlib import pyplot as plt
 import seaborn as sns
+from memory_profiler import profile
 
 import argparse
 
@@ -94,6 +95,10 @@ def args_parser():
     parser.add_argument('-efdo', '--dropout_ef', dest='dropout_ef',
                         default=0.0, type=float,
                         help='Whether to add DropOut to the EF layer (p in float e[0,1], default = 0.0)')
+    parser.add_argument('-add_hl', '--add_hidden_layer', dest='add_hidden_layer', type=str2bool, required=False,
+                        default = False, help='Whether to add a second hidden layer (True/False)')
+    parser.add_argument('-nh2', '--n_hidden_2', dest='n_hidden_2', required=False, default=10,
+                        type=int, help='Number of hidden units for the additional second hidden layer (default = 10)')
     """
     Training hyperparameters & args
     """
@@ -156,7 +161,7 @@ def main():
     test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
     # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
     # Def params so it's ✨tidy✨
-    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize']
+    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize', 'add_hidden_layer', 'n_hidden_2']
     dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size',
                     'feature_cols', 'add_pseudo_sequence', 'pseudo_seq_col', 'add_pfr', 'add_fr_len', 'add_pep_len']
     model_params = {k: args[k] for k in model_keys}
@@ -198,7 +203,7 @@ def main():
                                                                      return_dataset=True, **dataset_params)
     test_loader, test_dataset = get_NNAlign_dataloaderEFSinglePass(test_df, indel=False, sampler=SequentialSampler,
                                                                    return_dataset=True, **dataset_params)
-
+    
     # Training loop & train/valid results
     model, train_metrics, valid_metrics, train_losses, valid_losses, \
     best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model, criterion,

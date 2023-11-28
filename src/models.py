@@ -430,16 +430,25 @@ class NNAlignEFSinglePass(NetParent):
     NNAlign implementation with a single forward pass where best score selection + indexing is done in one pass.
     """
 
-    def __init__(self, n_hidden, window_size,
+    def __init__(self, n_hidden, n_hidden_2, window_size,
                  activation, extrafeat_dim=0, batchnorm=False,
-                 dropout=0.0, indel=False, standardize=False):
+                 dropout=0.0, indel=False, standardize=False,
+                 add_hidden_layer=False):
         super(NNAlignEFSinglePass, self).__init__()
         self.matrix_dim = 21 if indel else 20
         self.window_size = window_size
         self.n_hidden = n_hidden
+        self.n_hidden_2 = n_hidden_2
         self.extrafeat_dim = extrafeat_dim
+        self.add_hidden_layer = add_hidden_layer
+        # Input layer
         self.in_layer = nn.Linear(self.window_size * self.matrix_dim + extrafeat_dim, n_hidden)
-        self.out_layer = nn.Linear(n_hidden, 1)
+        # Additional hidden layer if use_second_hidden_layer is True
+        if add_hidden_layer:
+            self.hidden_layer = nn.Linear(n_hidden, n_hidden_2)
+            self.out_layer = nn.Linear(n_hidden_2, 1)
+        else:
+            self.out_layer = nn.Linear(n_hidden, 1)
         self.batchnorm = batchnorm
         if batchnorm:
             self.bn1 = nn.BatchNorm1d(n_hidden)
@@ -492,7 +501,13 @@ class NNAlignEFSinglePass(NetParent):
                 .view(-1, x_tensor.shape[1], self.n_hidden)
         z = self.dropout(z)
         z = self.act(z)
-        z = self.out_layer(z)  # Out Layer for prediction
+        # Additional hidden layer
+        if self.add_hidden_layer:
+            z = self.hidden_layer(z)
+            z = self.act(z)
+            z = self.out_layer(z)
+        else:
+            z = self.out_layer(z)  # Out Layer for prediction
 
         # NNAlign selecting the max score here
         with torch.no_grad():
@@ -527,7 +542,13 @@ class NNAlignEFSinglePass(NetParent):
                 z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
                     .view(-1, x_tensor.shape[1], self.n_hidden)
             z = self.act(self.dropout(z))
-            z = self.out_layer(z)
+            # Additional hidden layer
+            if self.add_hidden_layer:
+                z = self.hidden_layer(z)
+                z = self.act(z)
+                z = self.out_layer(z)
+            else:
+                z = self.out_layer(z)  # Out Layer for prediction
             # Do the same trick where the padded positions are removed prior to selecting index
             max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
             # Additionally run sigmoid on z so that it returns proba in range [0, 1]
@@ -556,7 +577,13 @@ class NNAlignEFSinglePass(NetParent):
                 z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
                     .view(-1, x_tensor.shape[1], self.n_hidden)
             z = self.act(self.dropout(z))
-            z = self.out_layer(z)
+            # Additional hidden layer
+            if self.add_hidden_layer:
+                z = self.hidden_layer(z)
+                z = self.act(z)
+                z = self.out_layer(z)
+            else:
+                z = self.out_layer(z)  # Out Layer for prediction
             # Do the same trick where the padded positions are removed prior to selecting index
             max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
             # Additionally run sigmoid on z so that it returns proba in range [0, 1]
