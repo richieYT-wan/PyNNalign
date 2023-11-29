@@ -25,7 +25,7 @@ class SuperDataset(Dataset):
         return dataloader
 
 
-class NNAlignDataset(Dataset):
+class NNAlignDataset(SuperDataset):
     """
     Here for now, only get encoding and try to
     """
