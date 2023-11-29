@@ -105,6 +105,7 @@ def args_parser():
     """
     parser.add_argument('-n_ensemble', dest='n_ensemble', required=False, type = int, default = 5,
                         help = 'The number of models in the final ensemble')
+    parser.add_argument('-initial_seed', dest = 'initial_seed', default=None, help='Initial seed that will be used to pick the subsequent seeds in the ensemble.')
     parser.add_argument('-br', '--burn_in', dest='burn_in', required=False, type=int, default=None,
                         help='Burn-in period (in int) to align motifs to P0. Disabled by default')
     parser.add_argument('-lr', '--learning_rate', dest='lr', type=float, default=1e-4, required=False,
@@ -119,7 +120,6 @@ def args_parser():
                         help='Tolerance for loss variation to log best model')
     parser.add_argument('-rid', '--random_id', dest='random_id', type=str, default=None,
                         help='Adding a random ID taken from a batchscript that will start all crossvalidation folds. Default = ""')
-
     return parser.parse_args()
 
 
@@ -202,7 +202,7 @@ def main():
     # Doing ensemble of models here:
     random.seed(None)
     print(f'Picking {args["n_ensemble"]} random seeds')
-    initial_seed = random.randint(0, 1000)
+    initial_seed = random.randint(0, 1000) if args['initial_seed'] is None else args['initial_seed']
     print(f'Initial seed (from which the subsequent seeds are picked): {initial_seed}')
     seeds = []
     for _ in range(args['n_ensemble']):
@@ -218,6 +218,8 @@ def main():
             file.write(f"{key}: {value}\n")
         file.write(f'List of seeds: {seeds}\n')
 
+    valid_preds_list = []
+    test_preds_list = []
     for i, seed in tqdm(enumerate(seeds), desc='N_ensemble'):
         print(f'Current iteration: {i} ; seed: {seed}')
         random.seed(seed)
@@ -275,6 +277,17 @@ def main():
             file.write(f"Test file: {args['test_file']}\n")
             # file.write(f"Test loss: {test_loss}\n")
             # file.write(f"Test AUC: {test_metrics['auc']}\n")
+        valid_preds['model_number'] = i
+        valid_preds['model_seed'] = seed
+        test_preds['model_number'] = i
+        test_preds['model_seed'] = seed
+        valid_preds_list.append(valid_preds)
+        test_preds_list.append(test_preds)
+
+    valid_preds_concat = pd.concat(valid_preds_list)
+    test_preds_concat = pd.concat(test_preds_list)
+    valid_preds_concat.to_csv(f'{outdir}valid_preds_ensemble_concat_{unique_filename}.csv', index=False)
+    test_preds_concat.to_csv(f'{outdir}test_preds_ensemble_concat_{unique_filename}.csv', index=False)
     # Saving text file for the run:
 
 
