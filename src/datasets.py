@@ -6,6 +6,25 @@ from src.data_processing import encode_batch, encode_batch_weighted, PFR_calcula
 from memory_profiler import profile
 
 
+class SuperDataset(Dataset):
+    def __init__(self, x=torch.empty([100, 1])):
+        super(SuperDataset, self).__init__()
+        self.x = x
+
+    def __len__(self):
+        return len(self.x)
+
+    def __getitem__(self, idx):
+        return self.x[idx]
+
+    def get_dataset(self):
+        return self
+
+    def get_dataloader(self, batch_size, sampler, **kwargs):
+        dataloader = DataLoader(self, batch_size=batch_size, sampler=sampler(self), **kwargs)
+        return dataloader
+
+
 class NNAlignDataset(Dataset):
     """
     Here for now, only get encoding and try to
@@ -102,7 +121,7 @@ def get_NNAlign_dataloader(df: pd.DataFrame, max_len: int, window_size: int, enc
         return dataloader
 
 
-class NNAlignDatasetEFSinglePass(Dataset):
+class NNAlignDatasetEFSinglePass(SuperDataset):
     """
     #TODO : Carlos here this class is for you. From now on, only use this class
     Here for now, only get encoding and try to
@@ -111,7 +130,7 @@ class NNAlignDatasetEFSinglePass(Dataset):
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'],
-                 add_pseudo_sequence=False, pseudo_seq_col: str='pseudoseq', add_pfr=False, add_fr_len=False, 
+                 add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False,
                  add_pep_len=False):
 
         super(NNAlignDatasetEFSinglePass, self).__init__()
@@ -167,7 +186,7 @@ class NNAlignDatasetEFSinglePass(Dataset):
             x_fr_len = FR_lengths(self.x_mask, max_len, window_size)
             self.x_tensor = torch.cat([self.x_tensor, x_fr_len], dim=2)
         if add_pep_len:
-            x_pep_len = pep_len_1hot(df[seq_col], max_len, window_size, min_length = 13, max_length = 21)
+            x_pep_len = pep_len_1hot(df[seq_col], max_len, window_size, min_length=13, max_length=21)
             self.x_tensor = torch.cat([self.x_tensor, x_pep_len], dim=2)
 
         # Saving df in case it's needed
@@ -208,17 +227,18 @@ class NNAlignDatasetEFSinglePass(Dataset):
     def burn_in(self, flag):
         self.burn_in_flag = flag
 
+
 @profile
 def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                                        seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
                                        indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
                                        batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
-                                       add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+                                       add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False,
                                        add_fr_len=False, add_pep_len=False):
     dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
                                          burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
                                          add_fr_len, add_pep_len)
-    #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+    # TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
     if return_dataset:
         return dataloader, dataset

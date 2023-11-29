@@ -16,7 +16,7 @@ from src.torch_utils import save_checkpoint, load_checkpoint
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
-from src.datasets import get_NNAlign_dataloaderEFSinglePass
+from src.datasets import NNAlignDatasetEFSinglePass
 import random
 import numpy as np
 from matplotlib import pyplot as plt
@@ -97,23 +97,24 @@ def args_parser():
                         default=0.0, type=float,
                         help='Whether to add DropOut to the EF layer (p in float e[0,1], default = 0.0)')
     parser.add_argument('-add_hl', '--add_hidden_layer', dest='add_hidden_layer', type=str2bool, required=False,
-                        default = False, help='Whether to add a second hidden layer (True/False)')
+                        default=False, help='Whether to add a second hidden layer (True/False)')
     parser.add_argument('-nh2', '--n_hidden_2', dest='n_hidden_2', required=False, default=10,
                         type=int, help='Number of hidden units for the additional second hidden layer (default = 10)')
     """
     Training hyperparameters & args
     """
-    parser.add_argument('-n_ensemble', dest='n_ensemble', required=False, type = int, default = 5,
-                        help = 'The number of models in the final ensemble')
-    parser.add_argument('-initial_seed', dest = 'initial_seed', default=None, help='Initial seed that will be used to pick the subsequent seeds in the ensemble.')
+    parser.add_argument('-n_ensemble', dest='n_ensemble', required=False, type=int, default=5,
+                        help='The number of models in the final ensemble')
+    parser.add_argument('-initial_seed', dest='initial_seed', default=None,
+                        help='Initial seed that will be used to pick the subsequent seeds in the ensemble.')
     parser.add_argument('-br', '--burn_in', dest='burn_in', required=False, type=int, default=None,
                         help='Burn-in period (in int) to align motifs to P0. Disabled by default')
     parser.add_argument('-lr', '--learning_rate', dest='lr', type=float, default=1e-4, required=False,
                         help='Learning rate for the optimizer')
     parser.add_argument('-wd', '--weight_decay', dest='weight_decay', type=float, default=1e-4, required=False,
-                        help='Weight decay for the optimizer') # try 1e-3, 1e-4, 1e-6
+                        help='Weight decay for the optimizer')  # try 1e-3, 1e-4, 1e-6
     parser.add_argument('-bs', '--batch_size', dest='batch_size', type=int, default=128, required=False,
-                        help='Batch size for mini-batch optimization') # try 32, 64, 256
+                        help='Batch size for mini-batch optimization')  # try 32, 64, 256
     parser.add_argument('-ne', '--n_epochs', dest='n_epochs', type=int, default=500, required=False,
                         help='Number of epochs to train')
     parser.add_argument('-tol', '--tolerance', dest='tolerance', type=float, default=1e-5, required=False,
@@ -165,7 +166,7 @@ def main():
     # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
     # Def params so it's ✨tidy✨
     model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize', 'add_hidden_layer', 'n_hidden_2']
-    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size',
+    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale',
                     'feature_cols', 'add_pseudo_sequence', 'pseudo_seq_col', 'add_pfr', 'add_fr_len', 'add_pep_len']
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
@@ -192,9 +193,8 @@ def main():
             extrafeat_dim = 0
     if args['add_pep_len']:
         extrafeat_dim += (21 - 13) + 2
-    
-    # print(f'Extra-features dimensions: {extrafeat_dim}')
 
+    # print(f'Extra-features dimensions: {extrafeat_dim}')
 
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')
@@ -207,7 +207,7 @@ def main():
     seeds = []
     for _ in range(args['n_ensemble']):
         random.seed(initial_seed)
-        new_seed = random.randint(0,1000)
+        new_seed = random.randint(0, 1000)
         seeds.append(new_seed)
         initial_seed = new_seed
     print(f'Seeds picked : {seeds}')
@@ -220,6 +220,12 @@ def main():
 
     valid_preds_list = []
     test_preds_list = []
+    train_dataset = NNAlignDatasetEFSinglePass(train_df, indel=False, **dataset_params)
+    valid_dataset = NNAlignDatasetEFSinglePass(valid_df, indel=False, **dataset_params)
+    test_dataset = NNAlignDatasetEFSinglePass(test_df, indel=False, **dataset_params)
+    valid_loader = valid_dataset.get_dataloader(args['batch_size'], sampler=SequentialSampler)
+    test_loader = test_dataset.get_dataloader(args['batch_size'], sampler=SequentialSampler)
+
     for i, seed in tqdm(enumerate(seeds), desc='N_ensemble'):
         print(f'Current iteration: {i} ; seed: {seed}')
         random.seed(seed)
@@ -227,18 +233,13 @@ def main():
         np.random.seed(seed)
         checkpoint_filename = f'checkpoint_best_{unique_filename}_ensemble_{i:03}_seed_{seed}.pt'
         model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, indel=False, **model_params)
-
+        train_loader = train_dataset.get_dataloader(args['batch_size'], sampler=RandomSampler)
         optimizer = optim.Adam(model.parameters(), **optim_params)
-        train_loader, train_dataset = get_NNAlign_dataloaderEFSinglePass(train_df, indel=False, sampler=RandomSampler,
-                                                                         return_dataset=True, **dataset_params)
-        valid_loader, valid_dataset = get_NNAlign_dataloaderEFSinglePass(valid_df, indel=False, sampler=SequentialSampler,
-                                                                         return_dataset=True, **dataset_params)
-        test_loader, test_dataset = get_NNAlign_dataloaderEFSinglePass(test_df, indel=False, sampler=SequentialSampler,
-                                                                       return_dataset=True, **dataset_params)
 
         # Training loop & train/valid results
         model, train_metrics, valid_metrics, train_losses, valid_losses, \
-        best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model, criterion,
+        best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model,
+                                                                   criterion,
                                                                    optimizer,
                                                                    train_dataset, train_loader, valid_loader,
                                                                    checkpoint_filename,
@@ -265,7 +266,8 @@ def main():
         # test_loss, test_metrics = eval_model_step(model, criterion, test_loader)
         print('Saving test predictions from best model')
         test_fn = os.path.basename(args['test_file']).split('.')[0]
-        test_preds.to_csv(f'{outdir}test_predictions_{test_fn}_{unique_filename}_ensemble_{i:02}_seed_{seed}.csv', index=False)
+        test_preds.to_csv(f'{outdir}test_predictions_{test_fn}_{unique_filename}_ensemble_{i:02}_seed_{seed}.csv',
+                          index=False)
         with open(f'{outdir}args_{unique_filename}.txt', 'a') as file:
             header2 = "#" * 100 + "\n#" + " " * 42 + "VALID-TEST\n" + '#' * 100 + '\n'
             file.write(header2)
@@ -289,7 +291,6 @@ def main():
     valid_preds_concat.to_csv(f'{outdir}valid_preds_ensemble_concat_{unique_filename}.csv', index=False)
     test_preds_concat.to_csv(f'{outdir}test_preds_ensemble_concat_{unique_filename}.csv', index=False)
     # Saving text file for the run:
-
 
     end = dt.now()
     elapsed = divmod((end - start).seconds, 60)
