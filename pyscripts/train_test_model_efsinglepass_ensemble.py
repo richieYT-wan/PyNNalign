@@ -1,0 +1,302 @@
+import pandas as pd
+from tqdm.auto import tqdm
+import os, sys
+
+module_path = os.path.abspath(os.path.join('..'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+
+import torch
+from torch import optim
+from torch import nn
+from torch.utils.data import SequentialSampler, RandomSampler
+from datetime import datetime as dt
+from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
+from src.torch_utils import save_checkpoint, load_checkpoint
+from src.models import NNAlignEFSinglePass
+from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
+from sklearn.model_selection import train_test_split
+from src.datasets import NNAlignDatasetEFSinglePass
+import random
+import numpy as np
+from matplotlib import pyplot as plt
+import seaborn as sns
+from memory_profiler import profile
+
+import argparse
+
+
+def args_parser():
+    parser = argparse.ArgumentParser(description='Script to train and evaluate a NNAlign model ')
+    """
+    Data processing args
+    """
+    parser.add_argument('-trf', '--train_file', dest='train_file', required=True, type=str,
+                        default='../data/aligned_icore/230530_cedar_aligned.csv',
+                        help='filename of the train input file')
+
+    parser.add_argument('-tef', '--test_file', dest='test_file', required=True, type=str,
+                        default='../data/aligned_icore/230530_prime_aligned.csv',
+                        help='filename of the test input file')
+    parser.add_argument('-o', '--out', dest='out', required=False,
+                        type=str, default='', help='Additional output name')
+    parser.add_argument('-s', '--split', dest='split', required=False, type=int,
+                        default=5, help=('How to split the train/test data (test size=1/X)'))
+    # TODO: Carlos: here, use None for kf because the data is already split. I'll let you figure out how to call the columns
+    #       and what to use with -x, -y, -max_len, etc.
+    parser.add_argument('-kf', '--fold', dest='fold', required=False, type=int, default=None,
+                        help='If added, will split the input file into the train/valid for kcv')
+    parser.add_argument('-x', '--seq_col', dest='seq_col', default='Sequence', type=str, required=False,
+                        help='Name of the column containing sequences (inputs)')
+    parser.add_argument('-y', '--target_col', dest='target_col', default='target', type=str, required=False,
+                        help='Name of the column containing sequences (inputs)')
+    parser.add_argument('-enc', '--encoding', dest='encoding', type=str, default='BL50LO', required=False,
+                        help='Which encoding to use: onehot, BL50L0, BL62LO, BL62FREQ (default = BL50LO)')
+    parser.add_argument('-ml', '--max_len', dest='max_len', type=int, required=True,
+                        help='Maximum sequence length admitted ;' \
+                             'Sequences longer than max_len will be removed from the datasets')
+    parser.add_argument('-pad', '--pad_scale', dest='pad_scale', type=float, default=None, required=False,
+                        help='Number with which to pad the inputs if needed; ' \
+                             'Default behaviour is 0 if onehot, -12 is BLOSUM')
+    parser.add_argument('-fc', '--feature_cols', dest='feature_cols', nargs='+', required=False,
+                        help='Name of columns (str) to use as extra features, space separated.' \
+                             'For example, to add 2 features Rank and Similarity, do: -ef Rank Similarity')
+    # TODO: Carlos, here you need to parse this argument when creating the dataset so that you add the pseudo sequence
+    #       I won't code everything so I'll let you figure it out on your own. The new NNAlignEFSinglePass model class
+    #       takes care of the concatenation (see the forward and predict). You just need to have your dataloader return it.
+    #       Reminder you have to define the number of extrafeatures (extrafeat_dim) when creating the NNAlignEFSinglePass model
+    parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=False,
+                        help='Whether to add pseudo sequence to the model (true/false)')
+    parser.add_argument('-ps', '--pseudo_seq_col', dest='pseudo_seq_col', default='pseudoseq', type=str, required=False,
+                        help='Name of the column containing the MHC pseudo-sequences')
+    parser.add_argument('-add_pfr', '--add_pfr', dest='add_pfr', type=str2bool, default=False,
+                        help='Whether to add fixed-size (3) mean peptide flanking regions to the model (true/false)')
+    parser.add_argument('-add_fr_len', '--add_fr_len', dest='add_fr_len', type=str2bool, default=False,
+                        help='Whether to add length of the flanking regions of each motif to the model (true/false)')
+    parser.add_argument('-add_pep_len', '--add_pep_len', dest='add_pep_len', type=str2bool, default=False,
+                        help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
+    """
+    Neural Net & Encoding args 
+    """
+    parser.add_argument('-nh', '--n_hidden', dest='n_hidden', required=True,
+                        type=int, help='Number of hidden units')
+    parser.add_argument('-std', '--standardize', dest='standardize', type=str2bool, required=True,
+                        help='Whether to include standardization (True/False)')
+    parser.add_argument('-bn', '--batchnorm', dest='batchnorm', type=str2bool, required=True,
+                        help='Whether to add BatchNorm to the model (True/False)')
+    parser.add_argument('-do', '--dropout', dest='dropout', type=float, default=0.0, required=False,
+                        help='Whether to add DropOut to the model (p in float e[0,1], default = 0.0)')
+    parser.add_argument('-ws', '--window_size', dest='window_size', type=int, default=6, required=False,
+                        help='Window size for sub-mers selection (default = 6)')
+    parser.add_argument('-efnh', '--n_hidden_ef', dest='n_hidden_ef', required=True,
+                        type=int, default=5, help='Number of hidden units in the EF layer (default = 5)')
+    parser.add_argument('-efbn', '--batchnorm_ef', dest='batchnorm_ef',
+                        default=False, type=str2bool,
+                        help='Whether to add BatchNorm to the EF layer, (default = False)')
+    parser.add_argument('-efdo', '--dropout_ef', dest='dropout_ef',
+                        default=0.0, type=float,
+                        help='Whether to add DropOut to the EF layer (p in float e[0,1], default = 0.0)')
+    parser.add_argument('-add_hl', '--add_hidden_layer', dest='add_hidden_layer', type=str2bool, required=False,
+                        default=False, help='Whether to add a second hidden layer (True/False)')
+    parser.add_argument('-nh2', '--n_hidden_2', dest='n_hidden_2', required=False, default=10,
+                        type=int, help='Number of hidden units for the additional second hidden layer (default = 10)')
+    """
+    Training hyperparameters & args
+    """
+    parser.add_argument('-n_ensemble', dest='n_ensemble', required=False, type=int, default=5,
+                        help='The number of models in the final ensemble')
+    parser.add_argument('-initial_seed', dest='initial_seed', default=None,
+                        help='Initial seed that will be used to pick the subsequent seeds in the ensemble.')
+    parser.add_argument('-br', '--burn_in', dest='burn_in', required=False, type=int, default=None,
+                        help='Burn-in period (in int) to align motifs to P0. Disabled by default')
+    parser.add_argument('-lr', '--learning_rate', dest='lr', type=float, default=1e-4, required=False,
+                        help='Learning rate for the optimizer')
+    parser.add_argument('-wd', '--weight_decay', dest='weight_decay', type=float, default=1e-4, required=False,
+                        help='Weight decay for the optimizer')  # try 1e-3, 1e-4, 1e-6
+    parser.add_argument('-bs', '--batch_size', dest='batch_size', type=int, default=128, required=False,
+                        help='Batch size for mini-batch optimization')  # try 32, 64, 256
+    parser.add_argument('-ne', '--n_epochs', dest='n_epochs', type=int, default=500, required=False,
+                        help='Number of epochs to train')
+    parser.add_argument('-tol', '--tolerance', dest='tolerance', type=float, default=1e-5, required=False,
+                        help='Tolerance for loss variation to log best model')
+    parser.add_argument('-rid', '--random_id', dest='random_id', type=str, default=None,
+                        help='Adding a random ID taken from a batchscript that will start all crossvalidation folds. Default = ""')
+    return parser.parse_args()
+
+
+"""
+Using this script now as a way to run the train and test in a single file because it is easier to deal with due to the random
+unique ID and k-fold crossvalidation process. I could rewrite some bashscript to move all the resulting folders somewhere, 
+then ls that somewhere and iterate through each of the folders to reload each model & run individually in each script, but here 
+we can do this instead.
+"""
+
+
+def main():
+    start = dt.now()
+    # I like dictionary for args :-)
+    args = vars(args_parser())
+    # File-saving stuff
+    connector = '' if args["out"] == '' else '_'
+    kf = 'XX' if args["fold"] is None else args['fold']
+    rid = args['random_id'] if (args['random_id'] is not None and args['random_id'] != '') \
+        else get_random_id() if args['random_id'] == '' else args['random_id']
+    unique_filename = f'{args["out"]}{connector}KFold_{kf}_{get_datetime_string()}_{rid}'
+
+    checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
+    outdir = os.path.join('../output/', unique_filename) + '/'
+    mkdirs(outdir)
+    df = pd.read_csv(args['train_file'])
+    tmp = args['seq_col']
+    # Filtering from training set
+    test_df = pd.read_csv(args['test_file'])
+
+    if args['fold'] is not None:
+        torch.manual_seed(args['fold'])
+        fold = args['fold']
+        dfname = os.path.basename(args['train_file']).split('.')[0]
+        train_df = df.query('fold!=@fold')
+        valid_df = df.query('fold==@fold')
+        unique_filename = f'kcv_{dfname}_f{fold:02}_{unique_filename}'
+        checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
+    else:
+        train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
+
+    test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
+    # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
+    # Def params so it's ✨tidy✨
+    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize', 'add_hidden_layer', 'n_hidden_2']
+    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale',
+                    'feature_cols', 'add_pseudo_sequence', 'pseudo_seq_col', 'add_pfr', 'add_fr_len', 'add_pep_len']
+    model_params = {k: args[k] for k in model_keys}
+    dataset_params = {k: args[k] for k in dataset_keys}
+    optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
+    # instantiate objects
+    # TODO: Carlos here you define extrafeat_dim :
+    if args['add_pseudo_sequence']:
+        if args['add_pfr'] and args['add_fr_len']:
+            extrafeat_dim = (20 * 34) + (2 * 20) + 4
+        elif args['add_pfr'] and not args['add_fr_len']:
+            extrafeat_dim = (20 * 34) + (2 * 20)
+        elif not args['add_pfr'] and args['add_fr_len']:
+            extrafeat_dim = (20 * 34) + 4
+        else:
+            extrafeat_dim = (20 * 34)
+    else:
+        if args['add_pfr'] and args['add_fr_len']:
+            extrafeat_dim = (2 * 20) + 4
+        elif args['add_pfr'] and not args['add_fr_len']:
+            extrafeat_dim = (2 * 20)
+        elif not args['add_pfr'] and args['add_fr_len']:
+            extrafeat_dim = 4
+        else:
+            extrafeat_dim = 0
+    if args['add_pep_len']:
+        extrafeat_dim += (21 - 13) + 2
+
+    # print(f'Extra-features dimensions: {extrafeat_dim}')
+
+    # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
+    criterion = nn.MSELoss(reduction='mean')
+
+    # Doing ensemble of models here:
+    random.seed(None)
+    print(f'Picking {args["n_ensemble"]} random seeds')
+    initial_seed = random.randint(0, 1000) if args['initial_seed'] is None else args['initial_seed']
+    print(f'Initial seed (from which the subsequent seeds are picked): {initial_seed}')
+    seeds = []
+    for _ in range(args['n_ensemble']):
+        random.seed(initial_seed)
+        new_seed = random.randint(0, 1000)
+        seeds.append(new_seed)
+        initial_seed = new_seed
+    print(f'Seeds picked : {seeds}')
+    with open(f'{outdir}args_{unique_filename}.txt', 'w') as file:
+        header = "#" * 100 + "\n#" + " " * 42 + "PARAMETERS" + "\n" + '#' * 100 + '\n'
+        file.write(header)
+        for key, value in args.items():
+            file.write(f"{key}: {value}\n")
+        file.write(f'List of seeds: {seeds}\n')
+
+    valid_preds_list = []
+    test_preds_list = []
+    train_dataset = NNAlignDatasetEFSinglePass(train_df, indel=False, **dataset_params)
+    valid_dataset = NNAlignDatasetEFSinglePass(valid_df, indel=False, **dataset_params)
+    test_dataset = NNAlignDatasetEFSinglePass(test_df, indel=False, **dataset_params)
+    valid_loader = valid_dataset.get_dataloader(args['batch_size'], sampler=SequentialSampler)
+    test_loader = test_dataset.get_dataloader(args['batch_size'], sampler=SequentialSampler)
+
+    for i, seed in tqdm(enumerate(seeds), desc='N_ensemble'):
+        print(f'Current iteration: {i} ; seed: {seed}')
+        random.seed(seed)
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        checkpoint_filename = f'checkpoint_best_{unique_filename}_ensemble_{i:03}_seed_{seed}.pt'
+        model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, indel=False, **model_params)
+        train_loader = train_dataset.get_dataloader(args['batch_size'], sampler=RandomSampler)
+        optimizer = optim.Adam(model.parameters(), **optim_params)
+
+        # Training loop & train/valid results
+        model, train_metrics, valid_metrics, train_losses, valid_losses, \
+        best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model,
+                                                                   criterion,
+                                                                   optimizer,
+                                                                   train_dataset, train_loader, valid_loader,
+                                                                   checkpoint_filename,
+                                                                   outdir, args['burn_in'], args['standardize'])
+        pkl_dump(train_losses, f'{outdir}/train_losses_{unique_filename}_ensemble_{i:02}_seed_{seed}.pkl')
+        pkl_dump(valid_losses, f'{outdir}/valid_losses_{unique_filename}_ensemble_{i:02}_seed_{seed}.pkl')
+        pkl_dump(train_metrics, f'{outdir}/train_metrics_{unique_filename}_ensemble_{i:02}_seed_{seed}.pkl')
+        pkl_dump(valid_metrics, f'{outdir}/valid_metrics_{unique_filename}_ensemble_{i:02}_seed_{seed}.pkl')
+        train_aucs = [x['auc'] for x in train_metrics]
+        valid_aucs = [x['auc'] for x in valid_metrics]
+        plot_loss_aucs(train_losses, valid_losses, train_aucs, valid_aucs,
+                       f'{unique_filename}_ensemble_{i:02}_seed_{seed}', outdir, 300)
+
+        # Reload the model and predict
+        print('Reloading best model and returning validation and test predictions')
+        model = load_checkpoint(model, checkpoint_filename, outdir)
+
+        # validation set
+        valid_preds = predict_model(model, valid_dataset, valid_loader)
+        print('Saving valid predictions from best model')
+        valid_preds.to_csv(f'{outdir}valid_predictions_{unique_filename}_ensemble_{i:02}_seed_{seed}.csv', index=False)
+        # Test set
+        test_preds = predict_model(model, test_dataset, test_loader)
+        # test_loss, test_metrics = eval_model_step(model, criterion, test_loader)
+        print('Saving test predictions from best model')
+        test_fn = os.path.basename(args['test_file']).split('.')[0]
+        test_preds.to_csv(f'{outdir}test_predictions_{test_fn}_{unique_filename}_ensemble_{i:02}_seed_{seed}.csv',
+                          index=False)
+        with open(f'{outdir}args_{unique_filename}.txt', 'a') as file:
+            header2 = "#" * 100 + "\n#" + " " * 42 + "VALID-TEST\n" + '#' * 100 + '\n'
+            file.write(header2)
+            file.write(f'Iteration: {i}\n')
+            file.write(f'Seed: {seed}\n')
+            file.write(f"Best valid epoch: {best_epoch}\n")
+            file.write(f"Best valid loss: {best_val_loss}\n")
+            file.write(f"Best valid auc: {best_val_auc}\n")
+            file.write(f"Test file: {args['test_file']}\n")
+            # file.write(f"Test loss: {test_loss}\n")
+            # file.write(f"Test AUC: {test_metrics['auc']}\n")
+        valid_preds['model_number'] = i
+        valid_preds['model_seed'] = seed
+        test_preds['model_number'] = i
+        test_preds['model_seed'] = seed
+        valid_preds_list.append(valid_preds)
+        test_preds_list.append(test_preds)
+
+    valid_preds_concat = pd.concat(valid_preds_list)
+    test_preds_concat = pd.concat(test_preds_list)
+    valid_preds_concat.to_csv(f'{outdir}valid_preds_ensemble_concat_{unique_filename}.csv', index=False)
+    test_preds_concat.to_csv(f'{outdir}test_preds_ensemble_concat_{unique_filename}.csv', index=False)
+    # Saving text file for the run:
+
+    end = dt.now()
+    elapsed = divmod((end - start).seconds, 60)
+    print(f'Program finished in {elapsed[0]} minutes, {elapsed[1]} seconds.')
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

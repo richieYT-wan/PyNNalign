@@ -225,9 +225,11 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
         valid_metrics.append(valid_metric)
         train_losses.append(train_loss)
         valid_losses.append(valid_loss)
-        if e % (n_epochs // 10) == 0:
-            tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
-            tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+
+        if (n_epochs)>10:
+            if e % (n_epochs // 10) == 0:
+                tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+                tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
 
         # Doesn't allow saving the very first model as sometimes it gets stuck in a random state that has good
         # performance for whatever reasons
