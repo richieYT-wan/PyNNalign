@@ -1,0 +1,1213 @@
+INFO: activate-binutils_linux-64.sh made the following environmental changes:
++ADDR2LINE=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-addr2line
++AR=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ar
++AS=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-as
++CXXFILT=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-c++filt
++ELFEDIT=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-elfedit
++GPROF=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gprof
++HOST=x86_64-conda_cos6-linux-gnu
++LD=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ld
++LD_GOLD=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ld.gold
++NM=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-nm
++OBJCOPY=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-objcopy
++OBJDUMP=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-objdump
++RANLIB=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-ranlib
++READELF=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-readelf
++SIZE=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-size
++STRINGS=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-strings
++STRIP=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-strip
+INFO: activate-gcc_linux-64.sh made the following environmental changes:
++CC=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-cc
++CFLAGS=-march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++CPP=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-cpp
++CPPFLAGS=-DNDEBUG -D_FORTIFY_SOURCE=2 -O2
++DEBUG_CFLAGS=-march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fvar-tracking-assignments -pipe
++DEBUG_CPPFLAGS=-D_DEBUG -D_FORTIFY_SOURCE=2 -Og
++GCC=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc
++GCC_AR=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc-ar
++GCC_NM=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc-nm
++GCC_RANLIB=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gcc-ranlib
++LDFLAGS=-Wl,-O2 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now
++_CONDA_PYTHON_SYSCONFIGDATA_NAME=_sysconfigdata_x86_64_conda_cos6_linux_gnu
+INFO: activate-gfortran_linux-64.sh made the following environmental changes:
++DEBUG_FFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe -fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fcheck=all -fbacktrace -fimplicit-none -fvar-tracking-assignments -pipe
++DEBUG_FORTRANFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe -fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fcheck=all -fbacktrace -fimplicit-none -fvar-tracking-assignments -pipe
++F77=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gfortran
++F95=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-f95
++FC=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gfortran
++FFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++FORTRANFLAGS=-fopenmp -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++GFORTRAN=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-gfortran
+INFO: activate-gxx_linux-64.sh made the following environmental changes:
++CXX=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-c++
++CXXFLAGS=-fvisibility-inlines-hidden -std=c++17 -fmessage-length=0 -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -pipe
++DEBUG_CXXFLAGS=-fvisibility-inlines-hidden -std=c++17 -fmessage-length=0 -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-all -fno-plt -Og -g -Wall -Wextra -fvar-tracking-assignments -pipe
++GXX=/services/tools/anaconda3/4.4.0/bin/x86_64-conda_cos6-linux-gnu-g++
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/pyscripts
+"Starting PyScript"
+Running iteration 1
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211    257.1 MiB    257.1 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218    257.1 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219    257.1 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   3732.1 MiB   3475.1 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   3732.1 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   3732.1 MiB      0.0 MiB           1       if return_dataset:
+   224   3732.1 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211   3732.1 MiB   3732.1 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218   3732.1 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219   3732.1 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   4442.9 MiB    710.7 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   4442.9 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   4442.9 MiB      0.0 MiB           1       if return_dataset:
+   224   4442.9 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211   4442.9 MiB   4442.9 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218   4442.9 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219   4442.9 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   4442.9 MiB      0.0 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   4442.9 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   4442.9 MiB      0.0 MiB           1       if return_dataset:
+   224   4442.9 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0279,	0.934
+Epoch 50: valid loss, AUC:	0.0349,	0.873
+
+Epoch 50: train loss, AUC:	0.0279,	0.934
+Epoch 50: valid loss, AUC:	0.0349,	0.873
+
+Epoch 100: train loss, AUC:	0.0260,	0.941
+Epoch 100: valid loss, AUC:	0.0353,	0.881
+
+Epoch 100: train loss, AUC:	0.0260,	0.941
+Epoch 100: valid loss, AUC:	0.0353,	0.881
+
+Epoch 150: train loss, AUC:	0.0248,	0.944
+Epoch 150: valid loss, AUC:	0.0362,	0.882
+
+Epoch 150: train loss, AUC:	0.0248,	0.944
+Epoch 150: valid loss, AUC:	0.0362,	0.882
+
+Epoch 200: train loss, AUC:	0.0241,	0.947
+Epoch 200: valid loss, AUC:	0.0358,	0.867
+
+Epoch 200: train loss, AUC:	0.0241,	0.947
+Epoch 200: valid loss, AUC:	0.0358,	0.867
+
+Epoch 250: train loss, AUC:	0.0237,	0.948
+Epoch 250: valid loss, AUC:	0.0361,	0.865
+
+Epoch 250: train loss, AUC:	0.0237,	0.948
+Epoch 250: valid loss, AUC:	0.0361,	0.865
+
+Epoch 300: train loss, AUC:	0.0232,	0.950
+Epoch 300: valid loss, AUC:	0.0365,	0.876
+
+Epoch 300: train loss, AUC:	0.0232,	0.950
+Epoch 300: valid loss, AUC:	0.0365,	0.876
+
+Epoch 350: train loss, AUC:	0.0227,	0.950
+Epoch 350: valid loss, AUC:	0.0365,	0.870
+
+Epoch 350: train loss, AUC:	0.0227,	0.950
+Epoch 350: valid loss, AUC:	0.0365,	0.870
+
+Epoch 400: train loss, AUC:	0.0225,	0.951
+Epoch 400: valid loss, AUC:	0.0371,	0.870
+
+Epoch 400: train loss, AUC:	0.0225,	0.951
+Epoch 400: valid loss, AUC:	0.0371,	0.870
+
+Epoch 450: train loss, AUC:	0.0223,	0.952
+Epoch 450: valid loss, AUC:	0.0374,	0.878
+
+Epoch 450: train loss, AUC:	0.0223,	0.952
+Epoch 450: valid loss, AUC:	0.0374,	0.878
+
+Epoch 500: train loss, AUC:	0.0220,	0.952
+Epoch 500: valid loss, AUC:	0.0366,	0.866
+
+Epoch 500: train loss, AUC:	0.0220,	0.952
+Epoch 500: valid loss, AUC:	0.0366,	0.866
+End of training cycles
+Best train loss:	2.198e-02, best train AUC:	0.9533
+Best valid epoch: 500
+Best valid loss :	3.661e-02, best valid AUC:	0.8662
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_1_231128_2046_None/checkpoint_best_kcv_train_all5_correct_f01_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_1_231128_2046_None.pt
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/train_eval.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   171   4442.9 MiB   4442.9 MiB           1   @profile
+   172                                         def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dataset, train_loader, valid_loader,
+   173                                                              checkpoint_filename, outdir, burn_in: int = None, std: bool = False):
+   174                                             """ Trains and validates a model over n_epochs, then reloads the best checkpoint
+   175                                         
+   176                                         
+   177                                             Args:
+   178                                                 n_epochs:
+   179                                                 tolerance:
+   180                                                 model:
+   181                                                 criterion:
+   182                                                 optimizer:
+   183                                                 train_dataset: Torch Dataset, is here so we can do standardize & burn-in periods
+   184                                                 train_loader:
+   185                                                 valid_loader:
+   186                                                 checkpoint_filename:
+   187                                                 outdir:
+   188                                         
+   189                                             Returns:
+   190                                                 model
+   191                                                 train_metrics
+   192                                                 valid_metrics
+   193                                                 train_losses
+   194                                                 valid_losses
+   195                                                 best_epoch
+   196                                                 best_val_loss
+   197                                                 best_val_auc
+   198                                             """
+   199   4442.9 MiB      0.0 MiB           1       if std == True:
+   200                                                 if any([(hasattr(child, 'standardizer_sequence') or hasattr(child, 'ef_standardizer')) for child in [model.children()]+[model]]):
+   201                                                     # TODO: Not sure about this workaround (works the same as in above with *data & pop(-1))
+   202                                                     xs = train_dataset[:][:-1]
+   203                                                     print('Standardizing input data (including additional features)\n')
+   204                                                     model.fit_standardizer(*xs)
+   205                                             else:
+   206   4442.9 MiB      0.0 MiB           1           print('No standardizing of the data\n')
+   207                                         
+   208   4442.9 MiB      0.0 MiB           1       if burn_in is not None:  # doing burn-in if it's not None
+   209   4442.9 MiB      0.0 MiB           1           print('Doing burn-in period\n')
+   210   4442.9 MiB      0.0 MiB           1           train_dataset.burn_in(True)
+   211   4476.8 MiB   -130.2 MiB          11           for e in tqdm(range(0, burn_in), desc='Burn-in period'):
+   212   4476.8 MiB    -96.3 MiB          10               _, _ = train_model_step(model, criterion, optimizer, train_loader)
+   213   4451.0 MiB    -25.8 MiB           1           train_dataset.burn_in(False)
+   214                                         
+   215   4451.0 MiB      0.0 MiB           1       print(f'Starting {n_epochs} training cycles')
+   216                                             # Pre-saving the model at the very start because some bugged partitions
+   217                                             # would have terrible performance and never save for very short debug runs.
+   218   4451.1 MiB      0.0 MiB           1       save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+   219                                             # Actual runs
+   220   4451.1 MiB      0.0 MiB           1       train_metrics, valid_metrics, train_losses, valid_losses = [], [], [], []
+   221   4451.2 MiB      0.1 MiB           1       best_val_loss, best_val_auc, best_epoch = 1000, 0.5, 1
+   222   5283.1 MiB -251595.8 MiB         501       for e in tqdm(range(1, n_epochs + 1), desc='epochs', leave=False):
+   223   6826.3 MiB -243577.2 MiB         500           train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)
+   224   5283.1 MiB -767345.3 MiB         500           valid_loss, valid_metric = eval_model_step(model, criterion, valid_loader)
+   225   5283.1 MiB -252426.0 MiB         500           train_metrics.append(train_metric)
+   226   5283.1 MiB -252426.0 MiB         500           valid_metrics.append(valid_metric)
+   227   5283.1 MiB -252426.0 MiB         500           train_losses.append(train_loss)
+   228   5283.1 MiB -252426.0 MiB         500           valid_losses.append(valid_loss)
+   229   5283.1 MiB -252426.0 MiB         500           if e % (n_epochs // 10) == 0:
+   230   4524.6 MiB  -5594.7 MiB          10               tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+   231   4524.6 MiB   -365.0 MiB          10               tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+   232   4524.6 MiB   -365.0 MiB          10               print(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+   233   4524.6 MiB   -365.0 MiB          10               print(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+   234                                         
+   235                                                 # Doesn't allow saving the very first model as sometimes it gets stuck in a random state that has good
+   236                                                 # performance for whatever reasons
+   237                                         
+   238                                                 # if e > 1 and ((valid_loss <= best_val_loss + tolerance and valid_metric['auc'] > best_val_auc) or valid_metric['auc'] > best_val_auc):
+   239   5283.1 MiB -247196.3 MiB         500           if e == n_epochs:
+   240   4452.9 MiB   -830.2 MiB           1               best_epoch = e
+   241   4452.9 MiB      0.0 MiB           1               best_val_loss = valid_loss
+   242   4452.9 MiB      0.0 MiB           1               best_val_auc = valid_metric['auc']
+   243   4452.9 MiB      0.0 MiB           1               save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+   244                                         
+   245   4452.9 MiB   -830.2 MiB           1       print(f'End of training cycles')
+   246   4452.9 MiB      0.0 MiB         503       print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
+   247   4452.9 MiB      0.0 MiB           1       print(f'Best valid epoch: {best_epoch}')
+   248   4452.9 MiB      0.0 MiB           1       print(f'Best valid loss :\t{best_val_loss:.3e}, best valid AUC:\t{best_val_auc}')
+   249   4452.9 MiB      0.0 MiB           1       print(f'Reloaded best model at {os.path.abspath(os.path.join(outdir, checkpoint_filename))}')
+   250   4452.9 MiB      0.0 MiB           1       model = load_checkpoint(model, checkpoint_filename, outdir)
+   251   4452.9 MiB      0.0 MiB           1       return model, train_metrics, valid_metrics, train_losses, valid_losses, best_epoch, best_val_loss, best_val_auc
+
+
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_1_231128_2046_None/train_losses_kcv_train_all5_correct_f01_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_1_231128_2046_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_1_231128_2046_None/valid_losses_kcv_train_all5_correct_f01_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_1_231128_2046_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_1_231128_2046_None/train_metrics_kcv_train_all5_correct_f01_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_1_231128_2046_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_1_231128_2046_None/valid_metrics_kcv_train_all5_correct_f01_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_1_231128_2046_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 100 minutes, 0 seconds.
+Iteration 1 completed
+Running iteration 2
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211    256.2 MiB    256.2 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218    256.2 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219    256.2 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   3652.2 MiB   3395.9 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   3652.2 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   3652.2 MiB      0.0 MiB           1       if return_dataset:
+   224   3652.2 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211   3652.2 MiB   3652.2 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218   3652.2 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219   3652.2 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   4502.2 MiB    850.1 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   4502.2 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   4502.2 MiB      0.0 MiB           1       if return_dataset:
+   224   4502.2 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211   4502.2 MiB   4502.2 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218   4502.2 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219   4502.2 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   4502.2 MiB      0.0 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   4502.2 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   4502.2 MiB      0.0 MiB           1       if return_dataset:
+   224   4502.2 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0271,	0.932
+Epoch 50: valid loss, AUC:	0.0366,	0.888
+
+Epoch 50: train loss, AUC:	0.0271,	0.932
+Epoch 50: valid loss, AUC:	0.0366,	0.888
+
+Epoch 100: train loss, AUC:	0.0253,	0.942
+Epoch 100: valid loss, AUC:	0.0364,	0.896
+
+Epoch 100: train loss, AUC:	0.0253,	0.942
+Epoch 100: valid loss, AUC:	0.0364,	0.896
+
+Epoch 150: train loss, AUC:	0.0240,	0.943
+Epoch 150: valid loss, AUC:	0.0361,	0.900
+
+Epoch 150: train loss, AUC:	0.0240,	0.943
+Epoch 150: valid loss, AUC:	0.0361,	0.900
+
+Epoch 200: train loss, AUC:	0.0233,	0.947
+Epoch 200: valid loss, AUC:	0.0367,	0.893
+
+Epoch 200: train loss, AUC:	0.0233,	0.947
+Epoch 200: valid loss, AUC:	0.0367,	0.893
+
+Epoch 250: train loss, AUC:	0.0229,	0.948
+Epoch 250: valid loss, AUC:	0.0369,	0.889
+
+Epoch 250: train loss, AUC:	0.0229,	0.948
+Epoch 250: valid loss, AUC:	0.0369,	0.889
+
+Epoch 300: train loss, AUC:	0.0225,	0.950
+Epoch 300: valid loss, AUC:	0.0383,	0.896
+
+Epoch 300: train loss, AUC:	0.0225,	0.950
+Epoch 300: valid loss, AUC:	0.0383,	0.896
+
+Epoch 350: train loss, AUC:	0.0222,	0.951
+Epoch 350: valid loss, AUC:	0.0379,	0.899
+
+Epoch 350: train loss, AUC:	0.0222,	0.951
+Epoch 350: valid loss, AUC:	0.0379,	0.899
+
+Epoch 400: train loss, AUC:	0.0219,	0.951
+Epoch 400: valid loss, AUC:	0.0374,	0.894
+
+Epoch 400: train loss, AUC:	0.0219,	0.951
+Epoch 400: valid loss, AUC:	0.0374,	0.894
+
+Epoch 450: train loss, AUC:	0.0217,	0.952
+Epoch 450: valid loss, AUC:	0.0376,	0.891
+
+Epoch 450: train loss, AUC:	0.0217,	0.952
+Epoch 450: valid loss, AUC:	0.0376,	0.891
+
+Epoch 500: train loss, AUC:	0.0214,	0.952
+Epoch 500: valid loss, AUC:	0.0379,	0.890
+
+Epoch 500: train loss, AUC:	0.0214,	0.952
+Epoch 500: valid loss, AUC:	0.0379,	0.890
+End of training cycles
+Best train loss:	2.135e-02, best train AUC:	0.9548
+Best valid epoch: 500
+Best valid loss :	3.786e-02, best valid AUC:	0.8896
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_2_231128_2227_None/checkpoint_best_kcv_train_all5_correct_f02_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_2_231128_2227_None.pt
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/train_eval.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   171   4502.2 MiB   4502.2 MiB           1   @profile
+   172                                         def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dataset, train_loader, valid_loader,
+   173                                                              checkpoint_filename, outdir, burn_in: int = None, std: bool = False):
+   174                                             """ Trains and validates a model over n_epochs, then reloads the best checkpoint
+   175                                         
+   176                                         
+   177                                             Args:
+   178                                                 n_epochs:
+   179                                                 tolerance:
+   180                                                 model:
+   181                                                 criterion:
+   182                                                 optimizer:
+   183                                                 train_dataset: Torch Dataset, is here so we can do standardize & burn-in periods
+   184                                                 train_loader:
+   185                                                 valid_loader:
+   186                                                 checkpoint_filename:
+   187                                                 outdir:
+   188                                         
+   189                                             Returns:
+   190                                                 model
+   191                                                 train_metrics
+   192                                                 valid_metrics
+   193                                                 train_losses
+   194                                                 valid_losses
+   195                                                 best_epoch
+   196                                                 best_val_loss
+   197                                                 best_val_auc
+   198                                             """
+   199   4502.2 MiB      0.0 MiB           1       if std == True:
+   200                                                 if any([(hasattr(child, 'standardizer_sequence') or hasattr(child, 'ef_standardizer')) for child in [model.children()]+[model]]):
+   201                                                     # TODO: Not sure about this workaround (works the same as in above with *data & pop(-1))
+   202                                                     xs = train_dataset[:][:-1]
+   203                                                     print('Standardizing input data (including additional features)\n')
+   204                                                     model.fit_standardizer(*xs)
+   205                                             else:
+   206   4502.2 MiB      0.0 MiB           1           print('No standardizing of the data\n')
+   207                                         
+   208   4502.2 MiB      0.0 MiB           1       if burn_in is not None:  # doing burn-in if it's not None
+   209   4502.2 MiB      0.0 MiB           1           print('Doing burn-in period\n')
+   210   4502.2 MiB      0.0 MiB           1           train_dataset.burn_in(True)
+   211   4510.3 MiB     -0.5 MiB          11           for e in tqdm(range(0, burn_in), desc='Burn-in period'):
+   212   4510.3 MiB      7.5 MiB          10               _, _ = train_model_step(model, criterion, optimizer, train_loader)
+   213   4510.3 MiB      0.0 MiB           1           train_dataset.burn_in(False)
+   214                                         
+   215   4510.3 MiB      0.0 MiB           1       print(f'Starting {n_epochs} training cycles')
+   216                                             # Pre-saving the model at the very start because some bugged partitions
+   217                                             # would have terrible performance and never save for very short debug runs.
+   218   4510.4 MiB      0.1 MiB           1       save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+   219                                             # Actual runs
+   220   4510.4 MiB      0.0 MiB           1       train_metrics, valid_metrics, train_losses, valid_losses = [], [], [], []
+   221   4510.4 MiB      0.0 MiB           1       best_val_loss, best_val_auc, best_epoch = 1000, 0.5, 1
+   222   4511.2 MiB   -136.6 MiB         501       for e in tqdm(range(1, n_epochs + 1), desc='epochs', leave=False):
+   223   4511.9 MiB     21.5 MiB         500           train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)
+   224   4511.2 MiB   -495.7 MiB         500           valid_loss, valid_metric = eval_model_step(model, criterion, valid_loader)
+   225   4511.2 MiB   -136.9 MiB         500           train_metrics.append(train_metric)
+   226   4511.2 MiB   -136.9 MiB         500           valid_metrics.append(valid_metric)
+   227   4511.2 MiB   -136.9 MiB         500           train_losses.append(train_loss)
+   228   4511.2 MiB   -136.9 MiB         500           valid_losses.append(valid_loss)
+   229   4511.2 MiB   -136.9 MiB         500           if e % (n_epochs // 10) == 0:
+   230   4511.0 MiB     -3.2 MiB          10               tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+   231   4511.0 MiB     -0.2 MiB          10               tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+   232   4511.0 MiB     -0.2 MiB          10               print(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+   233   4511.0 MiB     -0.2 MiB          10               print(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+   234                                         
+   235                                                 # Doesn't allow saving the very first model as sometimes it gets stuck in a random state that has good
+   236                                                 # performance for whatever reasons
+   237                                         
+   238                                                 # if e > 1 and ((valid_loss <= best_val_loss + tolerance and valid_metric['auc'] > best_val_auc) or valid_metric['auc'] > best_val_auc):
+   239   4511.2 MiB   -133.8 MiB         500           if e == n_epochs:
+   240   4511.0 MiB     -0.2 MiB           1               best_epoch = e
+   241   4511.0 MiB      0.0 MiB           1               best_val_loss = valid_loss
+   242   4511.0 MiB      0.0 MiB           1               best_val_auc = valid_metric['auc']
+   243   4511.0 MiB      0.0 MiB           1               save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+   244                                         
+   245   4511.0 MiB     -0.2 MiB           1       print(f'End of training cycles')
+   246   4511.0 MiB      0.0 MiB         503       print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
+   247   4511.0 MiB      0.0 MiB           1       print(f'Best valid epoch: {best_epoch}')
+   248   4511.0 MiB      0.0 MiB           1       print(f'Best valid loss :\t{best_val_loss:.3e}, best valid AUC:\t{best_val_auc}')
+   249   4511.0 MiB      0.0 MiB           1       print(f'Reloaded best model at {os.path.abspath(os.path.join(outdir, checkpoint_filename))}')
+   250   4511.0 MiB      0.0 MiB           1       model = load_checkpoint(model, checkpoint_filename, outdir)
+   251   4511.0 MiB      0.0 MiB           1       return model, train_metrics, valid_metrics, train_losses, valid_losses, best_epoch, best_val_loss, best_val_auc
+
+
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_2_231128_2227_None/train_losses_kcv_train_all5_correct_f02_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_2_231128_2227_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_2_231128_2227_None/valid_losses_kcv_train_all5_correct_f02_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_2_231128_2227_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_2_231128_2227_None/train_metrics_kcv_train_all5_correct_f02_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_2_231128_2227_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_2_231128_2227_None/valid_metrics_kcv_train_all5_correct_f02_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_2_231128_2227_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 84 minutes, 48 seconds.
+Iteration 2 completed
+Running iteration 3
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211    258.5 MiB    258.5 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218    258.5 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219    258.5 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   3671.7 MiB   3413.2 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   3671.7 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   3671.7 MiB      0.0 MiB           1       if return_dataset:
+   224   3671.7 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211   3671.7 MiB   3671.7 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218   3671.7 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219   3671.7 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   4507.3 MiB    835.6 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   4507.3 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   4507.3 MiB      0.0 MiB           1       if return_dataset:
+   224   4507.3 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211   4507.3 MiB   4507.3 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218   4507.3 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219   4507.3 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   4507.3 MiB      0.0 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   4507.3 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   4507.3 MiB      0.0 MiB           1       if return_dataset:
+   224   4507.3 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0277,	0.921
+Epoch 50: valid loss, AUC:	0.0330,	0.934
+
+Epoch 50: train loss, AUC:	0.0277,	0.921
+Epoch 50: valid loss, AUC:	0.0330,	0.934
+
+Epoch 100: train loss, AUC:	0.0256,	0.930
+Epoch 100: valid loss, AUC:	0.0328,	0.932
+
+Epoch 100: train loss, AUC:	0.0256,	0.930
+Epoch 100: valid loss, AUC:	0.0328,	0.932
+
+Epoch 150: train loss, AUC:	0.0244,	0.935
+Epoch 150: valid loss, AUC:	0.0334,	0.934
+
+Epoch 150: train loss, AUC:	0.0244,	0.935
+Epoch 150: valid loss, AUC:	0.0334,	0.934
+
+Epoch 200: train loss, AUC:	0.0239,	0.934
+Epoch 200: valid loss, AUC:	0.0343,	0.927
+
+Epoch 200: train loss, AUC:	0.0239,	0.934
+Epoch 200: valid loss, AUC:	0.0343,	0.927
+
+Epoch 250: train loss, AUC:	0.0233,	0.938
+Epoch 250: valid loss, AUC:	0.0346,	0.934
+
+Epoch 250: train loss, AUC:	0.0233,	0.938
+Epoch 250: valid loss, AUC:	0.0346,	0.934
+
+Epoch 300: train loss, AUC:	0.0230,	0.940
+Epoch 300: valid loss, AUC:	0.0355,	0.930
+
+Epoch 300: train loss, AUC:	0.0230,	0.940
+Epoch 300: valid loss, AUC:	0.0355,	0.930
+
+Epoch 350: train loss, AUC:	0.0227,	0.943
+Epoch 350: valid loss, AUC:	0.0341,	0.930
+
+Epoch 350: train loss, AUC:	0.0227,	0.943
+Epoch 350: valid loss, AUC:	0.0341,	0.930
+
+Epoch 400: train loss, AUC:	0.0224,	0.942
+Epoch 400: valid loss, AUC:	0.0348,	0.926
+
+Epoch 400: train loss, AUC:	0.0224,	0.942
+Epoch 400: valid loss, AUC:	0.0348,	0.926
+
+Epoch 450: train loss, AUC:	0.0221,	0.944
+Epoch 450: valid loss, AUC:	0.0347,	0.932
+
+Epoch 450: train loss, AUC:	0.0221,	0.944
+Epoch 450: valid loss, AUC:	0.0347,	0.932
+
+Epoch 500: train loss, AUC:	0.0220,	0.944
+Epoch 500: valid loss, AUC:	0.0346,	0.928
+
+Epoch 500: train loss, AUC:	0.0220,	0.944
+Epoch 500: valid loss, AUC:	0.0346,	0.928
+End of training cycles
+Best train loss:	2.186e-02, best train AUC:	0.9455
+Best valid epoch: 500
+Best valid loss :	3.462e-02, best valid AUC:	0.9284
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_3_231128_2352_None/checkpoint_best_kcv_train_all5_correct_f03_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_3_231128_2352_None.pt
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/train_eval.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   171   4507.3 MiB   4507.3 MiB           1   @profile
+   172                                         def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dataset, train_loader, valid_loader,
+   173                                                              checkpoint_filename, outdir, burn_in: int = None, std: bool = False):
+   174                                             """ Trains and validates a model over n_epochs, then reloads the best checkpoint
+   175                                         
+   176                                         
+   177                                             Args:
+   178                                                 n_epochs:
+   179                                                 tolerance:
+   180                                                 model:
+   181                                                 criterion:
+   182                                                 optimizer:
+   183                                                 train_dataset: Torch Dataset, is here so we can do standardize & burn-in periods
+   184                                                 train_loader:
+   185                                                 valid_loader:
+   186                                                 checkpoint_filename:
+   187                                                 outdir:
+   188                                         
+   189                                             Returns:
+   190                                                 model
+   191                                                 train_metrics
+   192                                                 valid_metrics
+   193                                                 train_losses
+   194                                                 valid_losses
+   195                                                 best_epoch
+   196                                                 best_val_loss
+   197                                                 best_val_auc
+   198                                             """
+   199   4507.3 MiB      0.0 MiB           1       if std == True:
+   200                                                 if any([(hasattr(child, 'standardizer_sequence') or hasattr(child, 'ef_standardizer')) for child in [model.children()]+[model]]):
+   201                                                     # TODO: Not sure about this workaround (works the same as in above with *data & pop(-1))
+   202                                                     xs = train_dataset[:][:-1]
+   203                                                     print('Standardizing input data (including additional features)\n')
+   204                                                     model.fit_standardizer(*xs)
+   205                                             else:
+   206   4507.3 MiB      0.0 MiB           1           print('No standardizing of the data\n')
+   207                                         
+   208   4507.3 MiB      0.0 MiB           1       if burn_in is not None:  # doing burn-in if it's not None
+   209   4507.3 MiB      0.0 MiB           1           print('Doing burn-in period\n')
+   210   4507.3 MiB      0.0 MiB           1           train_dataset.burn_in(True)
+   211   5916.1 MiB -10050.3 MiB          11           for e in tqdm(range(0, burn_in), desc='Burn-in period'):
+   212   5916.1 MiB  -8641.6 MiB          10               _, _ = train_model_step(model, criterion, optimizer, train_loader)
+   213   4512.8 MiB  -1403.3 MiB           1           train_dataset.burn_in(False)
+   214                                         
+   215   4512.8 MiB      0.0 MiB           1       print(f'Starting {n_epochs} training cycles')
+   216                                             # Pre-saving the model at the very start because some bugged partitions
+   217                                             # would have terrible performance and never save for very short debug runs.
+   218   4512.8 MiB      0.1 MiB           1       save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+   219                                             # Actual runs
+   220   4512.8 MiB      0.0 MiB           1       train_metrics, valid_metrics, train_losses, valid_losses = [], [], [], []
+   221   4512.8 MiB      0.0 MiB           1       best_val_loss, best_val_auc, best_epoch = 1000, 0.5, 1
+   222   4513.8 MiB   -134.3 MiB         501       for e in tqdm(range(1, n_epochs + 1), desc='epochs', leave=False):
+   223   4638.4 MiB    344.9 MiB         500           train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)
+   224   4513.8 MiB -13663.0 MiB         500           valid_loss, valid_metric = eval_model_step(model, criterion, valid_loader)
+   225   4513.8 MiB   -134.7 MiB         500           train_metrics.append(train_metric)
+   226   4513.8 MiB   -134.7 MiB         500           valid_metrics.append(valid_metric)
+   227   4513.8 MiB   -134.7 MiB         500           train_losses.append(train_loss)
+   228   4513.8 MiB   -134.7 MiB         500           valid_losses.append(valid_loss)
+   229   4513.8 MiB   -134.7 MiB         500           if e % (n_epochs // 10) == 0:
+   230   4513.5 MiB     -2.6 MiB          10               tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+   231   4513.5 MiB     -0.3 MiB          10               tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+   232   4513.5 MiB     -0.3 MiB          10               print(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+   233   4513.5 MiB     -0.3 MiB          10               print(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+   234                                         
+   235                                                 # Doesn't allow saving the very first model as sometimes it gets stuck in a random state that has good
+   236                                                 # performance for whatever reasons
+   237                                         
+   238                                                 # if e > 1 and ((valid_loss <= best_val_loss + tolerance and valid_metric['auc'] > best_val_auc) or valid_metric['auc'] > best_val_auc):
+   239   4513.8 MiB   -132.4 MiB         500           if e == n_epochs:
+   240   4513.5 MiB     -0.2 MiB           1               best_epoch = e
+   241   4513.5 MiB      0.0 MiB           1               best_val_loss = valid_loss
+   242   4513.5 MiB      0.0 MiB           1               best_val_auc = valid_metric['auc']
+   243   4513.5 MiB      0.0 MiB           1               save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+   244                                         
+   245   4513.5 MiB     -0.2 MiB           1       print(f'End of training cycles')
+   246   4513.5 MiB      0.0 MiB         503       print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
+   247   4513.5 MiB      0.0 MiB           1       print(f'Best valid epoch: {best_epoch}')
+   248   4513.5 MiB      0.0 MiB           1       print(f'Best valid loss :\t{best_val_loss:.3e}, best valid AUC:\t{best_val_auc}')
+   249   4513.5 MiB      0.0 MiB           1       print(f'Reloaded best model at {os.path.abspath(os.path.join(outdir, checkpoint_filename))}')
+   250   4513.7 MiB      0.1 MiB           1       model = load_checkpoint(model, checkpoint_filename, outdir)
+   251   4513.7 MiB      0.0 MiB           1       return model, train_metrics, valid_metrics, train_losses, valid_losses, best_epoch, best_val_loss, best_val_auc
+
+
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_3_231128_2352_None/train_losses_kcv_train_all5_correct_f03_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_3_231128_2352_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_3_231128_2352_None/valid_losses_kcv_train_all5_correct_f03_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_3_231128_2352_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_3_231128_2352_None/train_metrics_kcv_train_all5_correct_f03_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_3_231128_2352_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_3_231128_2352_None/valid_metrics_kcv_train_all5_correct_f03_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_3_231128_2352_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 95 minutes, 21 seconds.
+Iteration 3 completed
+Running iteration 4
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211    257.3 MiB    257.3 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218    257.3 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219    257.3 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   3851.1 MiB   3593.9 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   3851.1 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   3851.1 MiB      0.0 MiB           1       if return_dataset:
+   224   3851.1 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211   3851.1 MiB   3851.1 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218   3851.1 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219   3851.1 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   4467.2 MiB    616.0 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   4467.2 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   4467.2 MiB      0.0 MiB           1       if return_dataset:
+   224   4467.2 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211   4467.2 MiB   4467.2 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218   4467.2 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219   4467.2 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   4467.2 MiB      0.0 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   4467.2 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   4467.2 MiB      0.0 MiB           1       if return_dataset:
+   224   4467.2 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0264,	0.932
+Epoch 50: valid loss, AUC:	0.0389,	0.900
+
+Epoch 50: train loss, AUC:	0.0264,	0.932
+Epoch 50: valid loss, AUC:	0.0389,	0.900
+
+Epoch 100: train loss, AUC:	0.0246,	0.940
+Epoch 100: valid loss, AUC:	0.0374,	0.886
+
+Epoch 100: train loss, AUC:	0.0246,	0.940
+Epoch 100: valid loss, AUC:	0.0374,	0.886
+
+Epoch 150: train loss, AUC:	0.0233,	0.943
+Epoch 150: valid loss, AUC:	0.0384,	0.887
+
+Epoch 150: train loss, AUC:	0.0233,	0.943
+Epoch 150: valid loss, AUC:	0.0384,	0.887
+
+Epoch 200: train loss, AUC:	0.0227,	0.944
+Epoch 200: valid loss, AUC:	0.0396,	0.890
+
+Epoch 200: train loss, AUC:	0.0227,	0.944
+Epoch 200: valid loss, AUC:	0.0396,	0.890
+
+Epoch 250: train loss, AUC:	0.0222,	0.946
+Epoch 250: valid loss, AUC:	0.0389,	0.887
+
+Epoch 250: train loss, AUC:	0.0222,	0.946
+Epoch 250: valid loss, AUC:	0.0389,	0.887
+
+Epoch 300: train loss, AUC:	0.0218,	0.949
+Epoch 300: valid loss, AUC:	0.0393,	0.883
+
+Epoch 300: train loss, AUC:	0.0218,	0.949
+Epoch 300: valid loss, AUC:	0.0393,	0.883
+
+Epoch 350: train loss, AUC:	0.0215,	0.949
+Epoch 350: valid loss, AUC:	0.0409,	0.897
+
+Epoch 350: train loss, AUC:	0.0215,	0.949
+Epoch 350: valid loss, AUC:	0.0409,	0.897
+
+Epoch 400: train loss, AUC:	0.0213,	0.947
+Epoch 400: valid loss, AUC:	0.0393,	0.890
+
+Epoch 400: train loss, AUC:	0.0213,	0.947
+Epoch 400: valid loss, AUC:	0.0393,	0.890
+
+Epoch 450: train loss, AUC:	0.0211,	0.951
+Epoch 450: valid loss, AUC:	0.0407,	0.900
+
+Epoch 450: train loss, AUC:	0.0211,	0.951
+Epoch 450: valid loss, AUC:	0.0407,	0.900
+
+Epoch 500: train loss, AUC:	0.0208,	0.951
+Epoch 500: valid loss, AUC:	0.0398,	0.894
+
+Epoch 500: train loss, AUC:	0.0208,	0.951
+Epoch 500: valid loss, AUC:	0.0398,	0.894
+End of training cycles
+Best train loss:	2.083e-02, best train AUC:	0.9516
+Best valid epoch: 500
+Best valid loss :	3.983e-02, best valid AUC:	0.8938
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_4_231129_0127_None/checkpoint_best_kcv_train_all5_correct_f04_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_4_231129_0127_None.pt
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/train_eval.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   171   4467.2 MiB   4467.2 MiB           1   @profile
+   172                                         def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dataset, train_loader, valid_loader,
+   173                                                              checkpoint_filename, outdir, burn_in: int = None, std: bool = False):
+   174                                             """ Trains and validates a model over n_epochs, then reloads the best checkpoint
+   175                                         
+   176                                         
+   177                                             Args:
+   178                                                 n_epochs:
+   179                                                 tolerance:
+   180                                                 model:
+   181                                                 criterion:
+   182                                                 optimizer:
+   183                                                 train_dataset: Torch Dataset, is here so we can do standardize & burn-in periods
+   184                                                 train_loader:
+   185                                                 valid_loader:
+   186                                                 checkpoint_filename:
+   187                                                 outdir:
+   188                                         
+   189                                             Returns:
+   190                                                 model
+   191                                                 train_metrics
+   192                                                 valid_metrics
+   193                                                 train_losses
+   194                                                 valid_losses
+   195                                                 best_epoch
+   196                                                 best_val_loss
+   197                                                 best_val_auc
+   198                                             """
+   199   4467.2 MiB      0.0 MiB           1       if std == True:
+   200                                                 if any([(hasattr(child, 'standardizer_sequence') or hasattr(child, 'ef_standardizer')) for child in [model.children()]+[model]]):
+   201                                                     # TODO: Not sure about this workaround (works the same as in above with *data & pop(-1))
+   202                                                     xs = train_dataset[:][:-1]
+   203                                                     print('Standardizing input data (including additional features)\n')
+   204                                                     model.fit_standardizer(*xs)
+   205                                             else:
+   206   4467.2 MiB      0.0 MiB           1           print('No standardizing of the data\n')
+   207                                         
+   208   4467.2 MiB      0.0 MiB           1       if burn_in is not None:  # doing burn-in if it's not None
+   209   4467.2 MiB      0.0 MiB           1           print('Doing burn-in period\n')
+   210   4467.2 MiB      0.0 MiB           1           train_dataset.burn_in(True)
+   211   5319.6 MiB     -0.2 MiB          11           for e in tqdm(range(0, burn_in), desc='Burn-in period'):
+   212   5319.6 MiB    852.1 MiB          10               _, _ = train_model_step(model, criterion, optimizer, train_loader)
+   213   5319.6 MiB      0.0 MiB           1           train_dataset.burn_in(False)
+   214                                         
+   215   5319.6 MiB      0.0 MiB           1       print(f'Starting {n_epochs} training cycles')
+   216                                             # Pre-saving the model at the very start because some bugged partitions
+   217                                             # would have terrible performance and never save for very short debug runs.
+   218   5319.7 MiB      0.1 MiB           1       save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+   219                                             # Actual runs
+   220   5319.7 MiB      0.0 MiB           1       train_metrics, valid_metrics, train_losses, valid_losses = [], [], [], []
+   221   5319.7 MiB      0.0 MiB           1       best_val_loss, best_val_auc, best_epoch = 1000, 0.5, 1
+   222   5348.6 MiB  -3828.6 MiB         501       for e in tqdm(range(1, n_epochs + 1), desc='epochs', leave=False):
+   223   5458.3 MiB  -3665.2 MiB         500           train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)
+   224   5348.6 MiB -17350.9 MiB         500           valid_loss, valid_metric = eval_model_step(model, criterion, valid_loader)
+   225   5348.6 MiB  -3855.8 MiB         500           train_metrics.append(train_metric)
+   226   5348.6 MiB  -3855.8 MiB         500           valid_metrics.append(valid_metric)
+   227   5348.6 MiB  -3855.8 MiB         500           train_losses.append(train_loss)
+   228   5348.6 MiB  -3855.8 MiB         500           valid_losses.append(valid_loss)
+   229   5348.6 MiB  -3855.8 MiB         500           if e % (n_epochs // 10) == 0:
+   230   5348.4 MiB    -89.6 MiB          10               tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+   231   5348.4 MiB    -81.3 MiB          10               tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+   232   5348.4 MiB    -81.3 MiB          10               print(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+   233   5348.4 MiB    -81.3 MiB          10               print(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+   234                                         
+   235                                                 # Doesn't allow saving the very first model as sometimes it gets stuck in a random state that has good
+   236                                                 # performance for whatever reasons
+   237                                         
+   238                                                 # if e > 1 and ((valid_loss <= best_val_loss + tolerance and valid_metric['auc'] > best_val_auc) or valid_metric['auc'] > best_val_auc):
+   239   5348.6 MiB  -3847.4 MiB         500           if e == n_epochs:
+   240   5321.5 MiB    -27.1 MiB           1               best_epoch = e
+   241   5321.5 MiB      0.0 MiB           1               best_val_loss = valid_loss
+   242   5321.5 MiB      0.0 MiB           1               best_val_auc = valid_metric['auc']
+   243   5321.5 MiB      0.0 MiB           1               save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+   244                                         
+   245   5321.5 MiB    -27.1 MiB           1       print(f'End of training cycles')
+   246   5321.5 MiB      0.0 MiB         503       print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
+   247   5321.5 MiB      0.0 MiB           1       print(f'Best valid epoch: {best_epoch}')
+   248   5321.5 MiB      0.0 MiB           1       print(f'Best valid loss :\t{best_val_loss:.3e}, best valid AUC:\t{best_val_auc}')
+   249   5321.5 MiB      0.0 MiB           1       print(f'Reloaded best model at {os.path.abspath(os.path.join(outdir, checkpoint_filename))}')
+   250   5321.5 MiB      0.1 MiB           1       model = load_checkpoint(model, checkpoint_filename, outdir)
+   251   5321.5 MiB      0.0 MiB           1       return model, train_metrics, valid_metrics, train_losses, valid_losses, best_epoch, best_val_loss, best_val_auc
+
+
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_4_231129_0127_None/train_losses_kcv_train_all5_correct_f04_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_4_231129_0127_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_4_231129_0127_None/valid_losses_kcv_train_all5_correct_f04_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_4_231129_0127_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_4_231129_0127_None/train_metrics_kcv_train_all5_correct_f04_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_4_231129_0127_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_4_231129_0127_None/valid_metrics_kcv_train_all5_correct_f04_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_4_231129_0127_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 73 minutes, 6 seconds.
+Iteration 4 completed
+Running iteration 5
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211    257.2 MiB    257.2 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218    257.2 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219    257.2 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   3830.9 MiB   3573.7 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   3830.9 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   3830.9 MiB      0.0 MiB           1       if return_dataset:
+   224   3830.9 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211   3830.9 MiB   3830.9 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218   3830.9 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219   3830.9 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   4462.9 MiB    632.1 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   4462.9 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   4462.9 MiB      0.0 MiB           1       if return_dataset:
+   224   4462.9 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/datasets.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   211   4462.9 MiB   4462.9 MiB           1   @profile
+   212                                         def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+   213                                                                                seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
+   214                                                                                indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
+   215                                                                                batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
+   216                                                                                add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, 
+   217                                                                                add_fr_len=False, add_pep_len=False):
+   218   4462.9 MiB      0.0 MiB           1       dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
+   219   4462.9 MiB      0.0 MiB           1                                            burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
+   220   4463.0 MiB      0.0 MiB           1                                            add_fr_len, add_pep_len)
+   221                                             #TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
+   222   4463.0 MiB      0.0 MiB           1       dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
+   223   4463.0 MiB      0.0 MiB           1       if return_dataset:
+   224   4463.0 MiB      0.0 MiB           1           return dataloader, dataset
+   225                                             else:
+   226                                                 return dataloader
+
+
+No standardizing of the data
+
+Doing burn-in period
+
+Starting 500 training cycles
+
+Epoch 50: train loss, AUC:	0.0268,	0.931
+Epoch 50: valid loss, AUC:	0.0353,	0.920
+
+Epoch 50: train loss, AUC:	0.0268,	0.931
+Epoch 50: valid loss, AUC:	0.0353,	0.920
+
+Epoch 100: train loss, AUC:	0.0249,	0.935
+Epoch 100: valid loss, AUC:	0.0360,	0.920
+
+Epoch 100: train loss, AUC:	0.0249,	0.935
+Epoch 100: valid loss, AUC:	0.0360,	0.920
+
+Epoch 150: train loss, AUC:	0.0240,	0.940
+Epoch 150: valid loss, AUC:	0.0361,	0.915
+
+Epoch 150: train loss, AUC:	0.0240,	0.940
+Epoch 150: valid loss, AUC:	0.0361,	0.915
+
+Epoch 200: train loss, AUC:	0.0235,	0.941
+Epoch 200: valid loss, AUC:	0.0376,	0.909
+
+Epoch 200: train loss, AUC:	0.0235,	0.941
+Epoch 200: valid loss, AUC:	0.0376,	0.909
+
+Epoch 250: train loss, AUC:	0.0228,	0.943
+Epoch 250: valid loss, AUC:	0.0373,	0.911
+
+Epoch 250: train loss, AUC:	0.0228,	0.943
+Epoch 250: valid loss, AUC:	0.0373,	0.911
+
+Epoch 300: train loss, AUC:	0.0226,	0.943
+Epoch 300: valid loss, AUC:	0.0372,	0.914
+
+Epoch 300: train loss, AUC:	0.0226,	0.943
+Epoch 300: valid loss, AUC:	0.0372,	0.914
+
+Epoch 350: train loss, AUC:	0.0222,	0.945
+Epoch 350: valid loss, AUC:	0.0367,	0.909
+
+Epoch 350: train loss, AUC:	0.0222,	0.945
+Epoch 350: valid loss, AUC:	0.0367,	0.909
+
+Epoch 400: train loss, AUC:	0.0219,	0.944
+Epoch 400: valid loss, AUC:	0.0371,	0.912
+
+Epoch 400: train loss, AUC:	0.0219,	0.944
+Epoch 400: valid loss, AUC:	0.0371,	0.912
+
+Epoch 450: train loss, AUC:	0.0216,	0.946
+Epoch 450: valid loss, AUC:	0.0370,	0.910
+
+Epoch 450: train loss, AUC:	0.0216,	0.946
+Epoch 450: valid loss, AUC:	0.0370,	0.910
+
+Epoch 500: train loss, AUC:	0.0215,	0.947
+Epoch 500: valid loss, AUC:	0.0377,	0.911
+
+Epoch 500: train loss, AUC:	0.0215,	0.947
+Epoch 500: valid loss, AUC:	0.0377,	0.911
+End of training cycles
+Best train loss:	2.138e-02, best train AUC:	0.9482
+Best valid epoch: 500
+Best valid loss :	3.767e-02, best valid AUC:	0.911
+Reloaded best model at /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_5_231129_0240_None/checkpoint_best_kcv_train_all5_correct_f05_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_5_231129_0240_None.pt
+Filename: /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/src/train_eval.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   171   4463.0 MiB   4463.0 MiB           1   @profile
+   172                                         def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dataset, train_loader, valid_loader,
+   173                                                              checkpoint_filename, outdir, burn_in: int = None, std: bool = False):
+   174                                             """ Trains and validates a model over n_epochs, then reloads the best checkpoint
+   175                                         
+   176                                         
+   177                                             Args:
+   178                                                 n_epochs:
+   179                                                 tolerance:
+   180                                                 model:
+   181                                                 criterion:
+   182                                                 optimizer:
+   183                                                 train_dataset: Torch Dataset, is here so we can do standardize & burn-in periods
+   184                                                 train_loader:
+   185                                                 valid_loader:
+   186                                                 checkpoint_filename:
+   187                                                 outdir:
+   188                                         
+   189                                             Returns:
+   190                                                 model
+   191                                                 train_metrics
+   192                                                 valid_metrics
+   193                                                 train_losses
+   194                                                 valid_losses
+   195                                                 best_epoch
+   196                                                 best_val_loss
+   197                                                 best_val_auc
+   198                                             """
+   199   4463.0 MiB      0.0 MiB           1       if std == True:
+   200                                                 if any([(hasattr(child, 'standardizer_sequence') or hasattr(child, 'ef_standardizer')) for child in [model.children()]+[model]]):
+   201                                                     # TODO: Not sure about this workaround (works the same as in above with *data & pop(-1))
+   202                                                     xs = train_dataset[:][:-1]
+   203                                                     print('Standardizing input data (including additional features)\n')
+   204                                                     model.fit_standardizer(*xs)
+   205                                             else:
+   206   4463.0 MiB      0.0 MiB           1           print('No standardizing of the data\n')
+   207                                         
+   208   4463.0 MiB      0.0 MiB           1       if burn_in is not None:  # doing burn-in if it's not None
+   209   4463.0 MiB      0.0 MiB           1           print('Doing burn-in period\n')
+   210   4463.0 MiB      0.0 MiB           1           train_dataset.burn_in(True)
+   211   4992.5 MiB   -519.8 MiB          11           for e in tqdm(range(0, burn_in), desc='Burn-in period'):
+   212   4992.5 MiB      5.7 MiB          10               _, _ = train_model_step(model, criterion, optimizer, train_loader)
+   213   4471.2 MiB   -521.3 MiB           1           train_dataset.burn_in(False)
+   214                                         
+   215   4471.2 MiB      0.0 MiB           1       print(f'Starting {n_epochs} training cycles')
+   216                                             # Pre-saving the model at the very start because some bugged partitions
+   217                                             # would have terrible performance and never save for very short debug runs.
+   218   4471.3 MiB      0.1 MiB           1       save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+   219                                             # Actual runs
+   220   4471.3 MiB      0.0 MiB           1       train_metrics, valid_metrics, train_losses, valid_losses = [], [], [], []
+   221   4471.3 MiB      0.0 MiB           1       best_val_loss, best_val_auc, best_epoch = 1000, 0.5, 1
+   222   4509.9 MiB  -4082.8 MiB         501       for e in tqdm(range(1, n_epochs + 1), desc='epochs', leave=False):
+   223   4749.8 MiB  -3737.0 MiB         500           train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)
+   224   4509.9 MiB -24547.6 MiB         500           valid_loss, valid_metric = eval_model_step(model, criterion, valid_loader)
+   225   4509.9 MiB  -4093.5 MiB         500           train_metrics.append(train_metric)
+   226   4509.9 MiB  -4093.5 MiB         500           valid_metrics.append(valid_metric)
+   227   4509.9 MiB  -4093.5 MiB         500           train_losses.append(train_loss)
+   228   4509.9 MiB  -4093.5 MiB         500           valid_losses.append(valid_loss)
+   229   4509.9 MiB  -4093.5 MiB         500           if e % (n_epochs // 10) == 0:
+   230   4509.4 MiB    -69.0 MiB          10               tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+   231   4509.4 MiB    -64.5 MiB          10               tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+   232   4509.4 MiB    -64.5 MiB          10               print(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
+   233   4509.4 MiB    -64.5 MiB          10               print(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
+   234                                         
+   235                                                 # Doesn't allow saving the very first model as sometimes it gets stuck in a random state that has good
+   236                                                 # performance for whatever reasons
+   237                                         
+   238                                                 # if e > 1 and ((valid_loss <= best_val_loss + tolerance and valid_metric['auc'] > best_val_auc) or valid_metric['auc'] > best_val_auc):
+   239   4509.9 MiB  -4089.0 MiB         500           if e == n_epochs:
+   240   4499.2 MiB    -10.6 MiB           1               best_epoch = e
+   241   4499.2 MiB      0.0 MiB           1               best_val_loss = valid_loss
+   242   4499.2 MiB      0.0 MiB           1               best_val_auc = valid_metric['auc']
+   243   4499.2 MiB      0.0 MiB           1               save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+   244                                         
+   245   4499.2 MiB    -10.6 MiB           1       print(f'End of training cycles')
+   246   4499.2 MiB      0.0 MiB         503       print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
+   247   4499.2 MiB      0.0 MiB           1       print(f'Best valid epoch: {best_epoch}')
+   248   4499.2 MiB      0.0 MiB           1       print(f'Best valid loss :\t{best_val_loss:.3e}, best valid AUC:\t{best_val_auc}')
+   249   4499.2 MiB      0.0 MiB           1       print(f'Reloaded best model at {os.path.abspath(os.path.join(outdir, checkpoint_filename))}')
+   250   4499.3 MiB      0.0 MiB           1       model = load_checkpoint(model, checkpoint_filename, outdir)
+   251   4499.3 MiB      0.0 MiB           1       return model, train_metrics, valid_metrics, train_losses, valid_losses, best_epoch, best_val_loss, best_val_auc
+
+
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_5_231129_0240_None/train_losses_kcv_train_all5_correct_f05_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_5_231129_0240_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_5_231129_0240_None/valid_losses_kcv_train_all5_correct_f05_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_5_231129_0240_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_5_231129_0240_None/train_metrics_kcv_train_all5_correct_f05_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_5_231129_0240_None.pkl saved.
+/home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/output/CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_5_231129_0240_None/valid_metrics_kcv_train_all5_correct_f05_CSL_hp_2hl_wd1e-4_bs256_lastmodel_KFold_5_231129_0240_None.pkl saved.
+Reloading best model and returning validation and test predictions
+Saving valid predictions from best model
+Saving test predictions from best model
+Program finished in 92 minutes, 36 seconds.
+Iteration 5 completed
+Script finished
