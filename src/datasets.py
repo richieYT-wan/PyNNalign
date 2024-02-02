@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from src.data_processing import encode_batch, encode_batch_weighted, PFR_calculation, FR_lengths, pep_len_1hot
 from memory_profiler import profile
-
+from datetime import datetime as dt
 
 class SuperDataset(Dataset):
     def __init__(self, x=torch.empty([100, 1])):
@@ -126,13 +126,13 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
     #TODO : Carlos here this class is for you. From now on, only use this class
     Here for now, only get encoding and try to
     """
-
+    # @profile
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'],
                  add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False,
                  add_pep_len=False):
-
+        # start = dt.now()
         super(NNAlignDatasetEFSinglePass, self).__init__()
         # Encoding stuff
         if feature_cols is None:
@@ -140,10 +140,10 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         df['len'] = df[seq_col].apply(len)
         df = df.query('len<=@max_len')
         matrix_dim = 21 if indel else 20
-
+        # query_time = dt.now()
         x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
         y = torch.from_numpy(df[target_col].values).float().view(-1, 1)
-
+        # encode_time = dt.now()
         # Creating the mask to allow selection of kmers without padding
         x_mask = torch.from_numpy(df['len'].values) - window_size
         range_tensor = torch.arange(max_len - window_size + 1).unsqueeze(0).repeat(len(x), 1)
@@ -156,6 +156,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         # Expand and unfold the sub kmers and the target to match the shape ; contiguous to allow for view operations
         self.x_tensor = x.unfold(1, window_size, 1).transpose(2, 3) \
             .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3).contiguous()
+        # kmer_time = dt.now()
         self.y = y.contiguous()
         self.x_features = torch.empty((len(x),))
         # Add extra features
@@ -179,15 +180,19 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
             x_pseudoseq = x_pseudoseq.flatten(start_dim=1)
             self.x_features = x_pseudoseq
             self.extra_features_flag = True
+            # ps_time = dt.now()
         if add_pfr:
             x_pfr = PFR_calculation(df[seq_col], self.x_mask, max_len, window_size)
             self.x_tensor = torch.cat([self.x_tensor, x_pfr], dim=2)
+            # pfr_time = dt.now()
         if add_fr_len:
             x_fr_len = FR_lengths(self.x_mask, max_len, window_size)
             self.x_tensor = torch.cat([self.x_tensor, x_fr_len], dim=2)
+            # pfr_len_time = dt.now()
         if add_pep_len:
             x_pep_len = pep_len_1hot(df[seq_col], max_len, window_size, min_length=13, max_length=21)
             self.x_tensor = torch.cat([self.x_tensor, x_pep_len], dim=2)
+            # peplen_time = dt.now()
 
         # Saving df in case it's needed
         self.df = df
@@ -195,7 +200,27 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         self.max_len = max_len
         self.seq_col = seq_col
         self.window_size = window_size
-
+        # elapsed_query = query_time - start
+        # elapsed_encode = encode_time - start
+        # elapsed_kmer = kmer_time - start
+        # elapsed_ps = ps_time - start
+        # elapsed_pfr = pfr_time - start
+        # elapsed_pfrlen = pfr_len_time - start
+        # elapsed_peplen = peplen_time - start
+        # elapsed_query = divmod(elapsed_query.seconds, 60)
+        # print('elapsed_query', f'{elapsed_query[0]} minutes {elapsed_query[1]} secs')
+        # elapsed_encode = divmod(elapsed_encode.seconds, 60)
+        # print('elapsed_encode', f'{elapsed_encode[0]} minutes {elapsed_encode[1]} secs')
+        # elapsed_kmer = divmod(elapsed_kmer.seconds, 60)
+        # print('elapsed_kmer', f'{elapsed_kmer[0]} minutes {elapsed_kmer[1]} secs')
+        # elapsed_ps = divmod(elapsed_ps.seconds, 60)
+        # print('elapsed_ps', f'{elapsed_ps[0]} minutes {elapsed_ps[1]} secs')
+        # elapsed_pfr = divmod(elapsed_pfr.seconds, 60)
+        # print('elapsed_pfr', f'{elapsed_pfr[0]} minutes {elapsed_pfr[1]} secs')
+        # elapsed_pfrlen = divmod(elapsed_pfrlen.seconds, 60)
+        # print('elapsed_pfrlen', f'{elapsed_pfrlen[0]} minutes {elapsed_pfrlen[1]} secs')
+        # elapsed_peplen = divmod(elapsed_peplen.seconds, 60)
+        # print('elapsed_peplen', f'{elapsed_peplen[0]} minutes {elapsed_peplen[1]} secs')
     def __len__(self):
         return self.len
 
@@ -212,6 +237,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         if self.burn_in_flag:
             if self.extra_features_flag:
                 # 4
+                print(f'Tensor, Burn_in_mask, x_features, and y shapes: {self.x_tensor[idx].shape}, {self.burn_in_mask[idx].shape}, {self.x_features[idx].shape}, {self.y[idx].shape}')
                 return self.x_tensor[idx], self.burn_in_mask[idx], self.x_features[idx], self.y[idx]
             else:
                 # 2
@@ -228,7 +254,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         self.burn_in_flag = flag
 
 
-@profile
+# @profile
 def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                                        seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
                                        indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,

@@ -63,6 +63,20 @@ def args_parser():
                         help='Window size for sub-mers selection (default = 9)')
     parser.add_argument('-ef', '--ef_dim', dest='ef_dim', type=int, default=734, required=False,
                         help='Extra-feature dimension (default = 734)')
+    parser.add_argument('-add_hl', '--add_hidden_layer', dest='add_hidden_layer', type=str2bool, required=False,
+                        default=False, help='Whether to add a second hidden layer (True/False)')
+    parser.add_argument('-nh2', '--n_hidden_2', dest='n_hidden_2', required=False, default=30,
+                        type=int, help='Number of hidden units for the additional second hidden layer (default = 30)')
+    parser.add_argument('-bs', '--batch_size', dest='batch_size', type=int, default=64, required=False,
+                        help='Batch size for mini-batch optimization')
+    parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=False,
+                        help='Whether to add pseudo sequence to the model (true/false)')
+    parser.add_argument('-add_pfr', '--add_pfr', dest='add_pfr', type=str2bool, default=False,
+                        help='Whether to add fixed-size (3) mean peptide flanking regions to the model (true/false)')
+    parser.add_argument('-add_fr_len', '--add_fr_len', dest='add_fr_len', type=str2bool, default=False,
+                        help='Whether to add length of the flanking regions of each motif to the model (true/false)')
+    parser.add_argument('-add_pep_len', '--add_pep_len', dest='add_pep_len', type=str2bool, default=False,
+                        help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
     return parser.parse_args()
 
 # Parse the command-line arguments and store them in the 'args' variable
@@ -83,14 +97,14 @@ test_data = pd.read_csv(args_dict['test_file'])
 test_loader, test_dataset = get_NNAlign_dataloaderEFSinglePass(test_data, indel=False, sampler=SequentialSampler,
                                                                return_dataset=True, max_len=15, window_size=9, encoding='BL50LO',
                                                                seq_col='Sequence', target_col='BA', pad_scale=None, 
-                                                               batch_size=128, add_pseudo_sequence=True, pseudo_seq_col='pseudoseq',
-                                                               add_pfr=True, add_fr_len=True, add_pep_len=True)
+                                                               batch_size=args_dict['batch_size'], add_pseudo_sequence=args_dict['add_pseudo_sequence'], pseudo_seq_col='pseudoseq',
+                                                               add_pfr=args_dict['add_pfr'], add_fr_len=args_dict['add_fr_len'], add_pep_len=args_dict['add_pep_len'])
 
 # Define the model parameters
 model = NNAlignEFSinglePass(activation = nn.ReLU(), extrafeat_dim = args_dict['ef_dim'], indel = False, 
-                            n_hidden = args_dict['n_hidden'], window_size = args_dict['window_size'], 
+                            n_hidden = args_dict['n_hidden'], n_hidden_2= args_dict['n_hidden_2'], window_size = args_dict['window_size'], 
                             batchnorm = args_dict['batchnorm'], dropout = args_dict['dropout'], 
-                            standardize = args_dict['standardize'])
+                            standardize = args_dict['standardize'], add_hidden_layer = args_dict['add_hidden_layer'])
 
 # Make predictions using each model for each sample
 for i in range(0, len(model_files), 1):
