@@ -57,7 +57,7 @@ def get_predictions(df, models, ics_dict, encoding_kwargs):
     return output_df
 
 
-def get_metrics(y_true, y_score, y_pred=None, threshold=0.50, keep=False, reduced=True, round_digit=4):
+def get_metrics(y_true, y_score, y_pred=None, threshold=0.5, keep=False, reduced=True, round_digit=4):
     """
     Computes all classification metrics & returns a dictionary containing the various key/metrics
     incl. ROC curve, AUC, AUC_01, F1 score, Accuracy, Recall
@@ -71,6 +71,7 @@ def get_metrics(y_true, y_score, y_pred=None, threshold=0.50, keep=False, reduce
     """
     metrics = {}
     # DETACH & PASS EVERYTHING TO CPU
+    y_true_bin = (y_true > 0.426)
     if threshold is not None and y_pred is None:
         # If no y_pred is provided, will threshold score (y in [0, 1])
         y_pred = (y_score > threshold)
@@ -81,29 +82,29 @@ def get_metrics(y_true, y_score, y_pred=None, threshold=0.50, keep=False, reduce
     elif y_pred is not None and type(y_pred) == torch.Tensor:
         y_pred = y_pred.int().cpu().detach().numpy()
 
-    if type(y_true) == torch.Tensor and type(y_score) == torch.Tensor:
-        y_true, y_score = y_true.int().cpu().detach().numpy(), y_score.cpu().detach().numpy()
+    if type(y_true_bin) == torch.Tensor and type(y_score) == torch.Tensor:
+        y_true_bin, y_true, y_score = y_true_bin.int().cpu().detach().numpy(), y_true.int().cpu().detach().numpy(), y_score.cpu().detach().numpy()
 
     if reduced:
-        metrics['auc'] = roc_auc_score(y_true, y_score)
-        metrics['auc_01'] = roc_auc_score(y_true,y_score,max_fpr=0.1)
-        metrics['precision'] = precision_score(y_true, y_pred)
-        metrics['accuracy'] = accuracy_score(y_true, y_pred)
-        metrics['AP'] = average_precision_score(y_true, y_score)
+        metrics['auc'] = roc_auc_score(y_true_bin, y_score)
+        metrics['auc_01'] = roc_auc_score(y_true_bin,y_score,max_fpr=0.1)
+        metrics['precision'] = precision_score(y_true_bin, y_pred)
+        metrics['accuracy'] = accuracy_score(y_true_bin, y_pred)
+        metrics['AP'] = average_precision_score(y_true_bin, y_score)
     else:
-        fpr, tpr, _ = roc_curve(y_true, y_score)
+        fpr, tpr, _ = roc_curve(y_true_bin, y_score)
         metrics['roc_curve'] = fpr, tpr
-        precision, recall, _ = precision_recall_curve(y_true, y_score)
+        precision, recall, _ = precision_recall_curve(y_true_bin, y_score)
         metrics['pr_curve'] = recall, precision  # So it follows the same x,y format as roc_curve
         try:
-            metrics['auc'] = roc_auc_score(y_true, y_score)
+            metrics['auc'] = roc_auc_score(y_true_bin, y_score)
             metrics['prauc'] = auc(recall, precision)
-            metrics['AP'] = average_precision_score(y_true, y_score)
+            metrics['AP'] = average_precision_score(y_true_bin, y_score)
         except:
             print('Couldn\'t get AUCs/etc because there\'s only one class in the dataset')
-            print(f'Only negatives: {all(y_true == 0)}, Only positives: {all(y_true == 1)}')
+            print(f'Only negatives: {all(y_true_bin == 0)}, Only positives: {all(y_true_bin == 1)}')
             raise ValueError
-        metrics['auc_01'] = roc_auc_score(y_true, y_score, max_fpr=0.1)
+        metrics['auc_01'] = roc_auc_score(y_true_bin, y_score, max_fpr=0.1)
         metrics['f1'] = f1_score(y_true, y_pred)
         metrics['accuracy'] = accuracy_score(y_true, y_pred)
         metrics['precision'] = precision_score(y_true, y_pred)
