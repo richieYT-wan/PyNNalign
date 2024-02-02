@@ -5,7 +5,110 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
+import json
 
+ACT_DICT = {'SELU': nn.SELU(), 'ReLU': nn.ReLU(),
+            'LeakyReLU': nn.LeakyReLU(), 'ELU': nn.ELU()}
+
+
+def load_model_full(checkpoint_filename, json_filename, dir_path=None, return_json=False, verbose=True):
+    """
+    Instantiate and loads a model directly from a checkpoint and json filename
+    Args:
+        checkpoint_filename:
+        json_filename:
+        dir_path:
+    Returns:
+
+    """
+    dict_kwargs = load_json(json_filename, dir_path)
+    assert 'constructor' in dict_kwargs.keys(), f'No constructor class name provided in the dict_kwargs keys! {dict_kwargs.keys()}'
+    constructor = dict_kwargs.pop('constructor')
+    if 'activation' in dict_kwargs:
+        dict_kwargs['activation'] = eval(dict_kwargs['activation'])()
+    for k in dict_kwargs:
+        if type(dict_kwargs[k]) == dict:
+            for l in dict_kwargs[k]:
+                if l == 'activation':
+                    dict_kwargs[k]['activation'] = eval(dict_kwargs[k]['activation'])()
+    model = eval(constructor)(**dict_kwargs)
+    model = load_checkpoint(model, checkpoint_filename, dir_path, verbose)
+    if return_json:
+        return model, dict_kwargs
+    else:
+        return model
+
+
+def save_model_full(model, checkpoint_filename='checkpoint.pt', dir_path='./', verbose=False, best_dict=None,
+                    dict_kwargs=None, json_filename=None):
+    """
+    Saves a torch model (.pt) along with its init parameters in a JSON file
+    Args:
+        model: Model object
+        checkpoint_filename:
+        dir_path:
+        verbose:
+        best_dict:
+        dict_kwargs:
+        json_filename:
+
+    Returns:
+
+    """
+    if json_filename is None:
+        json_filename = f'{checkpoint_filename.split(".pt")[-2]}_JSON_kwargs.json' if checkpoint_filename.endswith(
+            '.pt') \
+            else f'{checkpoint_filename}_JSON_kwargs.json'
+
+    save_checkpoint(model, checkpoint_filename, dir_path, verbose)
+    if 'constructor' not in dict_kwargs.keys():
+        dict_kwargs['constructor'] = model.__class__.__name__
+    save_json(dict_kwargs, json_filename, dir_path)
+    print(
+        f'Model weights saved at {os.path.abspath(os.path.join(dir_path, checkpoint_filename))} ' \
+        f'and JSON at {os.path.abspath(os.path.join(dir_path, json_filename))}')
+
+
+def load_json(filename, dir_path=None):
+    """
+    Loads a dictionary from a .json file and returns it
+    Args:
+        filename:
+
+    Returns:
+        dict_kwargs: A dictionary containing the kwargs necessary to instantiate a given model
+    """
+    if dir_path is not None:
+        filename = os.path.join(dir_path, filename)
+    with open(filename, 'r') as json_file:
+        dict_kwargs = json.load(json_file)
+    return dict_kwargs
+
+
+def save_json(dict_kwargs, filename, dir_path='./'):
+    """
+    Saves a dictionary to a .json file
+    When saving a model, should try to ensure that the model's constructor // class name exists
+    Args:
+        dict_kwargs:
+        filename:
+        dir_path:
+
+    Returns:
+
+    """
+    savepath = os.path.join(dir_path, filename)
+    for k in dict_kwargs:
+        if type(dict_kwargs[k]) == dict:
+            for l in dict_kwargs[k]:
+                if issubclass(type(dict_kwargs[k][l]), nn.Module):
+                    dict_kwargs[k][l] = dict_kwargs[k][l].__class__.__name__
+        if issubclass(type(dict_kwargs[k]), nn.Module):
+            dict_kwargs[k] = dict_kwargs[k].__class__.__name__
+    # Write the dictionary to a JSON file
+    with open(savepath, 'w') as json_file:
+        json.dump(dict_kwargs, json_file)
+    print(f"JSON data has been written to {savepath}")
 
 def set_mode(models_dict, mode='eval'):
     """

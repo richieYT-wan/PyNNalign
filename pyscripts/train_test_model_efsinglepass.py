@@ -12,7 +12,7 @@ from torch import nn
 from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
-from src.torch_utils import save_checkpoint, load_checkpoint
+from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
@@ -249,7 +249,7 @@ def main():
         file.write(f"Test file: {args['test_file']}\n")
         # file.write(f"Test loss: {test_loss}\n")
         # file.write(f"Test AUC: {test_metrics['auc']}\n")
-
+    save_model_full(model, checkpoint_filename, outdir, dict_kwargs=model_params)
     end = dt.now()
     elapsed = divmod((end - start).seconds, 60)
     print(f'Program finished in {elapsed[0]} minutes, {elapsed[1]} seconds.')

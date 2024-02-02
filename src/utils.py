@@ -13,6 +13,19 @@ import string
 from datetime import datetime as dt
 
 
+def epoch_counter(model, criterion):
+    if hasattr(model, 'counter') and hasattr(model, 'increment_counter'):
+        model.increment_counter()
+    if hasattr(criterion, 'counter') and hasattr(criterion, 'increment_counter'):
+        criterion.increment_counter()
+
+
+def get_class_initcode_keys(class_: object, dict_kwargs: dict) -> list:
+    init_code = class_.__init__.__code__
+    init_code = class_.__init__.__code__.co_varnames[1:init_code.co_argcount]
+    return [x for x in dict_kwargs.keys() if x in init_code]
+
+
 def get_motif(row, seq_col, window_size):
     return row[seq_col][int(row['core_start_index']):int(row['core_start_index']) + window_size]
 
