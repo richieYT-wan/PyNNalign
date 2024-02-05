@@ -27,6 +27,12 @@ def get_class_initcode_keys(class_: object, dict_kwargs: dict) -> list:
 
 
 def get_motif(row, seq_col, window_size):
+    # TODO: Pablo, here, at some point you will need to modify this function when insertions/deletions work
+    #       Currently, to get the motif we simply read the sequence and use the "best index" from the window
+    #       to get the corresponding binding core.
+    #       When we do In/Del, we will have extra core indices (as returned by x_mask), and we will need to adapt
+    #       to find which binding motif this corresponds to
+
     return row[seq_col][int(row['core_start_index']):int(row['core_start_index']) + window_size]
 
 

@@ -11,12 +11,13 @@ from torch import optim
 from torch import nn
 from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
-from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
+from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
+    get_class_initcode_keys
 from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
-from src.datasets import get_NNAlign_dataloaderEFSinglePass
+from src.datasets import NNAlignDatasetEFSinglePass
 from matplotlib import pyplot as plt
 import seaborn as sns
 from memory_profiler import profile
@@ -36,7 +37,7 @@ def args_parser():
     parser.add_argument('-tef', '--test_file', dest='test_file', required=True, type=str,
                         default='../data/aligned_icore/230530_prime_aligned.csv',
                         help='filename of the test input file')
-    
+
     parser.add_argument('-o', '--out', dest='out', required=False,
                         type=str, default='', help='Additional output name')
     parser.add_argument('-s', '--split', dest='split', required=False, type=int,
@@ -74,6 +75,8 @@ def args_parser():
                         help='Whether to add length of the flanking regions of each motif to the model (true/false)')
     parser.add_argument('-add_pep_len', '--add_pep_len', dest='add_pep_len', type=str2bool, default=False,
                         help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
+    parser.add_argument('-indel', '--indel', dest='indel', type=str2bool, default=False,
+                        help='Whether to add insertions/deletions')
     """
     Neural Net & Encoding args 
     """
@@ -96,7 +99,7 @@ def args_parser():
                         default=0.0, type=float,
                         help='Whether to add DropOut to the EF layer (p in float e[0,1], default = 0.0)')
     parser.add_argument('-add_hl', '--add_hidden_layer', dest='add_hidden_layer', type=str2bool, required=False,
-                        default = False, help='Whether to add a second hidden layer (True/False)')
+                        default=False, help='Whether to add a second hidden layer (True/False)')
     parser.add_argument('-nh2', '--n_hidden_2', dest='n_hidden_2', required=False, default=10,
                         type=int, help='Number of hidden units for the additional second hidden layer (default = 10)')
     """
@@ -107,9 +110,9 @@ def args_parser():
     parser.add_argument('-lr', '--learning_rate', dest='lr', type=float, default=1e-4, required=False,
                         help='Learning rate for the optimizer')
     parser.add_argument('-wd', '--weight_decay', dest='weight_decay', type=float, default=1e-4, required=False,
-                        help='Weight decay for the optimizer') # try 1e-3, 1e-4, 1e-6
+                        help='Weight decay for the optimizer')  # try 1e-3, 1e-4, 1e-6
     parser.add_argument('-bs', '--batch_size', dest='batch_size', type=int, default=128, required=False,
-                        help='Batch size for mini-batch optimization') # try 32, 64, 256
+                        help='Batch size for mini-batch optimization')  # try 32, 64, 256
     parser.add_argument('-ne', '--n_epochs', dest='n_epochs', type=int, default=500, required=False,
                         help='Number of epochs to train')
     parser.add_argument('-tol', '--tolerance', dest='tolerance', type=float, default=1e-5, required=False,
@@ -159,11 +162,10 @@ def main():
         train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
 
     test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
-    # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
-    # Def params so it's ✨tidy✨
-    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize', 'add_hidden_layer', 'n_hidden_2']
-    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size',
-                    'feature_cols', 'add_pseudo_sequence', 'pseudo_seq_col', 'add_pfr', 'add_fr_len', 'add_pep_len']
+
+    # Def params so it's ✨tidy✨, using get_class_initcode to get the keys needed to init a class
+    model_keys = get_class_initcode_keys(NNAlignEFSinglePass, args)
+    dataset_keys = get_class_initcode_keys(NNAlignDatasetEFSinglePass, args)
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
@@ -189,22 +191,24 @@ def main():
             extrafeat_dim = 0
     if args['add_pep_len']:
         extrafeat_dim += (21 - 13) + 2
-    
+
     # print(f'Extra-features dimensions: {extrafeat_dim}')
 
-    model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, indel=False, **model_params)
+    model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, **model_params)
 
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
-    train_loader, train_dataset = get_NNAlign_dataloaderEFSinglePass(train_df, indel=False, sampler=RandomSampler,
-                                                                     return_dataset=True, **dataset_params)
-    valid_loader, valid_dataset = get_NNAlign_dataloaderEFSinglePass(valid_df, indel=False, sampler=SequentialSampler,
-                                                                     return_dataset=True, **dataset_params)
-    test_loader, test_dataset = get_NNAlign_dataloaderEFSinglePass(test_df, indel=False, sampler=SequentialSampler,
-                                                                   return_dataset=True, **dataset_params)
-    
+
+    train_dataset = NNAlignDatasetEFSinglePass(train_df, **dataset_params)
+    valid_dataset = NNAlignDatasetEFSinglePass(valid_df, **dataset_params)
+    test_dataset = NNAlignDatasetEFSinglePass(test_df, **dataset_params)
+
+    train_loader = train_dataset.get_dataloader(batch_size=args['batch_size'], sampler=RandomSampler)
+    valid_loader = valid_dataset.get_dataloader(batch_size=args['batch_size'] * 2, sampler=SequentialSampler)
+    test_loader = test_dataset.get_dataloader(batch_size=args['batch_size'] * 2, sampler=SequentialSampler)
     # Training loop & train/valid results
+
     model, train_metrics, valid_metrics, train_losses, valid_losses, \
     best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model, criterion,
                                                                optimizer,
@@ -218,7 +222,7 @@ def main():
     train_aucs = [x['auc'] for x in train_metrics]
     valid_aucs = [x['auc'] for x in valid_metrics]
     plot_loss_aucs(train_losses, valid_losses, train_aucs, valid_aucs,
-                   unique_filename, outdir, 300)
+                   unique_filename, outdir, 150)
 
     # Reload the model and predict
     print('Reloading best model and returning validation and test predictions')

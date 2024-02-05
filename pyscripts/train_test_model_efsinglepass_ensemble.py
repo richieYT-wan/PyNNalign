@@ -11,7 +11,7 @@ from torch import optim
 from torch import nn
 from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
-from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
+from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, get_class_initcode_keys
 from src.torch_utils import save_checkpoint, load_checkpoint
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
@@ -75,6 +75,8 @@ def args_parser():
                         help='Whether to add length of the flanking regions of each motif to the model (true/false)')
     parser.add_argument('-add_pep_len', '--add_pep_len', dest='add_pep_len', type=str2bool, default=False,
                         help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
+    parser.add_argument('-indel', '--indel', dest='indel', type=str2bool, default=False,
+                        help='Whether to add insertions/deletions')
     """
     Neural Net & Encoding args 
     """
@@ -163,11 +165,9 @@ def main():
         train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
 
     test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
-    # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
-    # Def params so it's ✨tidy✨
-    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize', 'add_hidden_layer', 'n_hidden_2']
-    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale',
-                    'feature_cols', 'add_pseudo_sequence', 'pseudo_seq_col', 'add_pfr', 'add_fr_len', 'add_pep_len']
+    # Def params so it's ✨tidy✨, using get_class_initcode to get the keys needed to init a class
+    model_keys = get_class_initcode_keys(NNAlignEFSinglePass, args)
+    dataset_keys = get_class_initcode_keys(NNAlignDatasetEFSinglePass, args)
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
@@ -220,9 +220,9 @@ def main():
 
     valid_preds_list = []
     test_preds_list = []
-    train_dataset = NNAlignDatasetEFSinglePass(train_df, indel=False, **dataset_params)
-    valid_dataset = NNAlignDatasetEFSinglePass(valid_df, indel=False, **dataset_params)
-    test_dataset = NNAlignDatasetEFSinglePass(test_df, indel=False, **dataset_params)
+    train_dataset = NNAlignDatasetEFSinglePass(train_df, **dataset_params)
+    valid_dataset = NNAlignDatasetEFSinglePass(valid_df, **dataset_params)
+    test_dataset = NNAlignDatasetEFSinglePass(test_df, **dataset_params)
     valid_loader = valid_dataset.get_dataloader(args['batch_size'], sampler=SequentialSampler)
     test_loader = test_dataset.get_dataloader(args['batch_size'], sampler=SequentialSampler)
 

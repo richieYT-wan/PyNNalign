@@ -3,8 +3,9 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from src.data_processing import encode_batch, encode_batch_weighted, PFR_calculation, FR_lengths, pep_len_1hot
-from memory_profiler import profile
+# from memory_profiler import profile
 from datetime import datetime as dt
+
 
 class SuperDataset(Dataset):
     def __init__(self, x=torch.empty([100, 1])):
@@ -27,7 +28,8 @@ class SuperDataset(Dataset):
 
 class NNAlignDataset(SuperDataset):
     """
-    Here for now, only get encoding and try to
+        OLD DATASET - DO NOT USE THIS
+        Here for now, only get encoding and try to
     """
 
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
@@ -123,9 +125,9 @@ def get_NNAlign_dataloader(df: pd.DataFrame, max_len: int, window_size: int, enc
 
 class NNAlignDatasetEFSinglePass(SuperDataset):
     """
-    #TODO : Carlos here this class is for you. From now on, only use this class
-    Here for now, only get encoding and try to
+    CLASS TO USE
     """
+
     # @profile
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
@@ -156,6 +158,12 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         # Expand and unfold the sub kmers and the target to match the shape ; contiguous to allow for view operations
         self.x_tensor = x.unfold(1, window_size, 1).transpose(2, 3) \
             .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3).contiguous()
+
+        # TODO : Pablo, here you will add / handle the INsertion and DELetion
+        # if indel:
+            # indel_window = get_insertions_deletions(...)
+            # self.x_tensor = torch.stack or torch cat between self.x_tensor and indel_window
+
         # kmer_time = dt.now()
         self.y = y.contiguous()
         self.x_features = torch.empty((len(x),))
@@ -221,6 +229,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         # print('elapsed_pfrlen', f'{elapsed_pfrlen[0]} minutes {elapsed_pfrlen[1]} secs')
         # elapsed_peplen = divmod(elapsed_peplen.seconds, 60)
         # print('elapsed_peplen', f'{elapsed_peplen[0]} minutes {elapsed_peplen[1]} secs')
+
     def __len__(self):
         return self.len
 
@@ -237,7 +246,8 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         if self.burn_in_flag:
             if self.extra_features_flag:
                 # 4
-                print(f'Tensor, Burn_in_mask, x_features, and y shapes: {self.x_tensor[idx].shape}, {self.burn_in_mask[idx].shape}, {self.x_features[idx].shape}, {self.y[idx].shape}')
+                print(
+                    f'Tensor, Burn_in_mask, x_features, and y shapes: {self.x_tensor[idx].shape}, {self.burn_in_mask[idx].shape}, {self.x_features[idx].shape}, {self.y[idx].shape}')
                 return self.x_tensor[idx], self.burn_in_mask[idx], self.x_features[idx], self.y[idx]
             else:
                 # 2

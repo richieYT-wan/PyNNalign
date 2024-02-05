@@ -592,6 +592,9 @@ class NNAlignEFSinglePass(NetParent):
 
 
 class NNAlign(NetParent):
+    """
+    This simply combines standardizer with nnalign in a slightly different architecture than EFsinglePass
+    """
     def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0, indel=False,
                  standardize=True, **kwargs):
         super(NNAlign, self).__init__()

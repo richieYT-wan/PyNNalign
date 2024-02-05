@@ -11,12 +11,12 @@ from torch import optim
 from torch import nn
 from torch.utils.data import RandomSampler, SequentialSampler
 from datetime import datetime as dt
-from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs
+from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, get_class_initcode_keys
 from src.torch_utils import save_checkpoint, load_checkpoint
 from src.models import NNAlign
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
-from src.datasets import get_NNAlign_dataloader
+from src.datasets import NNAlignDataset
 from matplotlib import pyplot as plt
 import seaborn as sns
 
@@ -108,8 +108,8 @@ def main():
         train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
     # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
     # Def params so it's ✨tidy✨
-    model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize']
-    dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size']
+    model_keys = get_class_initcode_keys(NNAlign, args)
+    dataset_keys = get_class_initcode_keys(NNAlignDataset, args)
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
@@ -117,10 +117,13 @@ def main():
     model = NNAlign(activation=nn.SELU(), indel=False, **model_params)
     criterion = nn.BCEWithLogitsLoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
-    train_loader, train_dataset = get_NNAlign_dataloader(train_df, indel=False, sampler=RandomSampler,
-                                                         return_dataset=True, **dataset_params)
-    valid_loader, valid_dataset = get_NNAlign_dataloader(valid_df, indel=False, sampler=SequentialSampler,
-                                                         return_dataset=True, **dataset_params)
+
+    train_dataset = NNAlignDataset(train_df, **dataset_params)
+    valid_dataset = NNAlignDataset(valid_df, **dataset_params)
+
+    train_loader = train_dataset.get_dataloader(batch_size=args['batch_size'], sampler=RandomSampler)
+    valid_loader = valid_dataset.get_dataloader(batch_size=args['batch_size'] * 2, sampler=SequentialSampler)
+
 
     model, train_metrics, valid_metrics, train_losses, valid_losses, \
         best_epoch, best_val_loss, best_val_auc = train_eval_loops(args['n_epochs'], args['tolerance'], model, criterion, optimizer,

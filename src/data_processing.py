@@ -210,7 +210,7 @@ def encode(sequence, max_len=None, encoding='onehot', pad_scale=None):
         for idx in range(size):
             # Here, the way Morten takes cares of Xs is to leave it blank, i.e. as zeros
             # So only use blosum matrix to encode if sequence[idx] != 'X'
-            if sequence[idx]!='X':
+            if sequence[idx]!='X' and sequence[idx]!='-':
                 tmp[idx, :] = blosum_matrix[sequence[idx]]
 
 

@@ -3,7 +3,7 @@ from tqdm.auto import tqdm
 import os, sys
 from os import path
 
-module_path = os.path.abspath(os.path.join('..'))
+module_path = os.path.abspath(os.path.join('../..'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 

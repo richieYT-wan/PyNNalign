@@ -137,7 +137,7 @@ def eval_model_step(model, criterion, valid_loader):
     return valid_loss, valid_metrics
 
 
-def predict_model(model, dataset: NNAlignDataset, dataloader: torch.utils.data.DataLoader):
+def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
     assert type(dataloader.sampler) == torch.utils.data.SequentialSampler, \
         'Test/Valid loader MUST use SequentialSampler!'
     assert hasattr(dataset, 'df'), 'Not DF found for this dataset!'
@@ -164,6 +164,13 @@ def predict_model(model, dataset: NNAlignDataset, dataloader: torch.utils.data.D
     df['core_start_index'] = best_indices
     df['label'] = ys
     seq_col, window_size = dataset.seq_col, dataset.window_size
+
+    # TODO: Pablo, here, at some point you will need to modify this function when insertions/deletions work
+    #       Currently, to get the motif we simply read the sequence and use the "best index" from the window
+    #       to get the corresponding binding core.
+    #       When we do In/Del, we will have extra core indices (as returned by x_mask), and we will need to adapt
+    #       to find which binding motif this corresponds to
+
     df['motif'] = df.apply(get_motif, seq_col=seq_col, window_size=window_size, axis=1)
     return df
 
