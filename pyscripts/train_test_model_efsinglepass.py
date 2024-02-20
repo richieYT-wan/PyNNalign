@@ -20,7 +20,6 @@ from sklearn.model_selection import train_test_split
 from src.datasets import NNAlignDatasetEFSinglePass
 from matplotlib import pyplot as plt
 import seaborn as sns
-from memory_profiler import profile
 
 import argparse
 
@@ -148,6 +147,7 @@ def main():
     df = pd.read_csv(args['train_file'])
     tmp = args['seq_col']
     # Filtering from training set
+
     test_df = pd.read_csv(args['test_file'])
 
     if args['fold'] is not None:

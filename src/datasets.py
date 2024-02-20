@@ -133,7 +133,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'],
                  add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False,
-                 add_pep_len=False):
+                 add_pep_len=False, add_z=True):
         # start = dt.now()
         super(NNAlignDatasetEFSinglePass, self).__init__()
         # Encoding stuff

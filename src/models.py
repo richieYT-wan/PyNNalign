@@ -330,9 +330,9 @@ class NNAlignSinglePass(NetParent):
 
     def __init__(self, n_hidden, window_size,
                  activation, batchnorm=False,
-                 dropout=0.0, indel=False):
+                 dropout=0.0):
         super(NNAlignSinglePass, self).__init__()
-        self.matrix_dim = 21 if indel else 20
+        self.matrix_dim = 20
         self.window_size = window_size
         self.n_hidden = n_hidden
         self.in_layer = nn.Linear(self.window_size * self.matrix_dim, n_hidden)
@@ -432,10 +432,10 @@ class NNAlignEFSinglePass(NetParent):
 
     def __init__(self, n_hidden, n_hidden_2, window_size,
                  activation, extrafeat_dim=0, batchnorm=False,
-                 dropout=0.0, indel=False, standardize=False,
+                 dropout=0.0, standardize=False,
                  add_hidden_layer=False):
         super(NNAlignEFSinglePass, self).__init__()
-        self.matrix_dim = 21 if indel else 20
+        self.matrix_dim = 20
         self.window_size = window_size
         self.n_hidden = n_hidden
         self.n_hidden_2 = n_hidden_2
@@ -595,14 +595,14 @@ class NNAlign(NetParent):
     """
     This simply combines standardizer with nnalign in a slightly different architecture than EFsinglePass
     """
-    def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0, indel=False,
+    def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0,
                  standardize=True, **kwargs):
         super(NNAlign, self).__init__()
-        self.nnalign = NNAlignSinglePass(n_hidden, window_size, activation, batchnorm, dropout, indel)
+        self.nnalign = NNAlignSinglePass(n_hidden, window_size, activation, batchnorm, dropout)
         self.standardizer = StandardizerSequence(window_size * 20) if standardize else StdBypass()
         # Save here to make reloading a model potentially easier
         self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
-                            'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel,
+                            'batchnorm': batchnorm, 'dropout': dropout,
                             'standardize': standardize}
 
     def fit_standardizer(self, x_tensor: torch.Tensor, x_mask):
@@ -763,13 +763,12 @@ class NNAlignEF_OLD(NetParent):
 
     """
 
-    def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0,
-                 indel=False, standardize=True,
+    def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0, standardize=True,
                  n_extrafeatures=0, n_hidden_ef=5, activation_ef=nn.SELU(), batchnorm_ef=False, dropout_ef=0.0,
                  **kwargs):
         super(NNAlignEF_OLD, self).__init__()
         # NNAlign part
-        self.nnalign_model = NNAlign(n_hidden, window_size, activation, batchnorm, dropout, indel, standardize)
+        self.nnalign_model = NNAlign(n_hidden, window_size, activation, batchnorm, dropout, standardize)
         # Extra layer part
         self.in_dim = n_extrafeatures + 1  # +1 because that's the dimension of the logit scores returned by NNAlign
         self.ef_standardizer = StandardizerFeatures(n_feats=n_extrafeatures) if standardize else StdBypass()
@@ -784,7 +783,7 @@ class NNAlignEF_OLD(NetParent):
             self.ef_bn1 = nn.BatchNorm1d(n_hidden_ef)
 
         self.init_params = {'n_hidden': n_hidden, 'window_size': window_size, 'activation': activation,
-                            'batchnorm': batchnorm, 'dropout': dropout, 'indel': indel, 'standardize': standardize,
+                            'batchnorm': batchnorm, 'dropout': dropout, 'standardize': standardize,
                             'n_extrafeatures': n_extrafeatures, 'n_hidden_ef': n_hidden_ef,
                             'activation_ef': activation_ef,
                             'batchnorm_ef': batchnorm_ef, 'dropout_ef': dropout_ef}
