@@ -141,7 +141,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
             feature_cols = []
         df['len'] = df[seq_col].apply(len)
         df = df.query('len<=@max_len')
-        matrix_dim = 21 if indel else 20
+        matrix_dim = 20
         # query_time = dt.now()
         x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
         y = torch.from_numpy(df[target_col].values).float().view(-1, 1)
@@ -162,7 +162,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
             x_indel = x_indel[:,:,:window_size, :]
             indel_mask = batch_indel_mask(len_mask, window_size)
             x = torch.cat([x, x_indel], dim=1)
-            x_mask = torch.cat([x_mask, indel_mask])
+            x_mask = torch.cat([x_mask, indel_mask], dim=1)
 
         # Creating another mask for the burn-in period+bool flag switch
         self.burn_in_mask = _get_burnin_mask_batch(df[seq_col].values, max_len, window_size, burnin_alphabet).unsqueeze(
