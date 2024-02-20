@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
-from src.data_processing import encode_batch, encode_batch_weighted, PFR_calculation, FR_lengths, pep_len_1hot
+from src.data_processing import encode_batch, encode_batch_weighted, PFR_calculation, FR_lengths, pep_len_1hot, batch_insertion_deletion, batch_indel_mask
 # from memory_profiler import profile
 from datetime import datetime as dt
 
@@ -147,23 +147,33 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         y = torch.from_numpy(df[target_col].values).float().view(-1, 1)
         # encode_time = dt.now()
         # Creating the mask to allow selection of kmers without padding
-        x_mask = torch.from_numpy(df['len'].values) - window_size
+        len_mask = torch.from_numpy(df['len'].values)
+        x_mask = len_mask - window_size
         range_tensor = torch.arange(max_len - window_size + 1).unsqueeze(0).repeat(len(x), 1)
         # Mask for Kmers + padding
-        self.x_mask = (range_tensor <= x_mask.unsqueeze(1)).float().unsqueeze(-1)
+        x_mask = (range_tensor <= x_mask.unsqueeze(1)).float().unsqueeze(-1)
+        # Expand the kmers windows for base sequence without indels
+        x = x.unfold(1, window_size, 1).transpose(2, 3) \
+             .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim)
+        # Creating indels window and mask 
+        if indel:
+            x_indel = batch_insertion_deletion(df[seq_col], max_len, encoding, pad_scale, window_size)
+            # remove padding from indel windows
+            x_indel = x_indel[:,:,:window_size, :]
+            indel_mask = batch_indel_mask(len_mask, window_size)
+            x = torch.cat([x, x_indel], dim=1)
+            x_mask = torch.cat([x_mask, indel_mask])
+
         # Creating another mask for the burn-in period+bool flag switch
         self.burn_in_mask = _get_burnin_mask_batch(df[seq_col].values, max_len, window_size, burnin_alphabet).unsqueeze(
             -1)
         self.burn_in_flag = False
+
         # Expand and unfold the sub kmers and the target to match the shape ; contiguous to allow for view operations
-        self.x_tensor = x.unfold(1, window_size, 1).transpose(2, 3) \
-            .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim).flatten(2, 3).contiguous()
+        self.x_tensor = x.flatten(2, 3).contiguous()
+        self.x_mask = x_mask
 
-        # TODO : Pablo, here you will add / handle the INsertion and DELetion
-        # if indel:
-            # indel_window = get_insertions_deletions(...)
-            # self.x_tensor = torch.stack or torch cat between self.x_tensor and indel_window
-
+   
         # kmer_time = dt.now()
         self.y = y.contiguous()
         self.x_features = torch.empty((len(x),))

@@ -610,3 +610,54 @@ def pep_len_1hot(df_seq, max_len, window_size, min_length, max_length):
     # print('Peptide lengths encoded for this dataset completed')
     
     return(expanded_tensor)
+
+# Function for adding indels
+
+def do_insertion_deletion(sequence, max_len=13, encoding='BL50LO', pad_scale=-20, window_size=9):
+    length = len(sequence)
+    indel_windows = []
+
+    # Insertion for sequences shorter than the window size
+    if length < window_size:
+        for i in range(window_size):
+            indel_windows.append(sequence[:i] + '-' + sequence[i:])
+        indel_windows.append('-'*9)    
+    # Replicate sequence for sequences equal to the window size
+    elif length == window_size:
+        indel_windows.append(sequence)
+        while len(indel_windows) < (window_size + 1):  
+            indel_windows.append('-'*9) 
+    # Deletion for sequences longer than the window size
+    else:
+        del_len = length - window_size
+        for i in range(length - del_len + 1):
+            indel_windows.append(sequence[:i] + sequence[i+del_len:])
+            
+    # Encoding the sequences
+    encoded_sequences = encode_batch(indel_windows, max_len=max_len, encoding=encoding, pad_scale=pad_scale)
+    return encoded_sequences
+    
+def batch_insertion_deletion(sequences, max_len=13, encoding='BL50LO', pad_scale=-20, window_size=9):
+    # Process each sequence individually with do_insertion_deletion
+    processed_sequences = [do_insertion_deletion(seq, max_len=max_len, encoding=encoding, pad_scale=pad_scale, window_size=window_size) for seq in sequences]
+    
+    # Stack the processed sequences along a new dimension to maintain the N x 9 x 13 x 20 structure
+    # Ensure each do_insertion_deletion call returns a tensor of shape 9 x 13 x 20
+    indel_windows_batch = torch.stack(processed_sequences)
+    return indel_windows_batch
+
+def create_indel_mask(length, window_size):
+    mask = torch.zeros(1, window_size+1, 1)
+    if length<window_size:
+        mask[:, :-1, :].fill_(1)
+    elif length==window_size:
+        # Actually shouldn't fill with 1 because we are concatenating to the other mask
+        # and only a single window (i.e. the first, un-concatenated one) is the correct one
+        # mask[:, :1, :].fill_(1)
+        pass
+    elif length>window_size:
+        mask.fill_(1)
+    return mask
+
+def batch_indel_mask(lengths, window_size):
+    return torch.cat([create_indel_mask(length, window_size) for length in lengths], dim=0)
