@@ -26,14 +26,37 @@ def get_class_initcode_keys(class_: object, dict_kwargs: dict) -> list:
     return [x for x in dict_kwargs.keys() if x in init_code]
 
 
-def get_motif(row, seq_col, window_size):
-    # TODO: Pablo, here, at some point you will need to modify this function when insertions/deletions work
-    #       Currently, to get the motif we simply read the sequence and use the "best index" from the window
-    #       to get the corresponding binding core.
-    #       When we do In/Del, we will have extra core indices (as returned by x_mask), and we will need to adapt
-    #       to find which binding motif this corresponds to
+def get_motif(row, seq_col, window_size, max_len):
+    
+    best_index = int(row['core_start_index'])
+    sequence = row[seq_col]
 
-    return row[seq_col][int(row['core_start_index']):int(row['core_start_index']) + window_size]
+    if best_index < max_len - window_size + 1:
+        return sequence[best_index:best_index + window_size]
+    
+    # For insertions or deletions
+    else:
+        seq_len = len(sequence)
+        # Adjust best_index for 0-based indexing
+        adjusted_index = best_index - (max_len - window_size + 1)
+        motif = ''
+        # Handling insertions
+        if seq_len < window_size:
+            insertion_position = adjusted_index
+            motif = sequence[:insertion_position] + '-' + sequence[insertion_position:]
+            motif = motif[:window_size]  # Ensure motif is not longer than window size
+        
+        # Handling deletions
+        elif seq_len > window_size:
+            deletion_position = adjusted_index
+            del_len = seq_len - window_size
+            motif = sequence[:deletion_position] + sequence[deletion_position + del_len:]
+            # If the sequence with deletion is longer than window_size, trim it to the window_size
+            if len(motif) > window_size:
+                motif = motif[:window_size]
+                
+        return motif
+
 
 
 def plot_loss_aucs(train_losses, valid_losses, train_aucs, valid_aucs,
