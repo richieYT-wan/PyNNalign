@@ -163,7 +163,7 @@ def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
     df['pred'] = predictions
     df['core_start_index'] = best_indices
     df['label'] = ys
-    seq_col, window_size = dataset.seq_col, dataset.window_size
+    seq_col, window_size, max_len = dataset.seq_col, dataset.window_size, dataset.max_len
 
     # TODO: Pablo, here, at some point you will need to modify this function when insertions/deletions work
     #       Currently, to get the motif we simply read the sequence and use the "best index" from the window
@@ -171,7 +171,7 @@ def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
     #       When we do In/Del, we will have extra core indices (as returned by x_mask), and we will need to adapt
     #       to find which binding motif this corresponds to
 
-    df['motif'] = df.apply(get_motif, seq_col=seq_col, window_size=window_size, axis=1)
+    df['motif'] = df.apply(get_motif, seq_col=seq_col, window_size=window_size, max_len=max_len, axis=1)
     return df
 
 # @profile
