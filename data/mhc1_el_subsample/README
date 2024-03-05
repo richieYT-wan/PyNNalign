@@ -1,0 +1,15 @@
+- subsample 10k taken from  /home/projects/vaccine/people/morni/NetMHCpan-4.1_wcontext/data/HLA_annotated
+
+- subsample 200 and 500k taken from glob in  /home/projects/vaccine/people/morni/NetMHCpan-4.1_wcontext/data/HLA_annotated
+> see python below
+In [18]: df = pd.concat([pd.read_csv(x, names = ['sequence', 'target', 'HLA', 'pseudoseq'], sep=' ', header=None).query('HLA.
+    ...: str.startswith("HLA")').assign(fold=i).sample(100000, random_state=13) for i,x in enumerate(sorted(glob.glob('*_el')
+    ...: ))])
+
+In [21]: df.to_csv('/home/projects/vaccine/people/yatwan/mhc1_el_500k_subsample.csv', index=False)
+
+In [23]: df = pd.concat([pd.read_csv(x, names = ['sequence', 'target', 'HLA', 'pseudoseq'], sep=' ', header=None).query('HLA.
+    ...: str.startswith("HLA")').assign(fold=i).sample(40000, random_state=13) for i,x in enumerate(sorted(glob.glob('*_el'))
+    ...: )])
+
+In [26]: df.to_csv('/home/projects/vaccine/people/yatwan/mhc1_el_200k_subsample.csv', index=False)
