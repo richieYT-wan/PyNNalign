@@ -1,0 +1,125 @@
+{'file': '../data/NetMHCIIpan_train/drb_python.csv', 'out': '230804_BENCH_PYTHON', 'split': 5, 'fold': 1, 'seq_col': 'Sequence', 'target_col': 'target', 'encoding': 'BL50LO', 'max_len': 21, 'pad_scale': 0.0, 'n_hidden': 50, 'standardize': True, 'batchnorm': True, 'dropout': 0.0, 'window_size': 9, 'burn_in': 10, 'lr': 0.0001, 'weight_decay': 0.01, 'batch_size': 256, 'n_epochs': 100, 'tolerance': 0.0001}
+Doing burn-in period
+Starting 100 training cycles
+
+Epoch 10: train loss, AUC:	0.2001,	0.948
+Epoch 10: valid loss, AUC:	0.1987,	0.910
+
+Epoch 20: train loss, AUC:	0.1647,	0.958
+Epoch 20: valid loss, AUC:	0.1718,	0.926
+
+Epoch 30: train loss, AUC:	0.1490,	0.964
+Epoch 30: valid loss, AUC:	0.1617,	0.928
+
+Epoch 40: train loss, AUC:	0.1417,	0.966
+Epoch 40: valid loss, AUC:	0.1576,	0.930
+
+Epoch 50: train loss, AUC:	0.1383,	0.967
+Epoch 50: valid loss, AUC:	0.1552,	0.931
+
+Epoch 60: train loss, AUC:	0.1346,	0.969
+Epoch 60: valid loss, AUC:	0.1572,	0.930
+
+Epoch 70: train loss, AUC:	0.1341,	0.968
+Epoch 70: valid loss, AUC:	0.1556,	0.929
+
+Epoch 80: train loss, AUC:	0.1334,	0.969
+Epoch 80: valid loss, AUC:	0.1532,	0.931
+
+Epoch 90: train loss, AUC:	0.1331,	0.969
+Epoch 90: valid loss, AUC:	0.1529,	0.935
+
+Epoch 100: train loss, AUC:	0.1327,	0.969
+Epoch 100: valid loss, AUC:	0.1546,	0.930
+End of training cycles
+Best train loss:	1.320e-01, best train AUC:	0.9694
+Best valid epoch: 75
+Best valid loss :	1.513e-01, best valid AUC:	0.935
+Reloaded best model at /home/projects/vaccine/people/yatwan/PyNNalign/output/230804_BENCH_PYTHON_230809_1511_93Ltf/checkpoint_best_kcv_drb_python_f1_230804_BENCH_PYTHON_230809_1511_93Ltf.pt
+Reloading best model and returning validation predictions
+Saving valid predictions from best model
+Program finished in 1 minutes, 32 seconds.
+{'file': '../data/NetMHCIIpan_train/drb_python.csv', 'out': '230804_BENCH_PYTHON', 'split': 5, 'fold': 1, 'seq_col': 'Sequence', 'target_col': 'target', 'encoding': 'BL50LO', 'max_len': 21, 'pad_scale': 0.0, 'n_hidden': 50, 'standardize': True, 'batchnorm': True, 'dropout': 0.0, 'window_size': 9, 'burn_in': 10, 'lr': 0.0001, 'weight_decay': 0.01, 'batch_size': 256, 'n_epochs': 100, 'tolerance': 0.0001}
+Doing burn-in period
+Starting 100 training cycles
+
+Epoch 10: train loss, AUC:	0.2003,	0.947
+Epoch 10: valid loss, AUC:	0.1982,	0.908
+
+Epoch 20: train loss, AUC:	0.1636,	0.958
+Epoch 20: valid loss, AUC:	0.1711,	0.923
+
+Epoch 30: train loss, AUC:	0.1489,	0.963
+Epoch 30: valid loss, AUC:	0.1628,	0.926
+
+Epoch 40: train loss, AUC:	0.1421,	0.965
+Epoch 40: valid loss, AUC:	0.1579,	0.931
+
+Epoch 50: train loss, AUC:	0.1376,	0.968
+Epoch 50: valid loss, AUC:	0.1546,	0.932
+
+Epoch 60: train loss, AUC:	0.1348,	0.968
+Epoch 60: valid loss, AUC:	0.1553,	0.931
+
+Epoch 70: train loss, AUC:	0.1340,	0.969
+Epoch 70: valid loss, AUC:	0.1549,	0.928
+
+Epoch 80: train loss, AUC:	0.1340,	0.968
+Epoch 80: valid loss, AUC:	0.1536,	0.931
+
+Epoch 90: train loss, AUC:	0.1324,	0.969
+Epoch 90: valid loss, AUC:	0.1543,	0.930
+
+Epoch 100: train loss, AUC:	0.1326,	0.969
+Epoch 100: valid loss, AUC:	0.1547,	0.929
+End of training cycles
+Best train loss:	1.317e-01, best train AUC:	0.9696
+Best valid epoch: 81
+Best valid loss :	1.522e-01, best valid AUC:	0.934
+Reloaded best model at /home/projects/vaccine/people/yatwan/PyNNalign/output/230804_BENCH_PYTHON_230809_1513_20y98/checkpoint_best_kcv_drb_python_f1_230804_BENCH_PYTHON_230809_1513_20y98.pt
+Reloading best model and returning validation predictions
+Saving valid predictions from best model
+Program finished in 1 minutes, 34 seconds.
+{'file': '../data/NetMHCIIpan_train/drb_python.csv', 'out': '230804_BENCH_PYTHON', 'split': 5, 'fold': 1, 'seq_col': 'Sequence', 'target_col': 'target', 'encoding': 'BL50LO', 'max_len': 21, 'pad_scale': 0.0, 'n_hidden': 50, 'standardize': True, 'batchnorm': True, 'dropout': 0.0, 'window_size': 9, 'burn_in': 10, 'lr': 0.0001, 'weight_decay': 0.01, 'batch_size': 256, 'n_epochs': 100, 'tolerance': 0.0001}
+Doing burn-in period
+Starting 100 training cycles
+
+Epoch 10: train loss, AUC:	0.1973,	0.949
+Epoch 10: valid loss, AUC:	0.2002,	0.913
+
+Epoch 20: train loss, AUC:	0.1623,	0.959
+Epoch 20: valid loss, AUC:	0.1725,	0.923
+
+Epoch 30: train loss, AUC:	0.1483,	0.963
+Epoch 30: valid loss, AUC:	0.1627,	0.927
+
+Epoch 40: train loss, AUC:	0.1421,	0.965
+Epoch 40: valid loss, AUC:	0.1577,	0.930
+
+Epoch 50: train loss, AUC:	0.1373,	0.967
+Epoch 50: valid loss, AUC:	0.1561,	0.929
+
+Epoch 60: train loss, AUC:	0.1356,	0.967
+Epoch 60: valid loss, AUC:	0.1550,	0.932
+
+Epoch 70: train loss, AUC:	0.1343,	0.968
+Epoch 70: valid loss, AUC:	0.1545,	0.932
+
+Epoch 80: train loss, AUC:	0.1327,	0.968
+Epoch 80: valid loss, AUC:	0.1539,	0.931
+
+Epoch 90: train loss, AUC:	0.1329,	0.968
+Epoch 90: valid loss, AUC:	0.1527,	0.933
+
+Epoch 100: train loss, AUC:	0.1335,	0.968
+Epoch 100: valid loss, AUC:	0.1539,	0.929
+End of training cycles
+Best train loss:	1.325e-01, best train AUC:	0.9688
+Best valid epoch: 76
+Best valid loss :	1.530e-01, best valid AUC:	0.9332
+Reloaded best model at /home/projects/vaccine/people/yatwan/PyNNalign/output/230804_BENCH_PYTHON_230809_1514_23m1L/checkpoint_best_kcv_drb_python_f1_230804_BENCH_PYTHON_230809_1514_23m1L.pt
+Reloading best model and returning validation predictions
+Saving valid predictions from best model
+Program finished in 1 minutes, 32 seconds.
+Total execution time for ./benchmark_python_onefold.sh: 301.295 seconds
+Average execution time for ./benchmark_python_onefold.sh: 100.432 seconds
