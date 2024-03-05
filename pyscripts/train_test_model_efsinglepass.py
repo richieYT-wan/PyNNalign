@@ -163,7 +163,7 @@ def main():
 
     # Quick hotfix because i don't know why this query/eval thing suddenly changed and stopped working
     # tmpvals = train_df[tmp].values
-    test_df = test_df.query(f'{tmp} not in @train_df.@tmp.values')
+    test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
 
     # Def params so it's ✨tidy✨, using get_class_initcode to get the keys needed to init a class
     model_keys = get_class_initcode_keys(NNAlignEFSinglePass, args)

@@ -139,8 +139,13 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         # Encoding stuff
         if feature_cols is None:
             feature_cols = []
+        # Filter out sequences longer than max_len
         df['len'] = df[seq_col].apply(len)
         df = df.query('len<=@max_len')
+        # Then, if indel is False, filter out sequences shorter than windowsize (ex: 8mers for WS=9)
+        if not indel:
+            df = df.query('len>=@window_size')
+
         matrix_dim = 20
         # query_time = dt.now()
         x = encode_batch(df[seq_col], max_len, encoding, pad_scale)

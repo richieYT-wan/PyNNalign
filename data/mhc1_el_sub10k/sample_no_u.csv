@@ -1,4 +1,4 @@
-Sequence,target,HLA,pseudoseq,fold,len,flag
+sequence,target,HLA,pseudoseq,fold,len,flag
 ELLKHQRMHTGHL,0.0,HLA-A01:01,DRQELLGHLPFD,0,13,False
 KKDINNIVKTL,0.0,HLA-B15:01,DIRKKDKTLHEW,0,11,False
 QVNGEAGSYEM,0.0,H-2-Dq,RKSQVNYEMTNQ,0,11,False
