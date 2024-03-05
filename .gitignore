@@ -7,6 +7,7 @@ __pycache__/
 
 # C extensions
 *.so
+*.logs
 
 # Distribution / packaging
 *Untitled.ipynb*
@@ -248,3 +249,4 @@ output/.DS_Store
 .idea/workspace.xml
 data/.DS_Store
 output/.DS_Store
+output/ADD_PS_OLD.logs
