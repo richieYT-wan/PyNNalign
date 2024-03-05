@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
-from src.data_processing import encode_batch, encode_batch_weighted, PFR_calculation, FR_lengths, pep_len_1hot, batch_insertion_deletion, batch_indel_mask
+from src.data_processing import encode_batch, PFR_calculation, FR_lengths, pep_len_1hot, batch_insertion_deletion, batch_indel_mask
 # from memory_profiler import profile
 from datetime import datetime as dt
 
