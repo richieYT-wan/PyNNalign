@@ -13,8 +13,10 @@ import peptides
 
 warnings.filterwarnings('ignore')
 
-DATADIR = '/Users/riwa/Documents/code/PyNNalign/data/' if os.path.exists(os.path.abspath('/Users/riwa/Documents/code/PyNNalign/data')) else '../data/'
-OUTDIR = '/Users/riwa/Documents/code/PyNNalign/output/' if os.path.exists(os.path.abspath('/Users/riwa/Documents/code/PyNNalign/output')) else '../output/'
+DATADIR = '/Users/riwa/Documents/code/PyNNalign/data/' if os.path.exists(
+    os.path.abspath('/Users/riwa/Documents/code/PyNNalign/data')) else '../data/'
+OUTDIR = '/Users/riwa/Documents/code/PyNNalign/output/' if os.path.exists(
+    os.path.abspath('/Users/riwa/Documents/code/PyNNalign/output')) else '../output/'
 # Stupid hardcoded variable
 CNN_FEATS = ['EL_ratio', 'anchor_mutation', 'delta_VHSE1', 'delta_VHSE3', 'delta_VHSE7', 'delta_VHSE8',
              'delta_aliphatic_index',
@@ -147,47 +149,13 @@ def assert_encoding_kwargs(encoding_kwargs, mode_eval=False):
 ######################################
 
 
-def get_aa_properties(df, seq_col='icore_mut', do_vhse=True, prefix=''):
-    """
-    Compute some AA properties that I have selected
-    keep = ['aliphatic_index', 'boman', 'hydrophobicity',
-        'isoelectric_point', 'VHSE1', 'VHSE3', 'VHSE7', 'VHSE8']
-    THIS KEEP IS BASED ON SOME FEATURE DISTRIBUTION AND CORRELATION ANALYSIS
-    Args:
-        df (pandas.DataFrame) : input dataframe, should contain at least the peptide sequences
-        seq_col (str) : column name containing the peptide sequences
-
-    Returns:
-        out (pandas.DataFrame) : The same dataframe but + the computed AA properties
-
-    """
-    out = df.copy()
-
-    out[f'{prefix}aliphatic_index'] = out[seq_col].apply(lambda x: peptides.Peptide(x).aliphatic_index())
-    out[f'{prefix}boman'] = out[seq_col].apply(lambda x: peptides.Peptide(x).boman())
-    out[f'{prefix}hydrophobicity'] = out[seq_col].apply(lambda x: peptides.Peptide(x).hydrophobicity())
-    out[f'{prefix}isoelectric_point'] = out[seq_col].apply(lambda x: peptides.Peptide(x).isoelectric_point())
-    # out['PD2'] = out[seq_col].apply(lambda x: peptides.Peptide(x).physical_descriptors()[1])
-    # out['charge_7_4'] = out[seq_col].apply(lambda x: peptides.Peptide(x).charge(pH=7.4))
-    # out['charge_6_65'] = out[seq_col].apply(lambda x: peptides.Peptide(x).charge(pH=6.65))
-    if do_vhse:
-        vhse = out[seq_col].apply(lambda x: peptides.Peptide(x).vhse_scales())
-        # for i in range(1, 9):
-        #     out[f'VHSE{i}'] = [x[i - 1] for x in vhse]
-        for i in [1, 3, 7, 8]:
-            out[f'VHSE{i}'] = [x[i - 1] for x in vhse]
-
-    # Some hardcoded bs
-    return out, ['aliphatic_index', 'boman', 'hydrophobicity',
-                 'isoelectric_point', 'VHSE1', 'VHSE3', 'VHSE7', 'VHSE8']
-
 
 def encode(sequence, max_len=None, encoding='onehot', pad_scale=None):
     """
     encodes a single peptide into a matrix, using 'onehot' or 'blosum'
     if 'blosum', then need to provide the blosum dictionary as argument
     """
-    assert encoding in encoding_matrix_dict.keys(), f'Wrong encoding key {encoding} passed!'\
+    assert encoding in encoding_matrix_dict.keys(), f'Wrong encoding key {encoding} passed!' \
                                                     f'Should be any of {encoding_matrix_dict.keys()}'
     # One hot encode by setting 1 to positions where amino acid is present, 0 elsewhere
     size = len(sequence)
@@ -210,17 +178,16 @@ def encode(sequence, max_len=None, encoding='onehot', pad_scale=None):
         for idx in range(size):
             # Here, the way Morten takes cares of Xs is to leave it blank, i.e. as zeros
             # So only use blosum matrix to encode if sequence[idx] != 'X'
-            if sequence[idx]!='X' and sequence[idx]!='-':
+            if sequence[idx] != 'X' and sequence[idx] != '-':
                 tmp[idx, :] = blosum_matrix[sequence[idx]]
-
 
     # Padding if max_len is provided
     if max_len is not None and max_len > size:
         diff = int(max_len) - int(size)
         try:
             if pad_scale is None:
-                pad_scale = 0 if encoding=='onehot' else -12
-            tmp = np.concatenate([tmp, pad_scale*np.ones([diff, len(AA_KEYS)], dtype=np.float32)],
+                pad_scale = 0 if encoding == 'onehot' else -12
+            tmp = np.concatenate([tmp, pad_scale * np.ones([diff, len(AA_KEYS)], dtype=np.float32)],
                                  axis=0)
         except:
             print('Here in encode', type(tmp), tmp.shape, len(AA_KEYS), type(diff), type(max_len), type(size), sequence)
@@ -250,63 +217,203 @@ def onehot_batch_decode(onehot_sequences):
     return np.stack([onehot_decode(x) for x in onehot_sequences])
 
 
-def get_ic_weights(df, ics_dict: dict, max_len=None, seq_col='Peptide', hla_col='HLA', mask=False,
-                   invert=False, threshold=0.234):
-    """
+# Function to calculate the mean position values of fixed-size (3) flanking regions of each motif
+def PFR_calculation(df_seq, all_xmask, max_len, window_size=9):
+    # Define output
+    data = encode_batch(df_seq, max_len, 'BL62FREQ', None)  # Coding according the FREQ Blosum matrix (better for PFR)
+    all_pfr = torch.empty((data.shape[0], max_len - window_size + 1, 2, 20))  # Initialize the output tensor
+    for j in range(0, data.shape[0], 1):
 
-    Args:
-        df:
-        ics_dict:
-        max_len:
-        seq_col:
-        hla_col:
-        invert: Invert the behaviour; for KL/Shannon, will take IC instead of 1-IC as weight
-                For Mask, will amplify MIA positions (by 1.3) instead of setting to 0
+        seq = data[j, :]
 
-    Returns:
+        # Previous PFR mask definition
+        PFR_mask_before = 3 * torch.ones((max_len - window_size + 1, 1))
+        PFR_mask_before[:3, 0] = torch.tensor([0, 1, 2], dtype=torch.float32)  # First three elements to 1 and 2
 
-    """
-    # if 'len' not in df.columns:
+        # After PFR mask definition (according to their x_mask)
+        PFR_mask_after = torch.clone(all_xmask[j]) * 3
 
-    df['len'] = df[seq_col].apply(len)
-    if max_len is not None:
-        df = df.query('len<=@max_len')
-    else:
-        max_len = df['len'].max()
-    # Weighting the encoding wrt len and HLA
-    lens = df['len'].values
-    pads = [max_len - x for x in lens]
-    hlas = df[hla_col].str.replace('*', '').str.replace(':', '').values
-    # If mask is true, then the weight is just a 0-1 mask filter
-    # Using the conserved / MIAs positions instead of the ICs
-    if mask:
-        # Get mask for where the values should be thresholded to 0 and 1
-        weights = np.stack([np.pad(ics_dict[l][hla][0.25], pad_width=(0, pad), constant_values=(1, 1)) \
-                            for l, hla, pad in zip(lens, hlas, pads)])
-        # IC > 0.3 goes to 0 because anchor position
-        # IC <= 0.3 goes to 1 because "MIA" position
-        idx_min = (weights > threshold)
-        idx_max = (weights <= threshold)
-        if invert:
-            weights[idx_min] = 1
-            weights[idx_max] = 0
+        # Modification of the previous values before 0 (only if zero exists)
+        zero_indices = torch.where(PFR_mask_after == 0)[0]
+        if zero_indices.numel() > 0:  # Check if there are any zero indices
+            zero_index = zero_indices[0]  # Get the first zero index
+            PFR_mask_after[zero_index - 3] = 2 if zero_index >= 3 else PFR_mask_after[zero_index - 3]
+            PFR_mask_after[zero_index - 2] = 1 if zero_index >= 2 else PFR_mask_after[zero_index - 2]
+            PFR_mask_after[zero_index - 1] = 0 if zero_index >= 1 else PFR_mask_after[zero_index - 1]
+
+        for i in range(0, seq.shape[0] - window_size + 1, 1):
+            # Define the WS-mer
+            peptide = seq[i:i + window_size]
+
+            # Store the resulting PFR tensors
+            prev_pfr = torch.sum(seq[i - int(PFR_mask_before[i]):i], dim=0, keepdim=True) / 3
+            after_pfr = torch.sum(seq[i + window_size:i + window_size + int(PFR_mask_after[i])], dim=0,
+                                  keepdim=True) / 3
+
+            # Store the PFR tensors in the output tensor
+            all_pfr[j, i, 0] = prev_pfr
+            all_pfr[j, i, 1] = after_pfr
+
+    # print('PFR for this dataset completed')
+
+    return all_pfr.flatten(start_dim=2)
+
+
+# Function to calculate the length of the flanking regions of each motif
+def FR_lengths(all_xmask, max_len, window_size=9):
+    # Define output
+    all_FR_len = torch.empty((all_xmask.shape[0], max_len - window_size + 1, 2, 2))
+    # Number of total windows for each sequence
+    len_masks = all_xmask.shape[1]
+
+    for j in range(0, all_xmask.shape[0], 1):
+        # After FR mask
+        FR_mask_after = np.array(all_xmask[j]).reshape(-1)
+        # Count of non-zero values
+        count_nonzero = np.count_nonzero(FR_mask_after) - 1
+        # Filling with 0 according to the mask
+        FR_len_after = np.concatenate([np.arange(count_nonzero, 0, -1), np.zeros(len_masks - count_nonzero)])
+
+        # Before FR mask is always the same
+        FR_len_before = np.arange(max_len - window_size + 1)
+
+        # Transformation of length arrays
+        FR_len_before = FR_len_before / (FR_len_before + 1)
+        FR_len_after = FR_len_after / (FR_len_after + 1)
+
+        # Store the LEN_FR arrays as tensors in the output tensor
+        all_FR_len[j, :, 0, 0] = (torch.tensor(FR_len_before))
+        all_FR_len[j, :, 0, 1] = (torch.tensor(1 - FR_len_before))
+        all_FR_len[j, :, 1, 0] = (torch.tensor(FR_len_after))
+        all_FR_len[j, :, 1, 1] = (torch.tensor(1 - FR_len_after))
+
+    # print('FR lengths for this dataset completed')
+
+    return all_FR_len.flatten(start_dim=2)
+
+
+# Function for encoding the peptide lengths as one-hot
+def pep_len_1hot(df_seq, max_len, window_size, min_length, max_length):
+    # Define the range of possible sequence lengths
+    seq_lens = df_seq.str.len()
+    min_length = 13
+    max_length = 21
+
+    # Create an empty NumPy array for one-hot encoding
+    seq_lens_1hot = np.zeros((len(df_seq), (max_length - min_length) + 2), dtype=int)
+
+    # Fill the one-hot array
+    for i, length in enumerate(seq_lens):
+        if length < min_length:
+            seq_lens_1hot[i, 0] = 1  # Group peptides below length 13
+        elif length > max_length:
+            seq_lens_1hot[i, -1] = 1  # Group peptides above length 21
         else:
-            weights[idx_min] = 0
-            weights[idx_max] = 1
+            seq_lens_1hot[i, length - min_length + 1] = 1  # Group peptides in between
 
+    expanded_tensor = torch.from_numpy(seq_lens_1hot).unsqueeze(1).expand(-1, max_len - window_size + 1, -1)
+
+    # print('Peptide lengths encoded for this dataset completed')
+
+    return (expanded_tensor)
+
+
+# Function for adding indels
+
+def do_insertion_deletion(sequence, max_len=13, encoding='BL50LO', pad_scale=-20, window_size=9):
+    length = len(sequence)
+    indel_windows = []
+
+    # Insertion for sequences shorter than the window size
+    if length < window_size:
+        for i in range(window_size):
+            indel_windows.append(sequence[:i] + '-' + sequence[i:])
+        indel_windows.append('-' * 9)
+        # Replicate sequence for sequences equal to the window size
+    elif length == window_size:
+        indel_windows.append(sequence)
+        while len(indel_windows) < (window_size + 1):
+            indel_windows.append('-' * 9)
+            # Deletion for sequences longer than the window size
     else:
-        if invert:  # If invert, then uses the actual IC as weight
-            weights = np.stack([np.pad(ics_dict[l][hla][0.25], pad_width=(0, pad), constant_values=(0, 1)) \
-                                for l, hla, pad in zip(lens, hlas, pads)])
-        else:  # Else we get the weight with the 1-IC depending on the IC dict provided
-            weights = 1 - np.stack([np.pad(ics_dict[l][hla][0.25], pad_width=(0, pad), constant_values=(1, 1)) \
-                                    for l, hla, pad in zip(lens, hlas, pads)])
+        del_len = length - window_size
+        for i in range(length - del_len + 1):
+            indel_windows.append(sequence[:i] + sequence[i + del_len:])
 
-    weights = np.expand_dims(weights, axis=2).repeat(len(AA_KEYS), axis=2)
-    return weights
+    # Encoding the sequences
+    encoded_sequences = encode_batch(indel_windows, max_len=max_len, encoding=encoding, pad_scale=pad_scale)
+    return encoded_sequences
 
 
-# Here stuff for extra AA bulging out:
+def batch_insertion_deletion(sequences, max_len=13, encoding='BL50LO', pad_scale=-20, window_size=9):
+    # Process each sequence individually with do_insertion_deletion
+    processed_sequences = [
+        do_insertion_deletion(seq, max_len=max_len, encoding=encoding, pad_scale=pad_scale, window_size=window_size) for
+        seq in sequences]
+
+    # Stack the processed sequences along a new dimension to maintain the N x 9 x 13 x 20 structure
+    # Ensure each do_insertion_deletion call returns a tensor of shape 9 x 13 x 20
+    indel_windows_batch = torch.stack(processed_sequences)
+    return indel_windows_batch
+
+
+def create_indel_mask(length, window_size):
+    mask = torch.zeros(1, window_size + 1, 1)
+    if length < window_size:
+        mask[:, :-1, :].fill_(1)
+    elif length == window_size:
+        # Actually shouldn't fill with 1 because we are concatenating to the other mask
+        # and only a single window (i.e. the first, un-concatenated one) is the correct one
+        # mask[:, :1, :].fill_(1)
+        pass
+    elif length > window_size:
+        mask.fill_(1)
+    return mask
+
+
+def batch_indel_mask(lengths, window_size):
+    return torch.cat([create_indel_mask(length, window_size) for length in lengths], dim=0)
+
+
+####################################################
+#     OLD Here stuff for extra AA bulging out:     #
+####################################################
+
+#
+# def get_aa_properties(df, seq_col='icore_mut', do_vhse=True, prefix=''):
+#     """
+#     Compute some AA properties that I have selected
+#     keep = ['aliphatic_index', 'boman', 'hydrophobicity',
+#         'isoelectric_point', 'VHSE1', 'VHSE3', 'VHSE7', 'VHSE8']
+#     THIS KEEP IS BASED ON SOME FEATURE DISTRIBUTION AND CORRELATION ANALYSIS
+#     Args:
+#         df (pandas.DataFrame) : input dataframe, should contain at least the peptide sequences
+#         seq_col (str) : column name containing the peptide sequences
+#
+#     Returns:
+#         out (pandas.DataFrame) : The same dataframe but + the computed AA properties
+#
+#     """
+#     out = df.copy()
+#
+#     out[f'{prefix}aliphatic_index'] = out[seq_col].apply(lambda x: peptides.Peptide(x).aliphatic_index())
+#     out[f'{prefix}boman'] = out[seq_col].apply(lambda x: peptides.Peptide(x).boman())
+#     out[f'{prefix}hydrophobicity'] = out[seq_col].apply(lambda x: peptides.Peptide(x).hydrophobicity())
+#     out[f'{prefix}isoelectric_point'] = out[seq_col].apply(lambda x: peptides.Peptide(x).isoelectric_point())
+#     # out['PD2'] = out[seq_col].apply(lambda x: peptides.Peptide(x).physical_descriptors()[1])
+#     # out['charge_7_4'] = out[seq_col].apply(lambda x: peptides.Peptide(x).charge(pH=7.4))
+#     # out['charge_6_65'] = out[seq_col].apply(lambda x: peptides.Peptide(x).charge(pH=6.65))
+#     if do_vhse:
+#         vhse = out[seq_col].apply(lambda x: peptides.Peptide(x).vhse_scales())
+#         # for i in range(1, 9):
+#         #     out[f'VHSE{i}'] = [x[i - 1] for x in vhse]
+#         for i in [1, 3, 7, 8]:
+#             out[f'VHSE{i}'] = [x[i - 1] for x in vhse]
+#
+#     # Some hardcoded bs
+#     return out, ['aliphatic_index', 'boman', 'hydrophobicity',
+#                  'isoelectric_point', 'VHSE1', 'VHSE3', 'VHSE7', 'VHSE8']
+#
 
 def find_extra_aa(core, icore):
     """
@@ -350,314 +457,3 @@ def batch_find_extra_aa(core_seqs, icore_seqs):
     mapped = list(map(find_extra_aa, core_seqs, icore_seqs))
     encoded, lens = np.array([x[0] for x in mapped]), np.array([x[1] for x in mapped])
     return encoded, lens
-
-
-def encode_batch_weighted(df, ics_dict=None, device=None, max_len=None, encoding='onehot', seq_col='Peptide',
-                          hla_col='HLA', target_col='agg_label', mask=False, invert=False, threshold=.234,
-                          return_weights=False):
-    """
-    Takes as input a df containing sequence, len, HLA;
-    Batch onehot-encode all sequences & weights them with (1-IC) depending on the ICs dict given
-
-    Args:
-        target_col:
-        df (pandas.DataFrame): DF containing pep sequence, HLA, optionally 'len'
-        ics_dict (dict): Dictionary containing the ICs
-        device (str) : device for cpu or cuda transfer
-        max_len (int): Maximum length to consider
-        encoding (str) : 'onehot' or 'blosum'
-        seq_col (str): Name of the column containing the Peptide sequences (default = 'Peptide')
-        hla_col (str): Name of the column containing the HLA alleles (default = 'HLA')
-
-
-    Returns:
-        weighted_sequence (torch.Tensor): Tensor containing the weighted onehot-encoded peptide sequences.
-    """
-    df = verify_df(df, seq_col, hla_col, target_col)
-    if seq_col == 'expanded_input':
-        df['seq_len'] = df[seq_col].apply(lambda x: len(x) - x.count('-'))
-    else:
-        df['seq_len'] = df[seq_col].apply(len)
-    if max_len is not None:
-        df = df.query('seq_len<=@max_len')
-    else:
-        max_len = df['seq_len'].max()
-
-    # Encoding the sequences
-    encoded_sequences = encode_batch(df[seq_col].values, max_len, encoding=encoding)
-    if ics_dict is not None:
-        weights = get_ic_weights(df, ics_dict, max_len, seq_col, hla_col, mask, invert, threshold)
-    else:
-        # Here, if no ics_dict is provided, the normal weight will just be ones everywhere
-        # In case we are not doing weighted sequence (either for onehot-input or frequency computation)
-        weights = np.ones(encoded_sequences.shape)
-    weighted_sequences = torch.from_numpy(weights) * encoded_sequences
-    true_lens = df['seq_len'].values
-    if device is None:
-        return weighted_sequences.float(), true_lens
-    else:
-        return weighted_sequences.to(device).float(), true_lens
-
-
-def get_train_valid_dfs(dataframe, fold_inner, fold_outer):
-    train_data = dataframe.query('fold != @fold_inner and fold != @fold_outer')
-    valid_data = dataframe.query('fold == @fold_inner')
-    return train_data, valid_data
-
-
-def get_array_dataset(df, ics_dict, max_len=12, encoding='onehot', seq_col='icore_mut', hla_col='HLA',
-                      target_col='agg_label', rank_col='EL_rank_mut', mask=False, invert=False, add_rank=True,
-                      add_aaprop=False, remove_pep=False, threshold=0.234, icore_bulge=False, core_col='core_mut',
-                      icore_col='icore_mut'):
-    """
-        Computes the frequencies as the main features
-        Takes as input a df containing sequence, len, HLA;
-        Batch encode all sequences & weights them with (1-IC) depending on the ICs dict given
-        Stacks it with the targets in another dimension, return as a np.ndarray
-        Big mess of a fct to be honest :-)
-    Args:
-        df:
-        ics_dict:
-        max_len:
-        encoding:
-        blosum_matrix:
-        seq_col:
-        hla_col:
-        target_col:
-
-        add_rank:
-        mask:
-        add_aaprop:
-        remove_pep: Boolean switch to discard the AA sequence/freq in features (e.g. keep only rank or only chem props)
-
-    Returns:
-        tensor_dataset (torch.utils.data.TensorDataset): Dataset containing the tensors X and y
-    """
-    # df = verify_df(df, seq_col, hla_col, target_col)
-    encoded_weighted, true_lens = encode_batch_weighted(df, ics_dict, 'cpu', max_len, encoding, seq_col, hla_col,
-                                                        target_col, mask, invert, threshold)
-    x = batch_compute_frequency(encoded_weighted.numpy(), true_lens)
-    if add_rank:
-        ranks = np.expand_dims(df[rank_col].values, 1)
-        x = np.concatenate([x, ranks], axis=1)
-
-    if add_aaprop:
-        # New way of doing it already  saves the aa props to the df to
-        # not re-compute them everytime, here for now because I
-        if all([x in df.columns for x in ['aliphatic_index', 'boman', 'hydrophobicity',
-                                          'isoelectric_point', 'VHSE1', 'VHSE3', 'VHSE7', 'VHSE8']]):
-            aa_props = df[['aliphatic_index', 'boman', 'hydrophobicity',
-                           'isoelectric_point', 'VHSE1', 'VHSE3', 'VHSE7', 'VHSE8']].values
-        else:
-            df_props, columns = get_aa_properties(df, seq_col)
-            aa_props = df[columns].values
-
-        x = np.concatenate([x, aa_props], axis=1)
-
-    y = df[target_col].values
-    # Queries whatever is above 20, and only keeps that as feature
-    if remove_pep and (add_rank or add_aaprop):
-        x = x[:, 20:]
-    return x, y
-
-
-def get_dataset(df, ics_dict, max_len=12, encoding='onehot', seq_col='icore_mut', hla_col='HLA', target_col='agg_label',
-                rank_col='EL_rank_mut', mut_col=None, adaptive=False, mask=False, invert=False, add_rank=False,
-                add_aaprop=False, remove_pep=False, mask_aa=None, threshold=.234, icore_bulge=False,
-                core_col='core_mut', icore_col='icore_mut'):
-    """
-    """
-    # df = verify_df(df, seq_col, hla_col, target_col)
-
-    # Def arguments because we only use add rank
-    if adaptive:
-        # Splitting into anchor_mutation groups
-        anchors = df.query('anchor_mutation==True')
-        non_ancs = df.query('anchor_mutation==False')
-        # Here Invert is true (so the anchors get IC instead of 1-IC)
-        x_anchors, y_anchors = get_array_dataset(anchors, ics_dict, max_len, encoding, seq_col, hla_col, target_col,
-                                                 invert=True, add_rank=True, add_aaprop=False, remove_pep=False)
-        # Adding the mut columns and concatenating on columns axis (ax=1)
-        if len(mut_col) > 0:
-            mut_anchors = anchors[mut_col].values
-            x_anchors = np.concatenate([x_anchors, mut_anchors], axis=1)
-        # Here, invert is False (so using 1-IC, to up-weigh non-anchor positions for non anc mutations
-        x_non, y_non = get_array_dataset(non_ancs, ics_dict, max_len, encoding, seq_col, hla_col, target_col,
-                                         invert=False, add_rank=True, add_aaprop=False, remove_pep=False)
-        # Same
-        if mut_col is not None and type(mut_col) == list:
-            if len(mut_col) > 0:
-                mut_non = non_ancs[mut_col].values
-                x_non = np.concatenate([x_non, mut_non], axis=1)
-        # Joining the two Xs and Ys into single x,y vectors
-        x = np.concatenate([x_anchors, x_non], axis=0)
-        y = np.concatenate([y_anchors, y_non], axis=0)
-
-    else:
-        x, y = get_array_dataset(df, ics_dict, max_len, encoding, seq_col, hla_col, target_col, rank_col, mask, invert,
-                                 add_rank=add_rank, add_aaprop=add_aaprop, remove_pep=remove_pep, threshold=threshold,
-                                 icore_bulge=icore_bulge, core_col=core_col, icore_col=icore_col)
-        if mut_col is not None and type(mut_col) == list:
-            if len(mut_col) > 0:
-                mut_scores = df[mut_col].values
-                x = np.concatenate([x, mut_scores], axis=1)
-    if mask_aa:
-        if mask_aa.lower() == 'false':
-            return x, y
-        assert mask_aa.upper() in AA_KEYS, f'Amino acid to mask is not in the AA alphabet!' \
-                                           '\nYou provided {mask_aa}, and the alphabet is {AA_KEYS}'
-        x[:, AA_KEYS.index(mask_aa.upper())] = 0
-    return x, y
-
-# Function to calculate the mean position values of fixed-size (3) flanking regions of each motif
-def PFR_calculation(df_seq, all_xmask, max_len, window_size=9):
-    
-    # Define output
-    data = encode_batch(df_seq, max_len, 'BL62FREQ', None)   # Coding according the FREQ Blosum matrix (better for PFR)
-    all_pfr = torch.empty((data.shape[0], max_len - window_size + 1, 2, 20))    # Initialize the output tensor
-    for j in range(0, data.shape[0], 1):
-        
-        seq = data[j,:]
-
-        # Previous PFR mask definition
-        PFR_mask_before = 3 * torch.ones((max_len - window_size + 1, 1))
-        PFR_mask_before[:3,0] = torch.tensor([0, 1, 2], dtype=torch.float32)   # First three elements to 1 and 2
-
-        # After PFR mask definition (according to their x_mask)
-        PFR_mask_after = torch.clone(all_xmask[j])*3
-
-        # Modification of the previous values before 0 (only if zero exists)
-        zero_indices = torch.where(PFR_mask_after == 0)[0]
-        if zero_indices.numel() > 0:  # Check if there are any zero indices
-            zero_index = zero_indices[0]  # Get the first zero index
-            PFR_mask_after[zero_index - 3] = 2 if zero_index >= 3 else PFR_mask_after[zero_index - 3]
-            PFR_mask_after[zero_index - 2] = 1 if zero_index >= 2 else PFR_mask_after[zero_index - 2]
-            PFR_mask_after[zero_index - 1] = 0 if zero_index >= 1 else PFR_mask_after[zero_index - 1]
-        
-        for i in range(0, seq.shape[0] - window_size + 1, 1):
-
-            # Define the WS-mer
-            peptide = seq[i:i + window_size]
-
-            # Store the resulting PFR tensors
-            prev_pfr = torch.sum(seq[i - int(PFR_mask_before[i]):i], dim=0, keepdim=True) / 3
-            after_pfr = torch.sum(seq[i + window_size:i + window_size + int(PFR_mask_after[i])], dim=0, keepdim=True) / 3
-
-            # Store the PFR tensors in the output tensor
-            all_pfr[j, i, 0] = prev_pfr
-            all_pfr[j, i, 1] = after_pfr
-    
-    # print('PFR for this dataset completed')
-    
-    return all_pfr.flatten(start_dim=2)
-
-# Function to calculate the length of the flanking regions of each motif
-def FR_lengths(all_xmask, max_len, window_size=9):
-    
-    # Define output
-    all_FR_len = torch.empty((all_xmask.shape[0], max_len - window_size + 1, 2, 2))
-    # Number of total windows for each sequence
-    len_masks = all_xmask.shape[1]
-    
-    for j in range(0, all_xmask.shape[0], 1):
-        
-        # After FR mask
-        FR_mask_after = np.array(all_xmask[j]).reshape(-1)
-        # Count of non-zero values
-        count_nonzero = np.count_nonzero(FR_mask_after) - 1
-        # Filling with 0 according to the mask
-        FR_len_after = np.concatenate([np.arange(count_nonzero, 0, -1), np.zeros(len_masks - count_nonzero)])
-
-        # Before FR mask is always the same
-        FR_len_before = np.arange(max_len - window_size + 1)
-        
-        # Transformation of length arrays
-        FR_len_before = FR_len_before / (FR_len_before + 1)
-        FR_len_after = FR_len_after / (FR_len_after + 1)
-        
-        # Store the LEN_FR arrays as tensors in the output tensor
-        all_FR_len[j, :, 0, 0] = (torch.tensor(FR_len_before))
-        all_FR_len[j, :, 0, 1] = (torch.tensor(1 - FR_len_before))
-        all_FR_len[j, :, 1, 0] = (torch.tensor(FR_len_after))
-        all_FR_len[j, :, 1, 1] = (torch.tensor(1 - FR_len_after))
-    
-    # print('FR lengths for this dataset completed')
-    
-    return all_FR_len.flatten(start_dim=2)
-
-# Function for encoding the peptide lengths as one-hot
-def pep_len_1hot(df_seq, max_len, window_size, min_length, max_length):
-    
-    # Define the range of possible sequence lengths
-    seq_lens = df_seq.str.len()
-    min_length = 13
-    max_length = 21
-
-    # Create an empty NumPy array for one-hot encoding
-    seq_lens_1hot = np.zeros((len(df_seq), (max_length - min_length) + 2), dtype=int)
-
-    # Fill the one-hot array
-    for i, length in enumerate(seq_lens):
-        if length < min_length:
-            seq_lens_1hot[i, 0] = 1   # Group peptides below length 13
-        elif length > max_length:
-            seq_lens_1hot[i, -1] = 1  # Group peptides above length 21
-        else:
-            seq_lens_1hot[i, length - min_length + 1] = 1   # Group peptides in between
-
-    expanded_tensor = torch.from_numpy(seq_lens_1hot).unsqueeze(1).expand(-1, max_len - window_size + 1, -1)
-
-    # print('Peptide lengths encoded for this dataset completed')
-    
-    return(expanded_tensor)
-
-# Function for adding indels
-
-def do_insertion_deletion(sequence, max_len=13, encoding='BL50LO', pad_scale=-20, window_size=9):
-    length = len(sequence)
-    indel_windows = []
-
-    # Insertion for sequences shorter than the window size
-    if length < window_size:
-        for i in range(window_size):
-            indel_windows.append(sequence[:i] + '-' + sequence[i:])
-        indel_windows.append('-'*9)    
-    # Replicate sequence for sequences equal to the window size
-    elif length == window_size:
-        indel_windows.append(sequence)
-        while len(indel_windows) < (window_size + 1):  
-            indel_windows.append('-'*9) 
-    # Deletion for sequences longer than the window size
-    else:
-        del_len = length - window_size
-        for i in range(length - del_len + 1):
-            indel_windows.append(sequence[:i] + sequence[i+del_len:])
-            
-    # Encoding the sequences
-    encoded_sequences = encode_batch(indel_windows, max_len=max_len, encoding=encoding, pad_scale=pad_scale)
-    return encoded_sequences
-    
-def batch_insertion_deletion(sequences, max_len=13, encoding='BL50LO', pad_scale=-20, window_size=9):
-    # Process each sequence individually with do_insertion_deletion
-    processed_sequences = [do_insertion_deletion(seq, max_len=max_len, encoding=encoding, pad_scale=pad_scale, window_size=window_size) for seq in sequences]
-    
-    # Stack the processed sequences along a new dimension to maintain the N x 9 x 13 x 20 structure
-    # Ensure each do_insertion_deletion call returns a tensor of shape 9 x 13 x 20
-    indel_windows_batch = torch.stack(processed_sequences)
-    return indel_windows_batch
-
-def create_indel_mask(length, window_size):
-    mask = torch.zeros(1, window_size+1, 1)
-    if length<window_size:
-        mask[:, :-1, :].fill_(1)
-    elif length==window_size:
-        # Actually shouldn't fill with 1 because we are concatenating to the other mask
-        # and only a single window (i.e. the first, un-concatenated one) is the correct one
-        # mask[:, :1, :].fill_(1)
-        pass
-    elif length>window_size:
-        mask.fill_(1)
-    return mask
-
-def batch_indel_mask(lengths, window_size):
-    return torch.cat([create_indel_mask(length, window_size) for length in lengths], dim=0)
