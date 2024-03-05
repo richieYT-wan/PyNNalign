@@ -193,6 +193,8 @@ def str2bool(v):
 
 def mkdirs(path):
     if not os.path.exists(path):
+        print(os.path.abspath(os.getcwd()))
+        print(path)
         os.makedirs(path, exist_ok=True)
 
 

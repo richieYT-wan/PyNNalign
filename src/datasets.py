@@ -2,8 +2,9 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
-from src.data_processing import encode_batch, PFR_calculation, FR_lengths, pep_len_1hot, batch_insertion_deletion, batch_indel_mask, PSEUDOSEQDICT
-# from memory_profiler import profile
+from src.data_processing import encode, encode_batch, PFR_calculation, FR_lengths, pep_len_1hot, \
+    batch_insertion_deletion, batch_indel_mask, get_indel_windows, PSEUDOSEQDICT
+from memory_profiler import profile
 from datetime import datetime as dt
 
 
@@ -128,12 +129,12 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
     CLASS TO USE
     """
 
-    # @profile
+    @profile
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
-                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'],
-                 add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False,
-                 add_pep_len=False, add_z=True):
+                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
+                 pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False, add_pep_len=False, add_z=True,
+                 burn_in=None):
         # start = dt.now()
         super(NNAlignDatasetEFSinglePass, self).__init__()
         # Encoding stuff
@@ -145,7 +146,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         # Then, if indel is False, filter out sequences shorter than windowsize (ex: 8mers for WS=9)
         if not indel:
             df = df.query('len>=@window_size')
-
+        self.burn_in_flag = False
         matrix_dim = 20
         # query_time = dt.now()
         x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
@@ -159,26 +160,29 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         x_mask = (range_tensor <= x_mask.unsqueeze(1)).float().unsqueeze(-1)
         # Expand the kmers windows for base sequence without indels
         x = x.unfold(1, window_size, 1).transpose(2, 3) \
-             .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim)
+            .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim)
         # Creating indels window and mask 
         if indel:
             x_indel = batch_insertion_deletion(df[seq_col], max_len, encoding, pad_scale, window_size)
             # remove padding from indel windows
-            x_indel = x_indel[:,:,:window_size, :]
+            x_indel = x_indel[:, :, :window_size, :]
             indel_mask = batch_indel_mask(len_mask, window_size)
             x = torch.cat([x, x_indel], dim=1)
             x_mask = torch.cat([x_mask, indel_mask], dim=1)
 
-        # Creating another mask for the burn-in period+bool flag switch
-        self.burn_in_mask = _get_burnin_mask_batch(df[seq_col].values, max_len, window_size, burnin_alphabet).unsqueeze(
-            -1)
-        self.burn_in_flag = False
+        if burn_in is not None:
+            # Creating another mask for the burn-in period+bool flag switch
+            self.burn_in_mask = _get_burnin_mask_batch(df[seq_col].values, max_len, window_size,
+                                                       burnin_alphabet).unsqueeze(-1)
+            if indel:
+                indel_burn_in_mask = _get_indel_burnin_mask_batch(df[seq_col].values, window_size,
+                                                                  burnin_alphabet).unsqueeze(-1)
+                self.burn_in_mask = torch.cat([self.burn_in_mask, indel_burn_in_mask], dim=1)
 
         # Expand and unfold the sub kmers and the target to match the shape ; contiguous to allow for view operations
         self.x_tensor = x.flatten(2, 3).contiguous()
         self.x_mask = x_mask
 
-   
         # kmer_time = dt.now()
         self.y = y.contiguous()
         self.x_features = torch.empty((len(x),))
@@ -195,16 +199,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         #  TODO dictmap for 9mer look-up and see if how many duplicated and can we save memory
         #
         if add_pseudo_sequence:
-            # TODO: Carlos, here you need to create the MHC feature vector and flatten it.
-            #       Basically, if you have the pseudo sequence in a column called 'pseudoseq' in your dataframe,
-            #       You can use my function encode_batch like
-            #       Do MHC pseudosequence as a dictionary and look-up on the fly in collate_fn to map back
-            #       only store dict and an ID for each datapoint
             x_pseudoseq = encode_batch(df[pseudo_seq_col], 34, encoding, pad_scale)
-
-            # UNCOMMENT HERE WHEN YOU ARE DONE WITH THAT, check in a notebook that
-            # these dimension (N, 34*20) = (N, 680) are correct (you need to FLATTEN the vector using tensor.flatten(start_dim=1)
-            # then these should be working because my model forward() takes care of everything
             x_pseudoseq = x_pseudoseq.flatten(start_dim=1)
             self.x_features = x_pseudoseq
             self.extra_features_flag = True
@@ -266,8 +261,8 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         if self.burn_in_flag:
             if self.extra_features_flag:
                 # 4
-                print(
-                    f'Tensor, Burn_in_mask, x_features, and y shapes: {self.x_tensor[idx].shape}, {self.burn_in_mask[idx].shape}, {self.x_features[idx].shape}, {self.y[idx].shape}')
+                # print(f'Tensor, Burn_in_mask, x_features, and y shapes: {self.x_tensor[idx].shape}, {self.burn_in_mask[idx].shape}, {self.x_features[idx].shape}, {self.y[idx].shape}')
+
                 return self.x_tensor[idx], self.burn_in_mask[idx], self.x_features[idx], self.y[idx]
             else:
                 # 2
@@ -284,6 +279,177 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         self.burn_in_flag = flag
 
 
+class PseudoOTFDataset(SuperDataset):
+    """
+    Class to test PSEUDOSEQ on the fly
+    """
+
+    @profile
+    def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+                 seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
+                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'],
+                 add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False,
+                 add_pep_len=False, add_z=True, burn_in=None):
+        # start = dt.now()
+        super(PseudoOTFDataset, self).__init__()
+        # Encoding stuff
+        if feature_cols is None:
+            feature_cols = []
+        # Filter out sequences longer than max_len
+        df['len'] = df[seq_col].apply(len)
+        df = df.query('len<=@max_len')
+        # Then, if indel is False, filter out sequences shorter than windowsize (ex: 8mers for WS=9)
+        if not indel:
+            df = df.query('len>=@window_size')
+
+        matrix_dim = 20
+        # query_time = dt.now()
+        x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
+        y = torch.from_numpy(df[target_col].values).float().view(-1, 1)
+        # encode_time = dt.now()
+        # Creating the mask to allow selection of kmers without padding
+        len_mask = torch.from_numpy(df['len'].values)
+        x_mask = len_mask - window_size
+        range_tensor = torch.arange(max_len - window_size + 1).unsqueeze(0).repeat(len(x), 1)
+        # Mask for Kmers + padding
+        x_mask = (range_tensor <= x_mask.unsqueeze(1)).float().unsqueeze(-1)
+        # Expand the kmers windows for base sequence without indels
+        x = x.unfold(1, window_size, 1).transpose(2, 3) \
+            .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim)
+        # Creating indels window and mask
+        if indel:
+            x_indel = batch_insertion_deletion(df[seq_col], max_len, encoding, pad_scale, window_size)
+            # remove padding from indel windows
+            x_indel = x_indel[:, :, :window_size, :]
+            indel_mask = batch_indel_mask(len_mask, window_size)
+            x = torch.cat([x, x_indel], dim=1)
+            x_mask = torch.cat([x_mask, indel_mask], dim=1)
+
+        # Creating another mask for the burn-in period+bool flag switch
+        if burn_in is not None:
+            # Creating another mask for the burn-in period+bool flag switch
+            self.burn_in_mask = _get_burnin_mask_batch(df[seq_col].values, max_len, window_size,
+                                                       burnin_alphabet).unsqueeze(-1)
+            if indel:
+                indel_burn_in_mask = _get_indel_burnin_mask_batch(df[seq_col].values, window_size,
+                                                                  burnin_alphabet).unsqueeze(-1)
+                self.burn_in_mask = torch.cat([self.burn_in_mask, indel_burn_in_mask], dim=1)
+
+        self.burn_in_flag = False
+
+        # Expand and unfold the sub kmers and the target to match the shape ; contiguous to allow for view operations
+        self.x_tensor = x.flatten(2, 3).contiguous()
+        self.x_mask = x_mask
+
+        # kmer_time = dt.now()
+        self.y = y.contiguous()
+        self.x_features = torch.empty((len(x),))
+        # Add extra features
+        if len(feature_cols) > 0:
+            # TODO: When you add more features you need to concatenate to x_pseudosequence and save it to self.x_features
+            # these are NUMERICAL FEATURES like %Rank, expression, etc. of shape (N, len(feature_cols))
+            # x_features = torch.from_numpy(df[feature_cols].values).float()
+
+            self.extra_features_flag = True
+        else:
+            self.extra_features_flag = False
+
+        #  TODO dictmap for 9mer look-up and see if how many duplicated and can we save memory
+        #
+        if add_pseudo_sequence:
+            # Use a dictionary to encode on the fly
+            self.pseudoseq_tensormap = {k: encode(v, 34, encoding, pad_scale).unsqueeze(0).flatten(start_dim=1) for k, v
+                                        in
+                                        PSEUDOSEQDICT.items()}
+            self.hla_tag = df['HLA'].values
+            self.extra_features_flag = True
+            # ps_time = dt.now()
+        if add_pfr:
+            x_pfr = PFR_calculation(df[seq_col], self.x_mask, max_len, window_size)
+            self.x_tensor = torch.cat([self.x_tensor, x_pfr], dim=2)
+            # pfr_time = dt.now()
+        if add_fr_len:
+            x_fr_len = FR_lengths(self.x_mask, max_len, window_size)
+            self.x_tensor = torch.cat([self.x_tensor, x_fr_len], dim=2)
+            # pfr_len_time = dt.now()
+        if add_pep_len:
+            x_pep_len = pep_len_1hot(df[seq_col], max_len, window_size, min_length=13, max_length=21)
+            self.x_tensor = torch.cat([self.x_tensor, x_pep_len], dim=2)
+            # peplen_time = dt.now()
+
+        # Saving df in case it's needed
+        self.df = df
+        self.len = len(x)
+        self.max_len = max_len
+        self.seq_col = seq_col
+        self.window_size = window_size
+
+    def __len__(self):
+        return self.len
+
+    def __getitem__(self, idx):
+        """ Returns the appropriate input tensors (X, ..., y) depending on the bool flags
+        A bit convoluted return, but basically 4 conditions:
+            1. No burn-in, no extra features --> returns the normal x_tensor, kmers mask, target
+            2. Burn-in, no extra features --> returns the normal x_tensor, burn-in mask, target
+            3. No Burn-in, + extra features --> returns the normal x_tensor, kmers mask, x_features, target
+            4. Burn-in, + extra features --> returns the normal x_tensor, burn-in mask, x_features, target
+        :param idx:
+        :return:
+        """
+        if self.burn_in_flag:
+            if self.extra_features_flag:
+                # Do the HLA pseudoseq return on the fly instead of pre-expanding and saving
+                x_pseudoseq = self.pseudoseq_tensormap[self.hla_tag[idx]]
+                return self.x_tensor[idx], self.burn_in_mask[idx], x_pseudoseq, self.y[idx]
+            else:
+                # 2
+                return self.x_tensor[idx], self.burn_in_mask[idx], self.y[idx]
+        else:
+            if self.extra_features_flag:
+                # 3
+                # Do the HLA pseudoseq return on the fly instead of pre-expanding and saving
+                x_pseudoseq = self.pseudoseq_tensormap[self.hla_tag[idx]]
+                return self.x_tensor[idx], self.x_mask[idx], x_pseudoseq, self.y[idx]
+            else:
+                # 1
+                return self.x_tensor[idx], self.x_mask[idx], self.y[idx]
+
+    def burn_in(self, flag):
+        self.burn_in_flag = flag
+
+
+def _get_burnin_mask_batch(sequences, max_len, window_size, alphabet='ILVMFYW'):
+    return torch.stack([_get_burnin_mask(x, max_len, window_size, alphabet) for x in sequences])
+
+
+def _get_burnin_mask(seq, max_len, window_size, alphabet='ILVMFYW'):
+    mask = torch.tensor([x in alphabet for i, x in enumerate(seq) if i < len(seq) - window_size + 1]).float()
+    return F.pad(mask, (0, (max_len - window_size + 1) - len(mask)), 'constant', 0)
+
+
+def _get_indel_burnin_mask(seq, window_size, alphabet='ILVMFYW'):
+    indel_windows = get_indel_windows(seq, window_size)
+    return torch.tensor([x[0] in alphabet for x in indel_windows]).float()
+
+
+def _get_indel_burnin_mask_batch(sequences, window_size, alphabet='ILVMFYW'):
+    return torch.stack([_get_indel_burnin_mask(x, window_size, alphabet) for x in sequences])
+
+
+# Stupid shit for memory profiler
+
+class UglyWorkAround(SuperDataset):
+
+    def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+                 seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
+                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
+                 pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False, add_pep_len=False, add_z=True,
+                 burn_in=None):
+        super(UglyWorkAround, self).__init__()
+
+
+# OLD DEPRECATED CODE
 # @profile
 def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                                        seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
@@ -300,12 +466,3 @@ def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_si
         return dataloader, dataset
     else:
         return dataloader
-
-
-def _get_burnin_mask_batch(sequences, max_len, motif_len, alphabet='ILVMFYW'):
-    return torch.stack([_get_burnin_mask(x, max_len, motif_len, alphabet) for x in sequences])
-
-
-def _get_burnin_mask(seq, max_len, motif_len, alphabet='ILVMFYW'):
-    mask = torch.tensor([x in alphabet for i, x in enumerate(seq) if i < len(seq) - motif_len + 1]).float()
-    return F.pad(mask, (0, (max_len - motif_len + 1) - len(mask)), 'constant', 0)

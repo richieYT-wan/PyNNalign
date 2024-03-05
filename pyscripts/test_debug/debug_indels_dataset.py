@@ -13,8 +13,8 @@ from torch.utils.data import RandomSampler, SequentialSampler
 df = pd.read_csv('../../data/mhc1_el_sub10k/mhc1_el_subsampled.csv')
 df['flag'] = df['sequence'].apply(lambda x: any([z not in AA_KEYS for z in x]))
 df = df.query('not flag')
-dataset = NNAlignDatasetEFSinglePass(df, max_len=13, window_size=9,encoding='BL50LO',
-                                     seq_col='sequence', target_col='target',pad_scale=-20, indel=True)
+dataset = NNAlignDatasetEFSinglePass(df, max_len=13, window_size=9, encoding='BL50LO', seq_col='sequence',
+                                     target_col='target', pad_scale=-20, indel=True)
 
 loader = dataset.get_dataloader(200, SequentialSampler)
 

@@ -16,7 +16,7 @@ from src.torch_utils import save_checkpoint, load_checkpoint
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
-from src.datasets import NNAlignDatasetEFSinglePass
+from src.datasets import NNAlignDatasetEFSinglePass, UglyWorkAround
 import random
 import numpy as np
 from matplotlib import pyplot as plt
@@ -167,7 +167,7 @@ def main():
     test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
     # Def params so it's ✨tidy✨, using get_class_initcode to get the keys needed to init a class
     model_keys = get_class_initcode_keys(NNAlignEFSinglePass, args)
-    dataset_keys = get_class_initcode_keys(NNAlignDatasetEFSinglePass, args)
+    dataset_keys = get_class_initcode_keys(UglyWorkAround, args)
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}

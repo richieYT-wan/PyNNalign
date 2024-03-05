@@ -167,7 +167,6 @@ def main():
 
     # Def params so it's ✨tidy✨, using get_class_initcode to get the keys needed to init a class
     model_keys = get_class_initcode_keys(NNAlignEFSinglePass, args)
-    # Here UglyWorkAround exist to give the __init__ code to dataset because I'm currently using @profile
     dataset_keys = get_class_initcode_keys(UglyWorkAround, args)
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}

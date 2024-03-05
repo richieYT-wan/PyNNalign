@@ -17,7 +17,7 @@ from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
-from src.datasets import NNAlignDatasetEFSinglePass, UglyWorkAround
+from src.datasets import PseudoOTFDataset, UglyWorkAround
 from matplotlib import pyplot as plt
 import seaborn as sns
 
@@ -167,7 +167,6 @@ def main():
 
     # Def params so it's ✨tidy✨, using get_class_initcode to get the keys needed to init a class
     model_keys = get_class_initcode_keys(NNAlignEFSinglePass, args)
-    # Here UglyWorkAround exist to give the __init__ code to dataset because I'm currently using @profile
     dataset_keys = get_class_initcode_keys(UglyWorkAround, args)
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
@@ -203,9 +202,9 @@ def main():
     criterion = nn.MSELoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
 
-    train_dataset = NNAlignDatasetEFSinglePass(train_df, **dataset_params)
-    valid_dataset = NNAlignDatasetEFSinglePass(valid_df, **dataset_params)
-    test_dataset = NNAlignDatasetEFSinglePass(test_df, **dataset_params)
+    train_dataset = PseudoOTFDataset(train_df, **dataset_params)
+    valid_dataset = PseudoOTFDataset(valid_df, **dataset_params)
+    test_dataset = PseudoOTFDataset(test_df, **dataset_params)
 
     train_loader = train_dataset.get_dataloader(batch_size=args['batch_size'], sampler=RandomSampler)
     valid_loader = valid_dataset.get_dataloader(batch_size=args['batch_size'] * 2, sampler=SequentialSampler)
