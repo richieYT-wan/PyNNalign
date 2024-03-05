@@ -186,10 +186,15 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
             self.extra_features_flag = True
         else:
             self.extra_features_flag = False
+
+        #  TODO dictmap for 9mer look-up and see if how many duplicated and can we save memory
+        #
         if add_pseudo_sequence:
             # TODO: Carlos, here you need to create the MHC feature vector and flatten it.
             #       Basically, if you have the pseudo sequence in a column called 'pseudoseq' in your dataframe,
             #       You can use my function encode_batch like
+            #       Do MHC pseudosequence as a dictionary and look-up on the fly in collate_fn to map back
+            #       only store dict and an ID for each datapoint
             x_pseudoseq = encode_batch(df[pseudo_seq_col], 34, encoding, pad_scale)
 
             # UNCOMMENT HERE WHEN YOU ARE DONE WITH THAT, check in a notebook that
