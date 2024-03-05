@@ -7,54 +7,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from torch import nn as nn
 
-from src.data_processing import verify_df, get_dataset
+from src.data_processing import verify_df
 from src.utils import get_palette
 
 mpl.rcParams['figure.dpi'] = 180
 sns.set_style('darkgrid')
 from sklearn.metrics import roc_curve, roc_auc_score, f1_score, accuracy_score, \
     recall_score, precision_score, precision_recall_curve, auc, average_precision_score
-
-
-def get_predictions(df, models, ics_dict, encoding_kwargs):
-    """
-
-    Args:
-        df (pd.DataFrame) : The dataframe containing the data (i.e. peptides and eventually additional columns)
-        models (list) : list of all the models for a given fold. Should be a LIST
-        ics_dict (dict): weights or None
-        encoding_kwargs: the kwargs needed to process the df
-    Returns:
-        predictions_df (pd
-        df (pd.DataFrame): DataFrame containing the Peptide-HLA pairs to evaluate
-        models (list): A.DataFrame): Original DataFrame + a column predictions which are the scores + y_true
-    """
-
-    df = verify_df(df, encoding_kwargs['seq_col'], encoding_kwargs['hla_col'],
-                   encoding_kwargs['target_col'])
-
-    x, y = get_dataset(df, ics_dict, **encoding_kwargs)
-
-    # Take the first model in the list and get its class
-    model_class = models[0].__class__
-
-    # If model is a scikit-learn model, get pred prob
-    if issubclass(model_class, sklearn.base.BaseEstimator):
-        average_predictions = [model.predict_proba(x)[:, 1] \
-                               for model in models]
-
-    # If models list is a torch model, use forward
-    elif issubclass(model_class, nn.Module):
-        # This only works for models that inherit from NetParent
-        x, y = to_tensors(x, y, device=models[0].device)
-        with torch.no_grad():
-            average_predictions = [model(x).detach().cpu().numpy() for model in models]
-
-    average_predictions = np.mean(np.stack(average_predictions), axis=0)
-    # assert len(average_predictions)==len(df), f'Wrong shapes passed preds:{len(average_predictions)},df:{len(df)}'
-    output_df = df.copy(deep=True)
-    output_df['pred'] = average_predictions
-    return output_df
 
 
 def get_metrics(y_true, y_score, y_pred=None, threshold=0.5, keep=False, reduced=True, round_digit=4):

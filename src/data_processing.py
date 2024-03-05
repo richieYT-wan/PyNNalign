@@ -24,12 +24,10 @@ CNN_FEATS = ['EL_ratio', 'anchor_mutation', 'delta_VHSE1', 'delta_VHSE3', 'delta
 
 
 def _init(DATADIR):
-    #### ==== CONST (blosum, multiprocessing, keys, etc) ==== ####
     VAL = math.floor(4 + (multiprocessing.cpu_count() / 1.5))
     N_CORES = VAL if VAL <= multiprocessing.cpu_count() else int(multiprocessing.cpu_count() - 2)
 
     MATRIXDIR = f'{DATADIR}Matrices/'
-    ICSDIR = f'{DATADIR}ic_dicts/'
     AA_KEYS = [x for x in 'ARNDCQEGHILKMFPSTWYV']
 
     CHAR_TO_INT = dict((c, i) for i, c in enumerate(AA_KEYS))
@@ -64,22 +62,24 @@ def _init(DATADIR):
         BL62FREQ_VALUES[letter_1] = _blosum62[i]
         for j, letter_2 in enumerate(AA_KEYS):
             BL62FREQ[letter_1][letter_2] = _blosum62[i, j]
-    ICS_KL = pkl_load(ICSDIR + 'ics_kl_new.pkl')
-    ICS_SHANNON = pkl_load(ICSDIR + 'ics_shannon.pkl')
-    HLAS = ICS_SHANNON[9].keys()
+    # TODO read pseudoseq here
+    with open(f'{MATRIXDIR}MHC_pseudo.dat', 'r') as f:
+        # lines = [x.rstrip('\n').split('\t') for x in f.readlines()]
+        lines = [x.replace(' ', ';').rstrip('\n').replace('\t', ';') for x in f.readlines()]
+        # extra chars
+        replaced = [[x for x in z.split(';') if len(x) > 0] for z in lines]
+        PSEUDOSEQDICT = {k: v for k, v in replaced}
+    return VAL, N_CORES, DATADIR, AA_KEYS, CHAR_TO_INT, INT_TO_CHAR, BG, BL62FREQ, BL62FREQ_VALUES, BL50, BL50_VALUES, BL62, BL62_VALUES, PSEUDOSEQDICT
 
-    return VAL, N_CORES, DATADIR, AA_KEYS, CHAR_TO_INT, INT_TO_CHAR, BG, BL62FREQ, BL62FREQ_VALUES, BL50, BL50_VALUES, BL62, BL62_VALUES, HLAS, ICS_KL, ICS_SHANNON
 
-
-VAL, N_CORES, DATADIR, AA_KEYS, CHAR_TO_INT, INT_TO_CHAR, BG, BL62FREQ, BL62FREQ_VALUES, BL50, BL50_VALUES, BL62, BL62_VALUES, HLAS, ICS_KL, ICS_SHANNON = _init(
+VAL, N_CORES, DATADIR, AA_KEYS, CHAR_TO_INT, INT_TO_CHAR, BG, BL62FREQ, BL62FREQ_VALUES, BL50, BL50_VALUES, BL62, BL62_VALUES, PSEUDOSEQDICT = _init(
     DATADIR)
 
 encoding_matrix_dict = {'onehot': None,
                         'BL62LO': BL62_VALUES,
                         'BL62FREQ': BL62FREQ_VALUES,
                         'BL50LO': BL50_VALUES}
-ics_dict = {'KL': ICS_KL,
-            'Shannon': ICS_SHANNON}
+
 
 
 ######################################
