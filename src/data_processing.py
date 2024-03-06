@@ -9,7 +9,6 @@ from torch.utils.data import TensorDataset
 from src.utils import pkl_load, pkl_dump
 import os
 import warnings
-import peptides
 
 warnings.filterwarnings('ignore')
 
@@ -79,68 +78,6 @@ encoding_matrix_dict = {'onehot': None,
                         'BL62LO': BL62_VALUES,
                         'BL62FREQ': BL62FREQ_VALUES,
                         'BL50LO': BL50_VALUES}
-
-
-######################################
-####      assertion / checks      ####
-######################################
-
-def verify_df(df, seq_col, hla_col, target_col):
-    df = copy.deepcopy(df)
-    unique_labels = sorted(df[target_col].dropna().unique())
-    # Checks binary label
-    assert ([int(x) for x in sorted(unique_labels)]) in [[0, 1], [0], [1]], f'Labels are not 0, 1! {unique_labels}'
-    # Checks if any seq not in alphabet
-    try:
-        df = df.drop(df.loc[df[seq_col].apply(lambda x: any([z not in AA_KEYS and not z == '-' for z in x]))].index)
-    except:
-        print(len(df), df.columns, seq_col, AA_KEYS)
-        raise ValueError
-    # Checks if HLAs have correct format
-    if all(df[hla_col].apply(lambda x: not x.startswith('HLA-'))):
-        df[hla_col] = df[hla_col].apply(lambda x: 'HLA-' + x)
-    df[hla_col] = df[hla_col].apply(lambda x: x.replace('*', '').replace(':', ''))
-    # Check HLA only in subset
-    try:
-        df = df.query(f'{hla_col} in @HLAS')
-    except:
-        print(type(df), type(HLAS), HLAS, hla_col)
-        raise ValueError(f'{type(df)}, {type(HLAS)}, {HLAS}, {hla_col}, {df[hla_col].unique()}')
-
-    return df
-
-
-def assert_encoding_kwargs(encoding_kwargs, mode_eval=False):
-    """
-    Assertion / checks for encoding kwargs and verify all the necessary key-values
-    are in
-    """
-    # Making a deep copy since dicts are mutable between fct calls
-    encoding_kwargs = copy.deepcopy(encoding_kwargs)
-    if encoding_kwargs is None:
-        encoding_kwargs = {'max_len': 12,
-                           'encoding': 'onehot',
-                           'standardize': False}
-    essential_keys = ['max_len', 'encoding', 'standardize']
-    keys_check = [x in encoding_kwargs.keys() for x in essential_keys]
-    keys_check_dict = {k: v for (k, v) in zip(essential_keys, keys_check) if v == False}
-    assert all(keys_check), f'Encoding kwargs don\'t contain the essential key-value pairs! ' \
-                            f"{list(keys_check_dict.keys())} are missing!"
-
-    if mode_eval:
-        if any([(x not in encoding_kwargs.keys()) for x in ['seq_col', 'hla_col', 'target_col', 'rank_col']]):
-            if 'seq_col' not in encoding_kwargs.keys():
-                encoding_kwargs.update({'seq_col': 'icore_mut'})
-            if 'hla_col' not in encoding_kwargs.keys():
-                encoding_kwargs.update({'hla_col': 'HLA'})
-            if 'target_col' not in encoding_kwargs.keys():
-                encoding_kwargs.update({'target_col': 'agg_label'})
-            if 'rank_col' not in encoding_kwargs.keys():
-                encoding_kwargs.update({'rank_col': 'EL_rank_mut'})
-
-        # This KWARGS not needed in eval mode since I'm using Pipeline and Pipeline
-        del encoding_kwargs['standardize']
-    return encoding_kwargs
 
 
 ######################################

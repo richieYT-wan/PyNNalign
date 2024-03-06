@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from torch import nn as nn
 
-from src.data_processing import verify_df
 from src.utils import get_palette
 
 mpl.rcParams['figure.dpi'] = 180
