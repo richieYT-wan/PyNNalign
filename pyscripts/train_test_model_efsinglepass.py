@@ -149,7 +149,6 @@ def main():
     print("Using : {}".format(device))
     # set profiler
     enable_profile[0] = args['profile']
-    print(enable_profile)
     # File-saving stuff
     connector = '' if args["out"] == '' else '_'
     kf = 'XX' if args["fold"] is None else args['fold']
