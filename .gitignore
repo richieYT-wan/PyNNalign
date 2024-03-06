@@ -246,6 +246,7 @@ output/230601_hyperparameterS_tuning_gridsearch/
 output/*debug*
 .idea/workspace.xml
 output/.DS_Store
+output/_old
 .idea/workspace.xml
 data/.DS_Store
 output/.DS_Store

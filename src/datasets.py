@@ -358,7 +358,7 @@ class PseudoOTFDataset(SuperDataset):
         #
         if add_pseudo_sequence:
             # Use a dictionary to encode on the fly
-            self.pseudoseq_tensormap = {k: encode(v, 34, encoding, pad_scale).unsqueeze(0).flatten(start_dim=1) for k, v
+            self.pseudoseq_tensormap = {k: encode(v, 34, encoding, pad_scale).flatten(start_dim=0) for k, v
                                         in
                                         PSEUDOSEQDICT.items()}
             self.hla_tag = df['HLA'].values

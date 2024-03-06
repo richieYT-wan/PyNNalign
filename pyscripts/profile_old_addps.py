@@ -7,6 +7,7 @@ if module_path not in sys.path:
     sys.path.append(module_path)
 
 import torch
+import tracemalloc
 from torch import optim
 from torch import nn
 from torch.utils.data import SequentialSampler, RandomSampler
@@ -132,6 +133,8 @@ we can do this instead.
 
 def main():
     start = dt.now()
+    tracemalloc.start()
+
     # I like dictionary for args :-)
     args = vars(args_parser())
     # File-saving stuff
@@ -256,8 +259,19 @@ def main():
         # file.write(f"Test loss: {test_loss}\n")
         # file.write(f"Test AUC: {test_metrics['auc']}\n")
     save_model_full(model, checkpoint_filename, outdir, dict_kwargs=model_params)
+
+
+    tracemalloc.stop()
+
+    current, peak = tracemalloc.get_traced_memory()
+
     end = dt.now()
     elapsed = divmod((end - start).seconds, 60)
+    avg = current / int((elapsed[0]*60 + elapsed[1]))
+    print(f"Current memory usage: {current / (1024 ** 2):.2f} MB")
+    print(f"Peak memory usage: {peak / (1024 ** 2):.2f} MB")
+    print(f"Avg memory usage: {avg / (1024 ** 2):.2f} MB")
+
     print(f'Program finished in {elapsed[0]} minutes, {elapsed[1]} seconds.')
     sys.exit(0)
 
