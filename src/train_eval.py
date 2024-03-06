@@ -18,7 +18,7 @@ from src.utils import get_motif
 from src.torch_utils import save_checkpoint, load_checkpoint
 from src.metrics import get_metrics
 from memory_profiler import profile
-
+from src.utils import conditional_profile
 
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
@@ -138,7 +138,7 @@ def eval_model_step(model, criterion, valid_loader):
     valid_loss /= len(valid_loader.dataset)
     return valid_loss, valid_metrics
 
-@profile
+@conditional_profile
 def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
     assert type(dataloader.sampler) == torch.utils.data.SequentialSampler, \
         'Test/Valid loader MUST use SequentialSampler!'
@@ -169,7 +169,7 @@ def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
     df['motif'] = df.apply(get_motif, seq_col=seq_col, window_size=window_size, max_len=max_len, axis=1)
     return df
 
-@profile
+@conditional_profile
 def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dataset, train_loader, valid_loader,
                      checkpoint_filename, outdir, burn_in: int = None, std: bool = False):
     """ Trains and validates a model over n_epochs, then reloads the best checkpoint

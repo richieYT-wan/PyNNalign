@@ -11,6 +11,16 @@ from sklearn.model_selection import KFold
 import secrets
 import string
 from datetime import datetime as dt
+from memory_profiler import profile
+
+
+# Defining conditional profile decorator
+enable_profile = [True]
+def conditional_profile(func):
+    if enable_profile[0]:
+        return profile(func)
+    else:
+        return profile
 
 
 def epoch_counter(model, criterion):
@@ -27,13 +37,12 @@ def get_class_initcode_keys(class_: object, dict_kwargs: dict) -> list:
 
 
 def get_motif(row, seq_col, window_size, max_len):
-    
     best_index = int(row['core_start_index'])
     sequence = row[seq_col]
 
     if best_index < max_len - window_size + 1:
         return sequence[best_index:best_index + window_size]
-    
+
     # For insertions or deletions
     else:
         seq_len = len(sequence)
@@ -45,7 +54,7 @@ def get_motif(row, seq_col, window_size, max_len):
             insertion_position = adjusted_index
             motif = sequence[:insertion_position] + '-' + sequence[insertion_position:]
             motif = motif[:window_size]  # Ensure motif is not longer than window size
-        
+
         # Handling deletions
         elif seq_len > window_size:
             deletion_position = adjusted_index
@@ -54,9 +63,8 @@ def get_motif(row, seq_col, window_size, max_len):
             # If the sequence with deletion is longer than window_size, trim it to the window_size
             if len(motif) > window_size:
                 motif = motif[:window_size]
-                
-        return motif
 
+        return motif
 
 
 def plot_loss_aucs(train_losses, valid_losses, train_aucs, valid_aucs,
