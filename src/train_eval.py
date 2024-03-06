@@ -99,6 +99,7 @@ def train_model_step(model, criterion, optimizer, train_loader):
     for batch in train_loader:
         batch = [x.to(model.device) for x in batch]
         y_train = batch.pop(-1)
+        print('eval', model.device, y_train.device)
         output = model(*batch)
         loss = criterion(output, y_train)
         optimizer.zero_grad()
@@ -126,6 +127,7 @@ def eval_model_step(model, criterion, valid_loader):
         for batch in valid_loader:
             batch = [x.to(model.device) for x in batch]
             y_valid = batch.pop(-1)
+            print('eval', model.device, y_valid.device)
             output = model(*batch)
             loss = criterion(output, y_valid)
             y_true.append(y_valid.detach().cpu())
@@ -154,6 +156,7 @@ def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
         for batch in dataloader:
             batch = [x.to(model.device) for x in batch]
             y = batch.pop(-1)
+            print('predict', model.device, y.device)
             preds, core_idx = model.predict(*batch)
             predictions.append(preds.detach().cpu())
             best_indices.append(core_idx.detach().cpu())
