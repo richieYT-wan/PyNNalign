@@ -12,7 +12,7 @@ from torch import nn
 from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
-    get_class_initcode_keys, conditional_profile, enable_profile
+    get_class_initcode_keys
 from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
@@ -30,8 +30,6 @@ def args_parser():
     """
     Data processing args
     """
-    parser.add_argument('-profile', required=False, type=str2bool, default=False,
-                        help='Enabling memory profiler')
     parser.add_argument('-cuda', dest='cuda', required=False, type=str2bool, default=False,
                         help='Whether to activate Cuda. If true, will check if any gpu is available.')
     parser.add_argument('-trf', '--train_file', dest='train_file', required=True, type=str,
@@ -147,8 +145,6 @@ def main():
     else:
         device = torch.device('cpu')
     print("Using : {}".format(device))
-    # set profiler
-    enable_profile[0] = args['profile']
     # File-saving stuff
     connector = '' if args["out"] == '' else '_'
     kf = 'XX' if args["fold"] is None else args['fold']

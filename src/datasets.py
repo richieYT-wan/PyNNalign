@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader, Dataset
 from src.data_processing import encode, encode_batch, PFR_calculation, FR_lengths, pep_len_1hot, \
     batch_insertion_deletion, batch_indel_mask, get_indel_windows, PSEUDOSEQDICT
 from memory_profiler import profile
-from src.utils import conditional_profile
 from datetime import datetime as dt
 
 
@@ -130,7 +129,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
     CLASS TO USE
     """
 
-    @conditional_profile
+    @profile
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
@@ -285,7 +284,7 @@ class PseudoOTFDataset(SuperDataset):
     Class to test PSEUDOSEQ on the fly
     """
 
-    @conditional_profile
+    @profile
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'],
