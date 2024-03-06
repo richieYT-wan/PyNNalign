@@ -66,9 +66,11 @@ class StandardizerSequence(nn.Module):
             mu = (torch.sum(masked_values, dim=1) / torch.sum(x_mask, dim=1))
             sigma = (torch.sqrt(torch.sum((masked_values - mu.unsqueeze(1)) ** 2, dim=1) / torch.sum(x_mask, dim=1)))
             self.mu.data.copy_(mu.mean(dim=0))
+            self.mu = self.mu.to(x_tensor.device)
             sigma = sigma.mean(dim=0)
             sigma[torch.where(sigma == 0)] = 1e-12
             self.sigma.data.copy_(sigma)
+            self.sigma = self.sigma.to(x_tensor.device)
             self.fitted.data = torch.tensor(True)
 
     def forward(self, x):
@@ -138,6 +140,8 @@ class StandardizerFeatures(nn.Module):
             self.sigma.data.copy_(x_features.std(dim=(0, 1)))
             # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
             self.sigma.data[torch.where(self.sigma.data == 0)] = 1e-12
+            self.mu = self.mu.to(x_features.device)
+            self.sigma = self.sigma.to(x_features.device)
             self.fitted.data = torch.tensor(True)
 
     def forward(self, x):
@@ -175,6 +179,8 @@ class StandardizerSequenceVector(nn.Module):
             sigma[torch.where(sigma == 0)] = 1e-12
             self.mu.data.copy_(mu)
             self.sigma.data.copy_(sigma)
+            self.mu = self.mu.to(x_tensor.device)
+            self.sigma = self.sigma.to(x_tensor.device)
             self.fitted.data = torch.tensor(True)
 
     def forward(self, x):
