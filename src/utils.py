@@ -15,13 +15,12 @@ from memory_profiler import profile
 
 
 # Defining conditional profile decorator
-
-def conditional_profile(args):
-    def decorator(func):
-        if args.profile:
-            return profile(func)
-        return func
-    return decorator
+enable_profile = [True]
+def conditional_profile(func):
+    if enable_profile[0]:
+        return profile(func)
+    else:
+        return profile
 
 
 def epoch_counter(model, criterion):
