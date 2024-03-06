@@ -14,6 +14,7 @@ class NetParent(nn.Module):
         super(NetParent, self).__init__()
         # device is cpu by default
         self.device = 'cpu'
+        self.counter = 0
 
     @staticmethod
     def init_weights(m):
@@ -41,102 +42,11 @@ class NetParent(nn.Module):
         super(NetParent, self).to(device)
         self.device = device
 
-
-class Old_StandardizerSequence_(nn.Module):
-    def __init__(self):
-        super(Old_StandardizerSequence_, self).__init__()
-        self.mu = 0
-        self.sigma = 1
-        self.fitted = False
-        self.dimensions = None
-
-    def fit(self, x_tensor: torch.Tensor, x_mask: torch.Tensor):
-        """ Will consider the mask (padded position) and ignore them before computing the mean/std
-        Args:
-            x_tensor:
-            x_mask:
-
-        Returns:
-
-        """
-
-        assert self.training, 'Can not fit while in eval mode. Please set model to training mode'
-        with torch.no_grad():
-            # TODO: deprecated 3d to 2d here / 2d to 3d here, but will stay in forward.
-            # x = self.view_3d_to_2d(x)
-            # Updated version with masking
-            masked_values = x_tensor * x_mask
-            mu = (torch.sum(masked_values, dim=1) / torch.sum(x_mask, dim=1))
-            sigma = (
-                torch.sqrt(torch.sum((masked_values - mu.unsqueeze(1)) ** 2, dim=1) / torch.sum(x_mask, dim=1))).mean(
-                dim=0)
-            mu = mu.mean(dim=0)
-            sigma[torch.where(sigma == 0)] = 1e-12
-            self.mu = mu.mean(dim=0)
-            self.sigma = sigma.mean(dim=0)
-            # Fix issues with sigma=0 that would cause a division by 0 and return NaNs
-            self.sigma[torch.where(self.sigma == 0)] = 1e-12
-            self.fitted = True
-
-    def forward(self, x):
-        assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
-        with torch.no_grad():
-            # Flatten to 2d if needed
-            x = (self.view_3d_to_2d(x) - self.mu) / self.sigma
-            # Return to 3d if needed
-            return self.view_2d_to_3d(x)
-
-    def recover(self, x):
-        assert self.fitted, 'StandardizerSequence has not been fitted. Please fit to x_train'
-        with torch.no_grad():
-            # Flatten to 2d if needed
-            x = self.view_3d_to_2d(x)
-            # Return to original scale by multiplying with sigma and adding mu
-            x = x * self.sigma + self.mu
-            # Return to 3d if needed
-            return self.view_2d_to_3d(x)
-
-    def reset_parameters(self, **kwargs):
-        with torch.no_grad():
-            self.mu = 0
-            self.sigma = 0
-            self.fitted = False
-
-    def view_3d_to_2d(self, x):
-        with torch.no_grad():
-            if len(x.shape) == 3:
-                self.dimensions = (x.shape[0], x.shape[1], x.shape[2])
-                return x.view(-1, x.shape[2])
-            else:
-                return x
-
-    def view_2d_to_3d(self, x):
-        with torch.no_grad():
-            if len(x.shape) == 2 and self.dimensions is not None:
-                return x.view(self.dimensions[0], self.dimensions[1], self.dimensions[2])
-            else:
-                return x
-
-    # def state_dict(self, **kwargs):
-    #     """overwrites the state_dict with the custom attributes
-    #
-    #     Returns: state_dict
-    #
-    #     Args:
-    #         **kwargs:
-    #     """
-    #     state_dict = super(Old_StandardizerSequence_, self).state_dict()
-    #     state_dict['mu'] = self.mu
-    #     state_dict['sigma'] = self.sigma
-    #     state_dict['fitted'] = self.fitted
-    #     state_dict['dimensions'] = self.dimensions
-    #     return state_dict
-    #
-    # def load_state_dict(self, state_dict, **kwargs):
-    #     self.mu = state_dict['mu']
-    #     self.sigma = state_dict['sigma']
-    #     self.fitted = state_dict['fitted']
-    #     self.dimensions = state_dict['dimensions']
+    def increment_counter(self):
+        self.counter += 1
+        for c in self.children():
+            if hasattr(c, 'counter') and hasattr(c, 'increment_counter'):
+                c.increment_counter()
 
 
 class StandardizerSequence(nn.Module):
@@ -181,8 +91,8 @@ class StandardizerSequence(nn.Module):
 
     def reset_parameters(self, **kwargs):
         with torch.no_grad():
-            self.mu.data.copy_(torch.zeros(self.n_feats))
-            self.sigma.data.copy_(torch.ones(self.n_feats))
+            self.mu.data.copy_(torch.zeros(self.n_feats, device=self.device))
+            self.sigma.data.copy_(torch.ones(self.n_feats, device=self.device))
             self.fitted.data = torch.tensor(False)
 
     def view_3d_to_2d(self, x):
@@ -199,6 +109,11 @@ class StandardizerSequence(nn.Module):
                 return x.view(self.dimensions[0], self.dimensions[1], self.dimensions[2])
             else:
                 return x
+
+    def to(self, device):
+        super(StandardizerSequence, self).to(device)
+        self.mu = self.mu.to(device)
+        self.sigma = self.sigma.to(device)
 
 
 class StandardizerFeatures(nn.Module):
@@ -236,24 +151,10 @@ class StandardizerFeatures(nn.Module):
             self.sigma.data.copy(torch.ones(self.n_feats))
             self.fitted.data = torch.tensor(False)
 
-    # def state_dict(self, **kwargs):
-    #     """overwrites the state_dict with the custom attributes
-    #
-    #     Returns: state_dict
-    #
-    #     Args:
-    #         **kwargs:
-    #     """
-    #     state_dict = super(StandardizerFeatures, self).state_dict()
-    #     state_dict['mu'] = self.mu
-    #     state_dict['sigma'] = self.sigma
-    #     state_dict['fitted'] = self.fitted
-    #     return state_dict
-    #
-    # def load_state_dict(self, state_dict, **kwargs):
-    #     self.mu = state_dict['mu']
-    #     self.sigma = state_dict['sigma']
-    #     self.fitted = state_dict['fitted']
+    def to(self, device):
+        super(StandardizerFeatures, self).to(device)
+        self.mu = self.mu.to(device)
+        self.sigma = self.sigma.to(device)
 
 
 class StandardizerSequenceVector(nn.Module):
@@ -285,6 +186,11 @@ class StandardizerSequenceVector(nn.Module):
             self.mu.data.copy_(torch.zeros((self.max_len, self.input_dim)))
             self.sigma.data.copy_(torch.ones((self.max_len, self.input_dim)))
             self.fitted.data = torch.tensor(False)
+
+    def to(self, device):
+        super(StandardizerSequenceVector, self).to(device)
+        self.mu = self.mu.to(device)
+        self.sigma = self.sigma.to(device)
 
 
 class StdBypass(nn.Module):
@@ -426,7 +332,6 @@ class NNAlignSinglePass(NetParent):
 
 class NNAlignEFSinglePass(NetParent):
     """
-    # TODO : Carlos, this is the class that you will be using. extrafeat_dim should be 680 when only adding MHC pseudo sequences
     NNAlign implementation with a single forward pass where best score selection + indexing is done in one pass.
     """
 
@@ -454,7 +359,8 @@ class NNAlignEFSinglePass(NetParent):
             self.bn1 = nn.BatchNorm1d(n_hidden)
         self.dropout = nn.Dropout(p=dropout)
         self.act = activation
-        self.standardizer_sequence = StandardizerSequence(n_feats=self.matrix_dim*window_size) if standardize else StdBypass()
+        self.standardizer_sequence = StandardizerSequence(
+            n_feats=self.matrix_dim * window_size) if standardize else StdBypass()
         # For mhc pseudosequences, extrafeat_dim would be 680 (34x20, flattened)
         self.standardizer_features = StandardizerFeatures(n_feats=extrafeat_dim) if standardize else StdBypass()
 
@@ -463,7 +369,7 @@ class NNAlignEFSinglePass(NetParent):
         with torch.no_grad():
             self.standardizer_sequence.fit(x_tensor, x_mask)
             if x_feats is not None:
-                self.standardizer_features.fit(self.reshape_features(x_tensor,x_feats))
+                self.standardizer_features.fit(self.reshape_features(x_tensor, x_feats))
 
     @staticmethod
     def reshape_features(x_tensor, x_feats):
@@ -595,6 +501,7 @@ class NNAlign(NetParent):
     """
     This simply combines standardizer with nnalign in a slightly different architecture than EFsinglePass
     """
+
     def __init__(self, n_hidden, window_size, activation=nn.SELU(), batchnorm=False, dropout=0.0,
                  standardize=True, **kwargs):
         super(NNAlign, self).__init__()
@@ -635,7 +542,6 @@ class NNAlign(NetParent):
                     child.reset_parameters(**kwargs)
                 except:
                     print('debug HERE', child)
-    
 
 
 class ExtraLayerSingle(NetParent):
