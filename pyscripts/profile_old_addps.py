@@ -208,6 +208,7 @@ def main():
     train_dataset = NNAlignDatasetEFSinglePass(train_df, **dataset_params)
     valid_dataset = NNAlignDatasetEFSinglePass(valid_df, **dataset_params)
     test_dataset = NNAlignDatasetEFSinglePass(test_df, **dataset_params)
+    _, dataset_peak = tracemalloc.get_traced_memory()
 
     train_loader = train_dataset.get_dataloader(batch_size=args['batch_size'], sampler=RandomSampler)
     valid_loader = valid_dataset.get_dataloader(batch_size=args['batch_size'] * 2, sampler=SequentialSampler)
@@ -220,6 +221,8 @@ def main():
                                                                train_dataset, train_loader, valid_loader,
                                                                checkpoint_filename,
                                                                outdir, args['burn_in'], args['standardize'])
+    _, traineval_peak = tracemalloc.get_traced_memory()
+
     pkl_dump(train_losses, f'{outdir}/train_losses_{unique_filename}.pkl')
     pkl_dump(valid_losses, f'{outdir}/valid_losses_{unique_filename}.pkl')
     pkl_dump(train_metrics, f'{outdir}/train_metrics_{unique_filename}.pkl')
@@ -263,14 +266,10 @@ def main():
 
     tracemalloc.stop()
 
-    current, peak = tracemalloc.get_traced_memory()
-
     end = dt.now()
     elapsed = divmod((end - start).seconds, 60)
-    avg = current / int((elapsed[0]*60 + elapsed[1]))
-    print(f"Current memory usage: {current / (1024 ** 2):.2f} MB")
-    print(f"Peak memory usage: {peak / (1024 ** 2):.2f} MB")
-    print(f"Avg memory usage: {avg / (1024 ** 2):.2f} MB")
+    print(f"traineval_peak memory usage: {traineval_peak / (1024 ** 2):.2f} MB")
+    print(f"dataset_peak memory usage: {dataset_peak / (1024 ** 2):.2f} MB")
 
     print(f'Program finished in {elapsed[0]} minutes, {elapsed[1]} seconds.')
     sys.exit(0)

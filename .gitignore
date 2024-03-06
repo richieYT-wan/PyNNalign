@@ -251,3 +251,4 @@ output/_old
 data/.DS_Store
 output/.DS_Store
 output/ADD_PS_OLD.logs
+data/mhc1_el_subsample/mhc1_el_5M.csv

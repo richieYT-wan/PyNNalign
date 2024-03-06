@@ -17,8 +17,9 @@ from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
-from src.datasets import NNAlignDatasetEFSinglePass, UglyWorkAround
+from src.datasets import NNAlignDatasetEFSinglePass, UglyWorkAround, PseudoOTFDataset
 from matplotlib import pyplot as plt
+import tracemalloc
 import seaborn as sns
 
 import argparse
@@ -76,6 +77,9 @@ def args_parser():
                         help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
     parser.add_argument('-indel', '--indel', dest='indel', type=str2bool, default=False,
                         help='Whether to add insertions/deletions')
+    parser.add_argument('-otf', '--on_the_fly', dest='on_the_fly', type=str2bool, default=False,
+                        help='Do MHC expansion on the fly vs saving everything in memory')
+
     """
     Neural Net & Encoding args 
     """
@@ -132,6 +136,7 @@ we can do this instead.
 
 def main():
     start = dt.now()
+    tracemalloc.start()
     # I like dictionary for args :-)
     args = vars(args_parser())
     # File-saving stuff
@@ -202,10 +207,17 @@ def main():
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
+    if args['on_the_fly']:
+        train_dataset = PseudoOTFDataset(train_df, **dataset_params)
+        valid_dataset = PseudoOTFDataset(valid_df, **dataset_params)
+        test_dataset = PseudoOTFDataset(test_df, **dataset_params)
+        _, dataset_peak = tracemalloc.get_traced_memory()
 
-    train_dataset = NNAlignDatasetEFSinglePass(train_df, **dataset_params)
-    valid_dataset = NNAlignDatasetEFSinglePass(valid_df, **dataset_params)
-    test_dataset = NNAlignDatasetEFSinglePass(test_df, **dataset_params)
+    else:
+        train_dataset = NNAlignDatasetEFSinglePass(train_df, **dataset_params)
+        valid_dataset = NNAlignDatasetEFSinglePass(valid_df, **dataset_params)
+        test_dataset = NNAlignDatasetEFSinglePass(test_df, **dataset_params)
+        _, dataset_peak = tracemalloc.get_traced_memory()
 
     train_loader = train_dataset.get_dataloader(batch_size=args['batch_size'], sampler=RandomSampler)
     valid_loader = valid_dataset.get_dataloader(batch_size=args['batch_size'] * 2, sampler=SequentialSampler)
@@ -218,6 +230,8 @@ def main():
                                                                train_dataset, train_loader, valid_loader,
                                                                checkpoint_filename,
                                                                outdir, args['burn_in'], args['standardize'])
+    _, traineval_peak = tracemalloc.get_traced_memory()
+
     pkl_dump(train_losses, f'{outdir}/train_losses_{unique_filename}.pkl')
     pkl_dump(valid_losses, f'{outdir}/valid_losses_{unique_filename}.pkl')
     pkl_dump(train_metrics, f'{outdir}/train_metrics_{unique_filename}.pkl')
@@ -257,8 +271,12 @@ def main():
         # file.write(f"Test loss: {test_loss}\n")
         # file.write(f"Test AUC: {test_metrics['auc']}\n")
     save_model_full(model, checkpoint_filename, outdir, dict_kwargs=model_params)
+    tracemalloc.stop()
+
     end = dt.now()
     elapsed = divmod((end - start).seconds, 60)
+    print(f"dataset_peak memory usage: {dataset_peak / (1024 ** 2):.2f} MB")
+    print(f"traineval_peak memory usage: {traineval_peak / (1024 ** 2):.2f} MB")
     print(f'Program finished in {elapsed[0]} minutes, {elapsed[1]} seconds.')
     sys.exit(0)
 
