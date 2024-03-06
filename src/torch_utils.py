@@ -11,6 +11,30 @@ ACT_DICT = {'SELU': nn.SELU(), 'ReLU': nn.ReLU(),
             'LeakyReLU': nn.LeakyReLU(), 'ELU': nn.ELU()}
 
 
+def get_available_device():
+    # Check the number of available GPUs
+    num_gpus = torch.cuda.device_count()
+
+    if num_gpus == 0:
+        print("No GPUs available. Using CPU.")
+        return 'cpu'
+
+    print(f"Number of available GPUs: {num_gpus}")
+
+    # Check if GPUs are currently in use
+    in_use = [torch.cuda.memory_allocated(i) > 0 for i in range(num_gpus)]
+
+    # Select the first available GPU that is not in use
+    for i in range(num_gpus):
+        if not in_use[i]:
+            print(f"Using GPU {i}")
+            return f'cuda:{i}'
+
+    # If all GPUs are in use, fall back to CPU
+    print("All GPUs are in use. Using CPU.")
+    return 'cpu'
+
+
 def load_model_full(checkpoint_filename, json_filename, dir_path=None, return_json=False, verbose=True):
     """
     Instantiate and loads a model directly from a checkpoint and json filename
@@ -110,6 +134,7 @@ def save_json(dict_kwargs, filename, dir_path='./'):
         json.dump(dict_kwargs, json_file)
     print(f"JSON data has been written to {savepath}")
 
+
 def set_mode(models_dict, mode='eval'):
     """
     QOL function to set all models to train or eval
@@ -182,27 +207,5 @@ def load_checkpoint(model, filename: str, dir_path: str = None):
     if dir_path is not None:
         filename = os.path.join(dir_path, filename)
     model.load_state_dict(torch.load(filename))
-    model.eval()
-    return model
-
-
-def create_load_model(constructor, filename: str, dir_path: str = None):
-    """If provided with a constructor, loads the state_dict and creates the model object from the state_dict
-
-    Assumes that state_dict has a key "init_params" that is used to initialize the model with the constructor.
-    Args:
-        constructor:
-        filename:
-        dir_path:
-
-    Returns:
-        model: Loaded model, in eval mode, created from the constructor + the state_dict['init_params']
-    """
-    if dir_path is not None:
-        filename = os.path.join(dir_path, filename)
-    state_dict = torch.load(filename)
-    assert 'init_params' in state_dict.keys(), f'state_dict does not contain init_params key! It has {state_dict.keys()} instead.'
-    model = constructor(**state_dict['init_params'])
-    model.load_state_dict(state_dict)
     model.eval()
     return model

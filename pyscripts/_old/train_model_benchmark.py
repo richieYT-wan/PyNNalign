@@ -113,7 +113,7 @@ def main():
         checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
     else:
         train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
-    # TODO: For now we are doing like this because we don't care about other activations, singlepass, indels
+
     # Def params so it's ✨tidy✨
     model_keys = ['n_hidden', 'window_size', 'batchnorm', 'dropout', 'standardize']
     dataset_keys = ['max_len', 'window_size', 'encoding', 'seq_col', 'target_col', 'pad_scale', 'batch_size']

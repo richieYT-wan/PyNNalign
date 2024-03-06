@@ -96,15 +96,16 @@ def train_model_step(model, criterion, optimizer, train_loader):
     y_scores, y_true = [], []
     # Here, workaround so that the same fct can pass different number of arguments to the model
     # e.g. to accomodate for an extra x_feature tensor if returned by train_loader
-    for data in train_loader:
-        y_train = data.pop(-1)
-        output = model(*data)
+    for batch in train_loader:
+        batch = [x.to(model.device) for x in batch]
+        y_train = batch.pop(-1)
+        output = model(*batch)
         loss = criterion(output, y_train)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        y_true.append(y_train)
-        y_scores.append(F.sigmoid(output))
+        y_true.append(y_train.detach().cpu())
+        y_scores.append(F.sigmoid(output).detach().cpu())
         train_loss += loss.item() * y_train.shape[0]
 
     # Concatenate the y_pred & y_true tensors and compute metrics
@@ -122,12 +123,13 @@ def eval_model_step(model, criterion, valid_loader):
     y_scores, y_true = [], []
     with torch.no_grad():
         # Same workaround as above
-        for data in valid_loader:
-            y_valid = data.pop(-1)
-            output = model(*data)
+        for batch in valid_loader:
+            batch = [x.to(model.device) for x in batch]
+            y_valid = batch.pop(-1)
+            output = model(*batch)
             loss = criterion(output, y_valid)
-            y_true.append(y_valid)
-            y_scores.append(F.sigmoid(output))
+            y_true.append(y_valid.detach().cpu())
+            y_scores.append(F.sigmoid(output).detach().cpu())
             valid_loss += loss.item() * y_valid.shape[0]
     # Concatenate the y_pred & y_true tensors and compute metrics
     y_scores, y_true = torch.cat(y_scores), torch.cat(y_true)
@@ -149,28 +151,21 @@ def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
     # HERE, MUST ENSURE WE USE
     with torch.no_grad():
         # Same workaround as above
-        for data in dataloader:
-            y = data.pop(-1)
-            preds, core_idx = model.predict(*data)
-
-            predictions.append(preds)
-            best_indices.append(core_idx)
-            ys.append(y)
-    predictions = torch.cat(predictions).detach().cpu().numpy().flatten()
-    best_indices = torch.cat(best_indices).detach().cpu().numpy().flatten()
-    ys = torch.cat(ys).detach().cpu().numpy().flatten()
+        for batch in dataloader:
+            batch = [x.to(model.device) for x in batch]
+            y = batch.pop(-1)
+            preds, core_idx = model.predict(*batch)
+            predictions.append(preds.detach().cpu())
+            best_indices.append(core_idx.detach().cpu())
+            ys.append(y.detach().cpu())
+    predictions = torch.cat(predictions).numpy().flatten()
+    best_indices = torch.cat(best_indices).numpy().flatten()
+    ys = torch.cat(ys).numpy().flatten()
 
     df['pred'] = predictions
     df['core_start_index'] = best_indices
     df['label'] = ys
     seq_col, window_size, max_len = dataset.seq_col, dataset.window_size, dataset.max_len
-
-    # TODO: Pablo, here, at some point you will need to modify this function when insertions/deletions work
-    #       Currently, to get the motif we simply read the sequence and use the "best index" from the window
-    #       to get the corresponding binding core.
-    #       When we do In/Del, we will have extra core indices (as returned by x_mask), and we will need to adapt
-    #       to find which binding motif this corresponds to
-
     df['motif'] = df.apply(get_motif, seq_col=seq_col, window_size=window_size, max_len=max_len, axis=1)
     return df
 

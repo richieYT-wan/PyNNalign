@@ -2,7 +2,7 @@ import pandas as pd
 from tqdm.auto import tqdm
 import os, sys
 
-module_path = os.path.abspath(os.path.join('..'))
+module_path = os.path.abspath(os.path.join('../..'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
@@ -13,7 +13,7 @@ from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
     get_class_initcode_keys
-from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full
+from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
@@ -30,6 +30,9 @@ def args_parser():
     """
     Data processing args
     """
+    parser.add_argument('-cuda', dest='cuda', required=False, type=str2bool, default=False,
+                        help='Whether to activate Cuda. If true, will check if any gpu is available.')
+
     parser.add_argument('-trf', '--train_file', dest='train_file', required=True, type=str,
                         default='../data/aligned_icore/230530_cedar_aligned.csv',
                         help='filename of the train input file')
@@ -42,8 +45,6 @@ def args_parser():
                         type=str, default='', help='Additional output name')
     parser.add_argument('-s', '--split', dest='split', required=False, type=int,
                         default=5, help=('How to split the train/test data (test size=1/X)'))
-    # TODO: Carlos: here, use None for kf because the data is already split. I'll let you figure out how to call the columns
-    #       and what to use with -x, -y, -max_len, etc.
     parser.add_argument('-kf', '--fold', dest='fold', required=False, type=int, default=None,
                         help='If added, will split the input file into the train/valid for kcv')
     parser.add_argument('-x', '--seq_col', dest='seq_col', default='Sequence', type=str, required=False,
@@ -61,10 +62,7 @@ def args_parser():
     parser.add_argument('-fc', '--feature_cols', dest='feature_cols', nargs='+', required=False,
                         help='Name of columns (str) to use as extra features, space separated.' \
                              'For example, to add 2 features Rank and Similarity, do: -ef Rank Similarity')
-    # TODO: Carlos, here you need to parse this argument when creating the dataset so that you add the pseudo sequence
-    #       I won't code everything so I'll let you figure it out on your own. The new NNAlignEFSinglePass model class
-    #       takes care of the concatenation (see the forward and predict). You just need to have your dataloader return it.
-    #       Reminder you have to define the number of extrafeatures (extrafeat_dim) when creating the NNAlignEFSinglePass model
+
     parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=False,
                         help='Whether to add pseudo sequence to the model (true/false)')
     parser.add_argument('-ps', '--pseudo_seq_col', dest='pseudo_seq_col', default='pseudoseq', type=str, required=False,
@@ -137,6 +135,11 @@ def main():
 
     # I like dictionary for args :-)
     args = vars(args_parser())
+    if torch.cuda.is_available() and args['cuda']:
+        device = get_available_device()
+    else:
+        device = torch.device('cpu')
+    print("Using : {}".format(device))
     # File-saving stuff
     connector = '' if args["out"] == '' else '_'
     kf = 'XX' if args["fold"] is None else args['fold']
@@ -145,7 +148,7 @@ def main():
     unique_filename = f'{args["out"]}{connector}KFold_{kf}_{get_datetime_string()}_{rid}'
 
     checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
-    outdir = os.path.join('../output/', unique_filename) + '/'
+    outdir = os.path.join('../../output/', unique_filename) + '/'
     mkdirs(outdir)
     df = pd.read_csv(args['train_file'])
     tmp = args['seq_col']
@@ -175,7 +178,6 @@ def main():
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # instantiate objects
-    # TODO: Carlos here you define extrafeat_dim :
     if args['add_pseudo_sequence']:
         if args['add_pfr'] and args['add_fr_len']:
             extrafeat_dim = (20 * 34) + (2 * 20) + 4
@@ -200,6 +202,7 @@ def main():
     # print(f'Extra-features dimensions: {extrafeat_dim}')
 
     model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, **model_params)
+    model.to(device)
 
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')

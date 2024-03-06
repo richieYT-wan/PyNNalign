@@ -13,7 +13,7 @@ from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
     get_class_initcode_keys
-from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full
+from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
@@ -30,14 +30,14 @@ def args_parser():
     """
     Data processing args
     """
+    parser.add_argument('-cuda', dest='cuda', required=False, type=str2bool, default=False,
+                        help='Whether to activate Cuda. If true, will check if any gpu is available.')
     parser.add_argument('-trf', '--train_file', dest='train_file', required=True, type=str,
                         default='../data/aligned_icore/230530_cedar_aligned.csv',
                         help='filename of the train input file')
-
     parser.add_argument('-tef', '--test_file', dest='test_file', required=True, type=str,
                         default='../data/aligned_icore/230530_prime_aligned.csv',
                         help='filename of the test input file')
-
     parser.add_argument('-o', '--out', dest='out', required=False,
                         type=str, default='', help='Additional output name')
     parser.add_argument('-s', '--split', dest='split', required=False, type=int,
@@ -139,6 +139,12 @@ def main():
     tracemalloc.start()
     # I like dictionary for args :-)
     args = vars(args_parser())
+    # Cuda activation
+    if torch.cuda.is_available() and args['cuda']:
+        device = get_available_device()
+    else:
+        device = torch.device('cpu')
+    print("Using : {}".format(device))
     # File-saving stuff
     connector = '' if args["out"] == '' else '_'
     kf = 'XX' if args["fold"] is None else args['fold']
@@ -203,7 +209,7 @@ def main():
     # print(f'Extra-features dimensions: {extrafeat_dim}')
 
     model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, **model_params)
-
+    model.to(device)
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)

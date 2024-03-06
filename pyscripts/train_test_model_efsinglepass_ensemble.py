@@ -12,7 +12,7 @@ from torch import nn
 from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, get_class_initcode_keys
-from src.torch_utils import save_checkpoint, load_checkpoint
+from src.torch_utils import save_checkpoint, load_checkpoint, get_available_device
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
@@ -123,6 +123,9 @@ def args_parser():
                         help='Tolerance for loss variation to log best model')
     parser.add_argument('-rid', '--random_id', dest='random_id', type=str, default=None,
                         help='Adding a random ID taken from a batchscript that will start all crossvalidation folds. Default = ""')
+    parser.add_argument('-cuda', dest='cuda', required=False, type=str2bool, default=False,
+                        help='Whether to activate Cuda. If true, will check if any gpu is available.')
+
     return parser.parse_args()
 
 
@@ -138,6 +141,11 @@ def main():
     start = dt.now()
     # I like dictionary for args :-)
     args = vars(args_parser())
+    if torch.cuda.is_available() and args['cuda']:
+        device = get_available_device()
+    else:
+        device = torch.device('cpu')
+    print("Using : {}".format(device))
     # File-saving stuff
     connector = '' if args["out"] == '' else '_'
     kf = 'XX' if args["fold"] is None else args['fold']
@@ -232,7 +240,9 @@ def main():
         torch.manual_seed(seed)
         np.random.seed(seed)
         checkpoint_filename = f'checkpoint_best_{unique_filename}_ensemble_{i:03}_seed_{seed}.pt'
-        model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, indel=False, **model_params)
+        model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, **model_params)
+        model.to(device)
+
         train_loader = train_dataset.get_dataloader(args['batch_size'], sampler=RandomSampler)
         optimizer = optim.Adam(model.parameters(), **optim_params)
 
