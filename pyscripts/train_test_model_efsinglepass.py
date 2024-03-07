@@ -61,10 +61,6 @@ def args_parser():
     parser.add_argument('-fc', '--feature_cols', dest='feature_cols', nargs='+', required=False,
                         help='Name of columns (str) to use as extra features, space separated.' \
                              'For example, to add 2 features Rank and Similarity, do: -ef Rank Similarity')
-    # TODO: Carlos, here you need to parse this argument when creating the dataset so that you add the pseudo sequence
-    #       I won't code everything so I'll let you figure it out on your own. The new NNAlignEFSinglePass model class
-    #       takes care of the concatenation (see the forward and predict). You just need to have your dataloader return it.
-    #       Reminder you have to define the number of extrafeatures (extrafeat_dim) when creating the NNAlignEFSinglePass model
     parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=False,
                         help='Whether to add pseudo sequence to the model (true/false)')
     parser.add_argument('-ps', '--pseudo_seq_col', dest='pseudo_seq_col', default='pseudoseq', type=str, required=False,
@@ -77,8 +73,11 @@ def args_parser():
                         help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
     parser.add_argument('-indel', '--indel', dest='indel', type=str2bool, default=False,
                         help='Whether to add insertions/deletions')
-    parser.add_argument('-otf', '--on_the_fly', dest='on_the_fly', type=str2bool, default=False,
-                        help='Do MHC expansion on the fly vs saving everything in memory')
+
+    # TODO: Deprecate on_the_fly and set it as default behaviour in datasets (remove old behaviour)
+    parser.add_argument('-otf', '--on_the_fly', dest='on_the_fly', type=str2bool, default=True,
+                        help='Do MHC expansion on the fly vs saving everything in memory.'
+                             'Now True by default, to be deprecated ')
 
     """
     Neural Net & Encoding args 

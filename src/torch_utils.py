@@ -167,7 +167,9 @@ def set_device(models_list, device):
         model.to(device)
 
 
-def save_checkpoint(model, filename: str = 'checkpoint.pt', dir_path: str = './', verbose=False):
+def save_checkpoint(model, filename: str = 'checkpoint.pt', dir_path: str = './',
+                    verbose=False,
+                    best_dict: dict = None):
     """
     Saves a single torch model, with some sanity checks
     Args:
@@ -185,15 +187,17 @@ def save_checkpoint(model, filename: str = 'checkpoint.pt', dir_path: str = './'
         mkdirs(dir_path)
         if verbose:
             print(f'Creating {dir_path}; The provided dir path {dir_path} did not exist!')
-    if not filename.endswith('.pt'):
-        name = filename + '.pt'
+
     savepath = os.path.join(dir_path, filename)
-    torch.save(model.state_dict(), savepath)
+    checkpoint = model.state_dict()
+    if best_dict is not None and type(best_dict) == dict:
+        checkpoint['best'] = best_dict
+    torch.save(checkpoint, savepath)
     if verbose:
         print(f'Model saved at {os.path.abspath(savepath)}')
 
 
-def load_checkpoint(model, filename: str, dir_path: str = None):
+def load_checkpoint(model, filename: str, dir_path: str = None, verbose=True):
     """
     Loads a model
     Args:
@@ -206,6 +210,18 @@ def load_checkpoint(model, filename: str, dir_path: str = None):
     """
     if dir_path is not None:
         filename = os.path.join(dir_path, filename)
-    model.load_state_dict(torch.load(filename))
+    try:
+        checkpoint = torch.load(filename)
+        if 'best' in checkpoint.keys():
+            best = checkpoint.pop('best')
+            if verbose:
+                print('Reloading best model:')
+                for k, v in best.items():
+                    print(f'{k}: {v}')
+        model.load_state_dict(checkpoint)
+    except:
+        st = torch.load(filename)
+        print(st.keys())
+        raise ValueError()
     model.eval()
     return model

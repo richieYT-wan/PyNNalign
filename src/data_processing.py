@@ -153,9 +153,9 @@ def onehot_batch_decode(onehot_sequences):
 
 
 # Function to calculate the mean position values of fixed-size (3) flanking regions of each motif
-def PFR_calculation(df_seq, all_xmask, max_len, window_size=9):
+def PFR_calculation(sequences, all_xmask, max_len, window_size=9):
     # Define output
-    data = encode_batch(df_seq, max_len, 'BL62FREQ', None)  # Coding according the FREQ Blosum matrix (better for PFR)
+    data = encode_batch(sequences, max_len, 'BL62FREQ', None)  # Coding according the FREQ Blosum matrix (better for PFR)
     all_pfr = torch.empty((data.shape[0], max_len - window_size + 1, 2, 20))  # Initialize the output tensor
     for j in range(0, data.shape[0], 1):
 
@@ -189,8 +189,6 @@ def PFR_calculation(df_seq, all_xmask, max_len, window_size=9):
             all_pfr[j, i, 0] = prev_pfr
             all_pfr[j, i, 1] = after_pfr
 
-    # print('PFR for this dataset completed')
-
     return all_pfr.flatten(start_dim=2)
 
 
@@ -222,18 +220,14 @@ def FR_lengths(all_xmask, max_len, window_size=9):
         all_FR_len[j, :, 1, 0] = (torch.tensor(FR_len_after))
         all_FR_len[j, :, 1, 1] = (torch.tensor(1 - FR_len_after))
 
-    # print('FR lengths for this dataset completed')
 
     return all_FR_len.flatten(start_dim=2)
 
 
 # Function for encoding the peptide lengths as one-hot
-def pep_len_1hot(df_seq, max_len, window_size, min_length, max_length):
+def pep_len_1hot(df_seq, max_len, window_size, min_length=13, max_length=21):
     # Define the range of possible sequence lengths
     seq_lens = df_seq.str.len()
-    min_length = 13
-    max_length = 21
-
     # Create an empty NumPy array for one-hot encoding
     seq_lens_1hot = np.zeros((len(df_seq), (max_length - min_length) + 2), dtype=int)
 
@@ -250,7 +244,7 @@ def pep_len_1hot(df_seq, max_len, window_size, min_length, max_length):
 
     # print('Peptide lengths encoded for this dataset completed')
 
-    return (expanded_tensor)
+    return expanded_tensor
 
 
 # Function for adding indels

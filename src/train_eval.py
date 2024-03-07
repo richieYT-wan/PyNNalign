@@ -220,6 +220,9 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
     # Actual runs
     train_metrics, valid_metrics, train_losses, valid_losses = [], [], [], []
     best_val_loss, best_val_auc, best_epoch = 1000, 0.5, 1
+
+    intervals = (np.arange(0.2, 1, 0.2) * n_epochs).astype(int)
+
     for e in tqdm(range(1, n_epochs + 1), desc='epochs', leave=False):
         train_loss, train_metric = train_model_step(model, criterion, optimizer, train_loader)
         valid_loss, valid_metric = eval_model_step(model, criterion, valid_loader)
@@ -241,7 +244,15 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
             best_epoch = e
             best_val_loss = valid_loss
             best_val_auc = valid_metric['auc']
-            save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir)
+            savedict = {'epoch':e, 'valid_loss':valid_loss}
+            savedict.update(valid_metric)
+            save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir, best_dict=savedict)
+
+        if e in intervals:
+            fn = f'epoch_{e}_interval_' + checkpoint_filename
+            savedict = {'epoch': e, 'valid_loss':valid_loss}
+            savedict.update(valid_metric)
+            save_checkpoint(model, filename=fn, dir_path=outdir, best_dict=savedict)
 
     print(f'End of training cycles')
     print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
