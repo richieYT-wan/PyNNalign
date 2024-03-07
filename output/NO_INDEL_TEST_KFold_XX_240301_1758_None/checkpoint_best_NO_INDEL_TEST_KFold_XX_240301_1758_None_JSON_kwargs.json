@@ -1,0 +1,1 @@
+{"indel": false, "n_hidden": 50, "standardize": false, "batchnorm": false, "dropout": 0.0, "window_size": 9, "add_hidden_layer": false, "n_hidden_2": 10, "constructor": "NNAlignEFSinglePass"}

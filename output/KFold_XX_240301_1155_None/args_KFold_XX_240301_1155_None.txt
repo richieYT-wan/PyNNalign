@@ -1,0 +1,44 @@
+####################################################################################################
+#                                          PARAMETERS
+####################################################################################################
+train_file: ../data/mhc1_el_sub10k/sample_no_u.csv
+test_file: ../data/mhc1_el_sub10k/test_data.csv
+out: 
+split: 5
+fold: None
+seq_col: Sequence
+target_col: target
+encoding: BL50LO
+max_len: 13
+pad_scale: -20.0
+feature_cols: None
+add_pseudo_sequence: False
+pseudo_seq_col: pseudoseq
+add_pfr: False
+add_fr_len: False
+add_pep_len: False
+indel: True
+n_hidden: 10
+standardize: False
+batchnorm: False
+dropout: 0.0
+window_size: 9
+n_hidden_ef: 10
+batchnorm_ef: False
+dropout_ef: 0.0
+add_hidden_layer: False
+n_hidden_2: 10
+burn_in: None
+lr: 0.0001
+weight_decay: 0.0001
+batch_size: 128
+n_epochs: 100
+tolerance: 1e-05
+random_id: None
+####################################################################################################
+#                                          VALID-TEST
+####################################################################################################
+Best valid epoch: 100
+Best valid loss: 0.046432900446653366
+Best valid auc: 0.804
+Test file: ../data/mhc1_el_sub10k/test_data.csv

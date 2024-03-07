@@ -129,7 +129,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
     CLASS TO USE
     """
 
-    @profile
+    #@profile
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
@@ -284,7 +284,7 @@ class PseudoOTFDataset(SuperDataset):
     Class to test PSEUDOSEQ on the fly
     """
 
-    @profile
+    #@profile
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'],

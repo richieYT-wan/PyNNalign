@@ -1,0 +1,23 @@
+file: ../data/mhc1_el_sub10k/sample_no_u.csv
+out: 
+split: 5
+fold: None
+seq_col: Sequence
+target_col: target
+encoding: BL50LO
+max_len: 13
+pad_scale: -20.0
+n_hidden: 10
+standardize: False
+batchnorm: False
+dropout: 0.0
+window_size: 9
+burn_in: None
+lr: 0.0001
+weight_decay: 0.01
+batch_size: 128
+n_epochs: 500
+tolerance: 1e-05
+Best valid epoch: 500
+Best valid loss: 0.8054
+Best valid auc: 0.8054
