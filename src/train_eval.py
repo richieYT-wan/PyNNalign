@@ -13,7 +13,6 @@ from tqdm.auto import tqdm
 import numpy as np
 
 from torch.utils.data import DataLoader
-from src.datasets import NNAlignDataset
 from src.utils import get_motif
 from src.torch_utils import save_checkpoint, load_checkpoint
 from src.metrics import get_metrics

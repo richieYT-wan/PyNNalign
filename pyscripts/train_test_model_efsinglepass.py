@@ -17,7 +17,7 @@ from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, g
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
-from src.datasets import NNAlignDatasetEFSinglePass, UglyWorkAround, PseudoOTFDataset
+from src.datasets import NNAlignDatasetEFSinglePass, UglyWorkAround, NNAlignDataset
 from matplotlib import pyplot as plt
 import tracemalloc
 import seaborn as sns
@@ -214,9 +214,9 @@ def main():
     if args['on_the_fly']:
         # TODO Quick workaround
         dataset_params.pop('pseudo_seq_col')
-        train_dataset = PseudoOTFDataset(train_df, **dataset_params)
-        valid_dataset = PseudoOTFDataset(valid_df, **dataset_params)
-        test_dataset = PseudoOTFDataset(test_df, **dataset_params)
+        train_dataset = NNAlignDataset(train_df, **dataset_params)
+        valid_dataset = NNAlignDataset(valid_df, **dataset_params)
+        test_dataset = NNAlignDataset(test_df, **dataset_params)
         _, dataset_peak = tracemalloc.get_traced_memory()
 
     else:
