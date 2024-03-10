@@ -2,8 +2,9 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
-from src.data_processing import encode, encode_batch, PFR_calculation, FR_lengths, pep_len_1hot, \
-    batch_insertion_deletion, batch_indel_mask, get_indel_windows, PSEUDOSEQDICT
+from src.data_processing import PSEUDOSEQDICT, encode, encode_batch
+from src.data_processing import batch_insertion_deletion, batch_indel_mask,\
+    get_indel_windows, get_pfr_values, get_fr_lengths, get_pep_len_onehot
 from memory_profiler import profile
 from datetime import datetime as dt
 
@@ -133,8 +134,8 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
-                 pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False, add_pep_len=False, add_z=True,
-                 burn_in=None):
+                 pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False, add_pep_len=False, min_clip=None,
+                 max_clip=None, burn_in=None):
         # start = dt.now()
         super(NNAlignDatasetEFSinglePass, self).__init__()
         # Encoding stuff
@@ -153,8 +154,8 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         y = torch.from_numpy(df[target_col].values).float().view(-1, 1)
         # encode_time = dt.now()
         # Creating the mask to allow selection of kmers without padding
-        len_mask = torch.from_numpy(df['len'].values)
-        x_mask = len_mask - window_size
+        len_tensor = torch.from_numpy(df['len'].values)
+        x_mask = len_tensor - window_size
         range_tensor = torch.arange(max_len - window_size + 1).unsqueeze(0).repeat(len(x), 1)
         # Mask for Kmers + padding
         x_mask = (range_tensor <= x_mask.unsqueeze(1)).float().unsqueeze(-1)
@@ -166,7 +167,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
             x_indel = batch_insertion_deletion(df[seq_col], max_len, encoding, pad_scale, window_size)
             # remove padding from indel windows
             x_indel = x_indel[:, :, :window_size, :]
-            indel_mask = batch_indel_mask(len_mask, window_size)
+            indel_mask = batch_indel_mask(len_tensor, window_size)
             x = torch.cat([x, x_indel], dim=1)
             x_mask = torch.cat([x_mask, indel_mask], dim=1)
 
@@ -205,15 +206,17 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
             self.extra_features_flag = True
             # ps_time = dt.now()
         if add_pfr:
-            x_pfr = PFR_calculation(df[seq_col], self.x_mask, max_len, window_size)
+            x_pfr = get_pfr_values(df[seq_col].values, max_len, window_size, indel=indel)
             self.x_tensor = torch.cat([self.x_tensor, x_pfr], dim=2)
             # pfr_time = dt.now()
         if add_fr_len:
-            x_fr_len = FR_lengths(self.x_mask, max_len, window_size)
+            x_fr_len = get_fr_lengths(len_tensor, max_len, window_size, indel=indel)
             self.x_tensor = torch.cat([self.x_tensor, x_fr_len], dim=2)
             # pfr_len_time = dt.now()
         if add_pep_len:
-            x_pep_len = pep_len_1hot(df[seq_col], max_len, window_size, min_length=13, max_length=21)
+            min_clip = len_tensor.min().item() if min_clip is None else min_clip
+            max_clip = len_tensor.max().item() if max_clip is None else max_clip
+            x_pep_len = get_pep_len_onehot(len_tensor, max_len, window_size, min_clip, max_clip, indel=indel)
             self.x_tensor = torch.cat([self.x_tensor, x_pep_len], dim=2)
             # peplen_time = dt.now()
 
@@ -287,16 +290,16 @@ class PseudoOTFDataset(SuperDataset):
     #@profile
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
-                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'],
-                 add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False,
-                 add_pep_len=False, add_z=True, burn_in=None):
+                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
+                 add_pfr=False, add_fr_len=False, add_pep_len=False, min_clip=None, max_clip=None, burn_in=None):
         # start = dt.now()
         super(PseudoOTFDataset, self).__init__()
         # Encoding stuff
         if feature_cols is None:
             feature_cols = []
         # Filter out sequences longer than max_len
-        df['len'] = df[seq_col].apply(len)
+        if 'len' not in df.columns:
+            df['len'] = df[seq_col].apply(len)
         df = df.query('len<=@max_len')
         # Then, if indel is False, filter out sequences shorter than windowsize (ex: 8mers for WS=9)
         if not indel:
@@ -308,8 +311,8 @@ class PseudoOTFDataset(SuperDataset):
         y = torch.from_numpy(df[target_col].values).float().view(-1, 1)
         # encode_time = dt.now()
         # Creating the mask to allow selection of kmers without padding
-        len_mask = torch.from_numpy(df['len'].values)
-        x_mask = len_mask - window_size
+        len_tensor = torch.from_numpy(df['len'].values)
+        x_mask = len_tensor - window_size
         range_tensor = torch.arange(max_len - window_size + 1).unsqueeze(0).repeat(len(x), 1)
         # Mask for Kmers + padding
         x_mask = (range_tensor <= x_mask.unsqueeze(1)).float().unsqueeze(-1)
@@ -321,7 +324,7 @@ class PseudoOTFDataset(SuperDataset):
             x_indel = batch_insertion_deletion(df[seq_col], max_len, encoding, pad_scale, window_size)
             # remove padding from indel windows
             x_indel = x_indel[:, :, :window_size, :]
-            indel_mask = batch_indel_mask(len_mask, window_size)
+            indel_mask = batch_indel_mask(len_tensor, window_size)
             x = torch.cat([x, x_indel], dim=1)
             x_mask = torch.cat([x_mask, indel_mask], dim=1)
 
@@ -349,13 +352,10 @@ class PseudoOTFDataset(SuperDataset):
             # TODO: When you add more features you need to concatenate to x_pseudosequence and save it to self.x_features
             # these are NUMERICAL FEATURES like %Rank, expression, etc. of shape (N, len(feature_cols))
             # x_features = torch.from_numpy(df[feature_cols].values).float()
-
             self.extra_features_flag = True
         else:
             self.extra_features_flag = False
 
-        #  TODO dictmap for 9mer look-up and see if how many duplicated and can we save memory
-        #
         if add_pseudo_sequence:
             # Use a dictionary to encode on the fly
             self.pseudoseq_tensormap = {k: encode(v, 34, encoding, pad_scale).flatten(start_dim=0) for k, v
@@ -365,21 +365,24 @@ class PseudoOTFDataset(SuperDataset):
             self.extra_features_flag = True
             # ps_time = dt.now()
         if add_pfr:
-            x_pfr = PFR_calculation(df[seq_col], self.x_mask, max_len, window_size)
+            # x_pfr = PFR_calculation(df[seq_col], self.x_mask, max_len, window_size)
+            x_pfr = get_pfr_values(df[seq_col].values, max_len, window_size, indel=indel)
             self.x_tensor = torch.cat([self.x_tensor, x_pfr], dim=2)
             # pfr_time = dt.now()
         if add_fr_len:
-            x_fr_len = FR_lengths(self.x_mask, max_len, window_size)
+            x_fr_len = get_fr_lengths(len_tensor, max_len, window_size, indel=indel)
             self.x_tensor = torch.cat([self.x_tensor, x_fr_len], dim=2)
             # pfr_len_time = dt.now()
         if add_pep_len:
-            x_pep_len = pep_len_1hot(df[seq_col], max_len, window_size, min_length=13, max_length=21)
+            min_clip = len_tensor.min().item() if min_clip is None else min_clip
+            max_clip = len_tensor.max().item() if max_clip is None else max_clip
+            x_pep_len = get_pep_len_onehot(len_tensor, max_len, window_size, min_clip, max_clip, indel=indel)
             self.x_tensor = torch.cat([self.x_tensor, x_pep_len], dim=2)
             # peplen_time = dt.now()
 
         # Saving df in case it's needed
         self.df = df
-        self.len = len(x)
+        self.len = len(self.x_tensor)
         self.max_len = max_len
         self.seq_col = seq_col
         self.window_size = window_size
@@ -401,7 +404,7 @@ class PseudoOTFDataset(SuperDataset):
             if self.extra_features_flag:
                 # Do the HLA pseudoseq return on the fly instead of pre-expanding and saving
                 x_pseudoseq = self.pseudoseq_tensormap[self.hla_tag[idx]]
-                return self.x_tensor[idx], self.burn_in_mask[idx], x_pseudoseq, self.y[idx]
+                return self.x_tensor[idx], self.burn_in_mask[idx], self.pseudoseq_tensormap[self.hla_tag[idx]], self.y[idx]
             else:
                 # 2
                 return self.x_tensor[idx], self.burn_in_mask[idx], self.y[idx]
@@ -410,7 +413,7 @@ class PseudoOTFDataset(SuperDataset):
                 # 3
                 # Do the HLA pseudoseq return on the fly instead of pre-expanding and saving
                 x_pseudoseq = self.pseudoseq_tensormap[self.hla_tag[idx]]
-                return self.x_tensor[idx], self.x_mask[idx], x_pseudoseq, self.y[idx]
+                return self.x_tensor[idx], self.x_mask[idx], self.pseudoseq_tensormap[self.hla_tag[idx]], self.y[idx]
             else:
                 # 1
                 return self.x_tensor[idx], self.x_mask[idx], self.y[idx]

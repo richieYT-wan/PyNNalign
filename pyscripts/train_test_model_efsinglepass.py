@@ -71,6 +71,10 @@ def args_parser():
                         help='Whether to add length of the flanking regions of each motif to the model (true/false)')
     parser.add_argument('-add_pep_len', '--add_pep_len', dest='add_pep_len', type=str2bool, default=False,
                         help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
+    parser.add_argument('-min_clip', '--min_clip', dest='min_clip', type=int, default=None,
+                        help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
+    parser.add_argument('-max_clip', '--max_clip', dest='max_clip', type=int, default=None,
+                        help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
     parser.add_argument('-indel', '--indel', dest='indel', type=str2bool, default=False,
                         help='Whether to add insertions/deletions')
 
@@ -121,7 +125,8 @@ def args_parser():
                         help='Tolerance for loss variation to log best model')
     parser.add_argument('-rid', '--random_id', dest='random_id', type=str, default=None,
                         help='Adding a random ID taken from a batchscript that will start all crossvalidation folds. Default = ""')
-
+    parser.add_argument('-debug', dest='debug', type=str2bool, default=False,
+                        help='Turning on debug mode')
     return parser.parse_args()
 
 
@@ -144,6 +149,9 @@ def main():
     else:
         device = torch.device('cpu')
     print("Using : {}".format(device))
+    if args['min_clip'] is not None and args['max_clip'] is not None and args['add_pep_len']:
+        assert args['min_clip'] < args['max_clip'], "args['min_clip'] should be smaller than args['max_clip'] for adding pep lens"\
+                                                    f"Got (min, max) = ({args['min_clip'], args['max_clip']} instead"
     # File-saving stuff
     connector = '' if args["out"] == '' else '_'
     kf = 'XX' if args["fold"] is None else args['fold']
@@ -155,6 +163,8 @@ def main():
     outdir = os.path.join('../output/', unique_filename) + '/'
     mkdirs(outdir)
     df = pd.read_csv(args['train_file'])
+    if args['debug']:
+        df = df.sample(min(5000,len(df)), random_state=13)
     tmp = args['seq_col']
     # Filtering from training set
 
@@ -213,6 +223,8 @@ def main():
     criterion = nn.MSELoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
     if args['on_the_fly']:
+        # TODO Quick workaround
+        dataset_params.pop('pseudo_seq_col')
         train_dataset = PseudoOTFDataset(train_df, **dataset_params)
         valid_dataset = PseudoOTFDataset(valid_df, **dataset_params)
         test_dataset = PseudoOTFDataset(test_df, **dataset_params)

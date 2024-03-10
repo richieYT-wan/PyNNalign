@@ -374,7 +374,9 @@ class NNAlignEFSinglePass(NetParent):
     @staticmethod
     def reshape_features(x_tensor, x_feats):
         """
+        ON THE FLY PART
         Reshapes and repeats the feature tensors in order to concatenate them to the x_tensor
+        This is to "duplicate" MHC pseudosequences on the fly ; Reshapes x_feats into x_tensor's shape
         """
         return x_feats.unsqueeze(1).repeat(1, x_tensor.shape[1], 1)
 

@@ -200,7 +200,11 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
     if std == True:
         if any([(hasattr(child, 'standardizer_sequence') or hasattr(child, 'ef_standardizer')) for child in [model.children()]+[model]]):
             # TODO: Not sure about this workaround (works the same as in above with *data & pop(-1))
-            xs = train_dataset[:][:-1]
+            # xs = train_dataset[:][:-1]
+            # TODO: Is there a better way? --> Currently this is a workaround to deal with the pseudoseq on the fly
+            #       Because can't do dataset[:] with "ndarray" because hla_tags can't be a tensor because they are strings
+            batches = [batch[:-1] for batch in train_loader]
+            xs = [torch.cat([x[i] for x in batches]) for i in range(len(batches[0]))]
             print('Standardizing input data (including additional features)\n')
             model.fit_standardizer(*xs)
     else:
