@@ -336,7 +336,7 @@ class NNAlignEFSinglePass(NetParent):
     """
 
     def __init__(self, n_hidden, n_hidden_2, window_size,
-                 activation, extrafeat_dim=0, batchnorm=False,
+                 activation, feat_dim=0, pseudoseq_dim=0, batchnorm=False,
                  dropout=0.0, standardize=False,
                  add_hidden_layer=False):
         super(NNAlignEFSinglePass, self).__init__()
@@ -344,10 +344,11 @@ class NNAlignEFSinglePass(NetParent):
         self.window_size = window_size
         self.n_hidden = n_hidden
         self.n_hidden_2 = n_hidden_2
-        self.extrafeat_dim = extrafeat_dim
+        self.feat_dim = feat_dim
+        self.pseudoseq_dim = pseudoseq_dim
         self.add_hidden_layer = add_hidden_layer
         # Input layer
-        self.in_layer = nn.Linear(self.window_size * self.matrix_dim + extrafeat_dim, n_hidden)
+        self.in_layer = nn.Linear(self.window_size * self.matrix_dim + feat_dim + pseudoseq_dim, n_hidden)
         # Additional hidden layer if use_second_hidden_layer is True
         if add_hidden_layer:
             self.hidden_layer = nn.Linear(n_hidden, n_hidden_2)
@@ -359,10 +360,9 @@ class NNAlignEFSinglePass(NetParent):
             self.bn1 = nn.BatchNorm1d(n_hidden)
         self.dropout = nn.Dropout(p=dropout)
         self.act = activation
-        self.standardizer_sequence = StandardizerSequence(
-            n_feats=self.matrix_dim * window_size) if standardize else StdBypass()
+        self.standardizer_sequence = StandardizerSequence(n_feats=(self.matrix_dim*window_size)+feat_dim) if standardize else StdBypass()
         # For mhc pseudosequences, extrafeat_dim would be 680 (34x20, flattened)
-        self.standardizer_features = StandardizerFeatures(n_feats=extrafeat_dim) if standardize else StdBypass()
+        self.standardizer_features = StandardizerFeatures(n_feats=self.pseudoseq_dim) if standardize else StdBypass()
 
     def fit_standardizer(self, x_tensor, x_mask, x_feats=None):
         assert self.training, 'Must be in training mode to fit!'

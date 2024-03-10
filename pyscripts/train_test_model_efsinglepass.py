@@ -192,21 +192,20 @@ def main():
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
-    # instantiate objects
-    extrafeat_dim = 0
-    if args['add_pseudo_sequence']:
-        extrafeat_dim += 680
+    # Define dimensions for extra features added
+    pseudoseq_dim = 680 if args['add_pseudo_sequence'] else 0
+    feat_dim = 0
     if args['add_pfr']:
-        extrafeat_dim += 40
+        feat_dim += 40
     if args['add_fr_len']:
-        extrafeat_dim += 4
+        feat_dim += 4
     if args['add_pep_len']:
         max_clip = args['max_clip'] if args['max_clip'] is not None else args['max_len']
         min_clip = args['min_clip'] if args['min_clip'] is not None else df[args['seq_col']].apply(len).min()
-        extrafeat_dim += max_clip - min_clip + 2
+        feat_dim += max_clip - min_clip + 2
 
 
-    model = NNAlignEFSinglePass(activation=nn.ReLU(), extrafeat_dim=extrafeat_dim, **model_params)
+    model = NNAlignEFSinglePass(activation=nn.ReLU(), feat_dim=feat_dim, pseudoseq_dim=pseudoseq_dim, **model_params)
     model.to(device)
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')

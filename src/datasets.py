@@ -28,10 +28,9 @@ class SuperDataset(Dataset):
         return dataloader
 
 
-
 class NNAlignDatasetEFSinglePass(SuperDataset):
     """
-    CLASS TO PHASE OUT
+    TODO: CLASS TO PHASE OUT
     """
 
     #@profile
@@ -91,18 +90,12 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         # kmer_time = dt.now()
         self.y = y.contiguous()
         self.x_features = torch.empty((len(x),))
-        # Add extra features
+        # TODO : Phase out this class
         if len(feature_cols) > 0:
-            # TODO: When you add more features you need to concatenate to x_pseudosequence and save it to self.x_features
-            # these are NUMERICAL FEATURES like %Rank, expression, etc. of shape (N, len(feature_cols))
-            # x_features = torch.from_numpy(df[feature_cols].values).float()
-
             self.extra_features_flag = True
         else:
             self.extra_features_flag = False
 
-        #  TODO dictmap for 9mer look-up and see if how many duplicated and can we save memory
-        #
         if add_pseudo_sequence:
             x_pseudoseq = encode_batch(df[pseudo_seq_col], 34, encoding, pad_scale)
             x_pseudoseq = x_pseudoseq.flatten(start_dim=1)
@@ -188,7 +181,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
 
 class NNAlignDataset(SuperDataset):
     """
-    Class to test PSEUDOSEQ on the fly
+    Updated 10.03.24 : CLASS TO USE HERE
     """
 
     #@profile
@@ -253,9 +246,7 @@ class NNAlignDataset(SuperDataset):
         self.x_features = torch.empty((len(x),))
         # Add extra features
         if len(feature_cols) > 0:
-            # TODO: When you add more features you need to concatenate to x_pseudosequence and save it to self.x_features
-            # these are NUMERICAL FEATURES like %Rank, expression, etc. of shape (N, len(feature_cols))
-            # x_features = torch.from_numpy(df[feature_cols].values).float()
+            # TODO:
             self.extra_features_flag = True
         else:
             self.extra_features_flag = False
