@@ -250,6 +250,7 @@ output/_old
 .idea/workspace.xml
 data/.DS_Store
 output/.DS_Store
+output/*
 output/ADD_PS_OLD.logs
 data/mhc1_el_subsample/mhc1_el_5M.csv
 output/PSEUDOSEQ_OLD_500k_KFold_XX_240306_1256_None/args_PSEUDOSEQ_OLD_500k_KFold_XX_240306_1256_None.txt
