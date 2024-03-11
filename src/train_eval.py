@@ -241,9 +241,10 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
 
         # Doesn't allow saving the very first model as sometimes it gets stuck in a random state that has good
         # performance for whatever reasons
-
+        loss_condition = valid_loss<=best_val_loss+tolerance
+        perf_condition = valid_metric['auc']>=best_val_auc
         # and ((valid_loss <= best_val_loss + tolerance and valid_metric['auc'] > best_val_auc) or valid_metric['auc'] > best_val_auc):
-        if e == n_epochs:
+        if e>1 and loss_condition and perf_condition:
             best_epoch = e
             best_val_loss = valid_loss
             best_val_auc = valid_metric['auc']
@@ -256,6 +257,11 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
             savedict = {'epoch': e, 'valid_loss':valid_loss}
             savedict.update(valid_metric)
             save_checkpoint(model, filename=fn, dir_path=outdir, best_dict=savedict)
+
+    last_filename = 'last_epoch_' + checkpoint_filename
+    save_checkpoint(model, filename=last_filename, dir_path=outdir, best_dict={'epoch':-1,
+                                                                               'valid_loss':valid_loss,
+                                                                               'valid_auc':valid_metric['auc']})
 
     print(f'End of training cycles')
     print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
