@@ -7,7 +7,10 @@ if module_path not in sys.path:
     sys.path.append(module_path)
 
 import glob
-from src.utils import makedirs, pkl_dump
+import argparse
+from joblib import Parallel, delayed
+from functools import partial
+from src.utils import mkdirs, str2bool
 
 def args_parser():
     parser = argparse.ArgumentParser(description='Script to get a set of predicted motifs from a PyNNalign output'\
@@ -31,9 +34,15 @@ def args_parser():
     return parser.parse_args()
 
 
-"""
+def wrapper(dfs, concat_df, hla, length, args, outdir, unique_filename):
+    fn = f'{hla}_length_{length}_{unique_filename}'.replace(':','')
+    if args['kf']:
+        for i,df in enumerate(dfs):
+            df.query('HLA==@hla and len==@length')['motif'].to_csv(f'{outdir}/{fn}_kcv_{i}.txt', index=False, header=False)
+        concat_df.query('HLA==@hla and len==@length')['motif'].to_csv(f'{outdir}/{fn}_allpartitions_concat.txt', index=False, header=False)
+    else:
+        dfs[0].query('HLA==@hla and len==@length')['motif'].to_csv(f'{outdir}/{fn}.txt', index=False, header=False)
 
-"""
 
 
 def main():
@@ -45,31 +54,27 @@ def main():
     if type(len_list) != list:
         len_list = list(len_list)
 
-    unique_filename = args['fn']
+    unique_filename = args['filename']
     indir = args['indir']
     outdir = indir if args['outdir'] is None else args['outdir']
-    makedirs(outdir)
+    mkdirs(outdir)
 
     input_files = glob.glob(f'{indir}/*/*valid_predictions*.csv') if args['kf'] else glob.glob(f'{indir}*valid_predictions*.csv') 
     input_files = sorted(input_files)
-    print(input_files)
+    print('\n\n', input_files, '\n\n')
     dfs = [pd.read_csv(x) for x in input_files]
 
     if args['kf']:
-        dfs = [df.assign(k=i) for i,_ in enumerate(input_files)]
+        dfs = [df.assign(k=i) for i,df in enumerate(dfs)]
         concat_df = pd.concat(dfs)
     else:
-        df = dfs[0]
+        concat_df = None
 
-    for hla in hlas_list:
-        for length in len_list:
-            fn = f'{hla}_length_{length}_{unique_filename}'
+    for length in len_list:
+        wr = partial(wrapper, dfs=dfs, concat_df=concat_df, length = length, args=args, outdir=outdir, unique_filename=unique_filename)
+        Parallel(n_jobs=8)(delayed(wr)(hla=hla) for hla in hlas_list)
 
-            if args['kf']:
-                for i,df in enumerate(dfs):
-                    df.query('hla==@hla and len==@length')['motif'].to_csv(f'{outdir}/{fn}_kcv_{i}.txt', index=False, header=False)
-                concat_df.query('hla==@hla and len==@length')['motif'].to_csv(f'{outdir}/{fn}_allpartitions_concat.txt', index=False, header=False)
-            else:
-                df.query('hla==@hla and len==@length')['motif'].to_csv(f'{outdir}/{fn}_allpartitions_concat.txt', index=False, header=False)
+            
 
-
+if __name__ == '__main__':
+    main()
