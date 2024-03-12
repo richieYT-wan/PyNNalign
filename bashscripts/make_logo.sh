@@ -20,5 +20,5 @@ task(){
 }
 for f in $(ls ${DATADIR})
 do
-        task ${f} &
+        task ${f}
 done
