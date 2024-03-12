@@ -62,13 +62,17 @@ def _init(DATADIR):
         BL62FREQ_VALUES[letter_1] = _blosum62[i]
         for j, letter_2 in enumerate(AA_KEYS):
             BL62FREQ[letter_1][letter_2] = _blosum62[i, j]
-    # TODO read pseudoseq here
-    with open(f'{MATRIXDIR}MHC_pseudo.dat', 'r') as f:
-        # lines = [x.rstrip('\n').split('\t') for x in f.readlines()]
-        lines = [x.replace(' ', ';').rstrip('\n').replace('\t', ';') for x in f.readlines()]
-        # extra chars
-        replaced = [[x for x in z.split(';') if len(x) > 0] for z in lines]
-        PSEUDOSEQDICT = {k: v for k, v in replaced}
+    # Old pseudoseq read ; Class I only
+    # # TODO read pseudoseq here
+    # with open(f'{MATRIXDIR}MHC_pseudo.dat', 'r') as f:
+    #     # lines = [x.rstrip('\n').split('\t') for x in f.readlines()]
+    #     lines = [x.replace(' ', ';').rstrip('\n').replace('\t', ';') for x in f.readlines()]
+    #     # extra chars
+    #     replaced = [[x for x in z.split(';') if len(x) > 0] for z in lines]
+    #     PSEUDOSEQDICT = {k: v for k, v in replaced}
+
+    # New oseudoseq read : Class I and II saved in a pkl
+    PSEUDOSEQDICT = pkl_load(f'{MATRIXDIR}pseudoseq_all_classes.pkl')
     return VAL, N_CORES, DATADIR, AA_KEYS, CHAR_TO_INT, INT_TO_CHAR, BG, BL62FREQ, BL62FREQ_VALUES, BL50, BL50_VALUES, BL62, BL62_VALUES, PSEUDOSEQDICT
 
 

@@ -259,9 +259,9 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
             save_checkpoint(model, filename=fn, dir_path=outdir, best_dict=savedict)
 
     last_filename = 'last_epoch_' + checkpoint_filename
-    save_checkpoint(model, filename=last_filename, dir_path=outdir, best_dict={'epoch':-1,
-                                                                               'valid_loss':valid_loss,
-                                                                               'valid_auc':valid_metric['auc']})
+    save_checkpoint(model, filename=last_filename, dir_path=outdir, best_dict={'epoch': -1,
+                                                                               'valid_loss': valid_loss,
+                                                                               'valid_auc': valid_metric['auc']})
 
     print(f'End of training cycles')
     print(f'Best train loss:\t{min(train_losses):.3e}, best train AUC:\t{max([x["auc"] for x in train_metrics])}')
