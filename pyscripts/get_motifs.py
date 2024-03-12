@@ -35,7 +35,8 @@ def args_parser():
 
 
 def wrapper(dfs, concat_df, hla, length, args, outdir, unique_filename):
-    fn = f'{hla}_length_{length}_{unique_filename}'.replace(':','')
+    fn = f'{hla}_l{length:02}_{unique_filename}'.replace(':','')
+    if length==8 and 'indel_False' in args['indir']:return 0
     if args['kf']:
         for i,df in enumerate(dfs):
             df.query('HLA==@hla and len==@length')['motif'].to_csv(f'{outdir}/{fn}_kcv_{i}.txt', index=False, header=False)
@@ -69,6 +70,9 @@ def main():
         concat_df = pd.concat(dfs)
     else:
         concat_df = None
+
+    if 'indel_False' in args['indir'] and 8 in len_list:
+        len_list.pop(len_list.index(8))
 
     for length in len_list:
         wr = partial(wrapper, dfs=dfs, concat_df=concat_df, length = length, args=args, outdir=outdir, unique_filename=unique_filename)
