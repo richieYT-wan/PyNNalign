@@ -260,7 +260,10 @@ def main():
     print('Saving test predictions from best model')
     test_fn = os.path.basename(args['test_file']).split('.')[0]
     test_preds.to_csv(f'{outdir}test_predictions_{test_fn}_{unique_filename}.csv', index=False)
+    tracemalloc.stop()
 
+    end = dt.now()
+    elapsed = divmod((end - start).seconds, 60)
     # Saving text file for the run:
     with open(f'{outdir}args_{unique_filename}.txt', 'w') as file:
         header = "#" * 100 + "\n#" + " " * 42 + "PARAMETERS" + "\n" + '#' * 100 + '\n'
@@ -275,11 +278,9 @@ def main():
         file.write(f"Test file: {args['test_file']}\n")
         # file.write(f"Test loss: {test_loss}\n")
         # file.write(f"Test AUC: {test_metrics['auc']}\n")
+        file.write(f"Elapsed time: {elapsed[0]} minutes {elapsed[1]} seconds.")
     save_model_full(model, checkpoint_filename, outdir, dict_kwargs=model_params)
-    tracemalloc.stop()
-
-    end = dt.now()
-    elapsed = divmod((end - start).seconds, 60)
+    
     print(f"dataset_peak memory usage: {dataset_peak / (1024 ** 2):.2f} MB")
     print(f"traineval_peak memory usage: {traineval_peak / (1024 ** 2):.2f} MB")
     print(f'Program finished in {elapsed[0]} minutes, {elapsed[1]} seconds.')
