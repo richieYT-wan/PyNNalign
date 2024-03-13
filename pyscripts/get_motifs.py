@@ -62,8 +62,9 @@ def main():
 
     input_files = glob.glob(f'{indir}/*/*valid_predictions*.csv') if args['kf'] else glob.glob(f'{indir}*valid_predictions*.csv') 
     input_files = sorted(input_files)
+    print(indir)
     print('\n\n', input_files, '\n\n')
-    dfs = [pd.read_csv(x) for x in input_files]
+    dfs = [pd.read_csv(x).query('target==1') for x in input_files]
 
     if args['kf']:
         dfs = [df.assign(k=i) for i,df in enumerate(dfs)]
