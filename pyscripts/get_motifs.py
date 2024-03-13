@@ -65,7 +65,7 @@ def main():
     print(indir)
     print('\n\n', input_files, '\n\n')
     dfs = [pd.read_csv(x).query('target==1') for x in input_files]
-
+    print(len(dfs))
     if args['kf']:
         dfs = [df.assign(k=i) for i,df in enumerate(dfs)]
         concat_df = pd.concat(dfs)
