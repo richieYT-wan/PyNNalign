@@ -25,7 +25,6 @@ import seaborn as sns
 import argparse
 
 
-
 def args_parser():
     parser = argparse.ArgumentParser(description='Script to train and evaluate a NNAlign model ')
     """
@@ -138,7 +137,6 @@ def args_parser():
     return parser.parse_args()
 
 
-
 def main():
     start = dt.now()
     tracemalloc.start()
@@ -194,6 +192,7 @@ def main():
     # Define dimensions for extra features added
     pseudoseq_dim = 680 if args['add_pseudo_sequence'] else 0
     feat_dim = 0
+
     if args['add_pfr']:
         feat_dim += 40
     if args['add_fr_len']:
@@ -203,22 +202,24 @@ def main():
         min_clip = args['min_clip'] if args['min_clip'] is not None else df[args['seq_col']].apply(len).min()
         feat_dim += max_clip - min_clip + 2
 
+    # TODO:  Hotfix:
+    extra_dict = {'pseudoseq_dim': pseudoseq_dim, 'feat_dim': feat_dim}
     if args['model_folder'] is not None:
         try:
             checkpoint_file = next(
                 filter(lambda x: x.startswith('checkpoint') and x.endswith('.pt'), os.listdir(args['model_folder'])))
             json_file = next(
                 filter(lambda x: x.startswith('checkpoint') and x.endswith('.json'), os.listdir(args['model_folder'])))
-            json_file['feat_dim'] = feat_dim
 
-            model = load_model_full(args['model_folder'] + checkpoint_file, args['model_folder'] + json_file)
+            model = load_model_full(args['model_folder'] + checkpoint_file, args['model_folder'] + json_file,
+                                    extra_dict=extra_dict)
         except:
             print(args['model_folder'], os.listdir(args['model_folder']))
             raise ValueError(f'\n\n\nCouldn\'t load your files!! at {args["model_folder"]}\n\n\n')
     else:
-        model = load_model_full(args['pt_file'], args['json_file'])
-    model = NNAlignEFSinglePass(activation=nn.ReLU(), feat_dim=feat_dim,
-                                pseudoseq_dim=pseudoseq_dim, **model_params)
+        model = load_model_full(args['pt_file'], args['json_file'],
+                                extra_dict=extra_dict)
+
     model.to(device)
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')

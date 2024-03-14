@@ -35,7 +35,8 @@ def get_available_device():
     return 'cpu'
 
 
-def load_model_full(checkpoint_filename, json_filename, dir_path=None, return_json=False, verbose=True):
+def load_model_full(checkpoint_filename, json_filename, dir_path=None, return_json=False, verbose=True,
+                    extra_dict = {}):
     """
     Instantiate and loads a model directly from a checkpoint and json filename
     Args:
@@ -46,6 +47,13 @@ def load_model_full(checkpoint_filename, json_filename, dir_path=None, return_js
 
     """
     dict_kwargs = load_json(json_filename, dir_path)
+    for k, v in extra_dict.items():
+        if k not in dict_kwargs:
+            dict_kwargs[k] = v
+        else:
+            if dict_kwargs[k] != v:
+                dict_kwargs[k] = v
+            
     assert 'constructor' in dict_kwargs.keys(), f'No constructor class name provided in the dict_kwargs keys! {dict_kwargs.keys()}'
     constructor = dict_kwargs.pop('constructor')
     if 'activation' in dict_kwargs:
