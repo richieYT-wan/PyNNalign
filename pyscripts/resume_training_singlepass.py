@@ -30,14 +30,21 @@ def args_parser():
     """
     Data processing args
     """
+    # Model loading
     parser.add_argument('-cuda', dest='cuda', required=False, type=str2bool, default=False,
                         help='Whether to activate Cuda. If true, will check if any gpu is available.')
-    parser.add_argument('-model_folder', dest='model_folder', type=str, required=True,
-                        help='Path to the directory containing BOTH THE JSON AND THE CHECKPOINT.PT')
-    parser.add_argument('-pt', dest='pt_file', type=str, required=False,
-                        help='Full path to a specific checkpoint.pt file')
-    parser.add_argument('-json', dest='json_file', type=str, required=False,
-                        help='Full path to a specific checkpoint.json file')
+    """
+    Models args 
+    """
+    parser.add_argument('-model_folder', type=str, required=False, default=None,
+                        help='Path to the folder containing both the checkpoint and json file. ' \
+                             'If used, -pt_file and -json_file are not required and will attempt to read the .pt and .json from the provided directory')
+    parser.add_argument('-pt_file', type=str, required=False,
+                        default=None, help='Path to the checkpoint file to reload the VAE model')
+    parser.add_argument('-json_file', type=str, required=False,
+                        default=None, help='Path to the json file to reload the VAE model')
+
+    # Data in/out
     parser.add_argument('-trf', '--train_file', dest='train_file', required=True, type=str,
                         default='../data/aligned_icore/230530_cedar_aligned.csv',
                         help='filename of the train input file')
@@ -47,12 +54,11 @@ def args_parser():
     parser.add_argument('-o', '--out', dest='out', required=False,
                         type=str, default='', help='Additional output name')
     parser.add_argument('-s', '--split', dest='split', required=False, type=int,
-                        default=5, help=('How to split the train/test data (test size=1/X)'))
-    # TODO: Carlos: here, use None for kf because the data is already split. I'll let you figure out how to call the columns
-    #       and what to use with -x, -y, -max_len, etc.
+                        default=5, help='How to split the train/test data (test size=1/X)')
     parser.add_argument('-kf', '--fold', dest='fold', required=False, type=int, default=None,
                         help='If added, will split the input file into the train/valid for kcv')
-    parser.add_argument('-x', '--seq_col', dest='seq_col', default='Sequence', type=str, required=False,
+    # Dataset parameters
+    parser.add_argument('-x', '--seq_col', dest='seq_col', default='sequence', type=str, required=False,
                         help='Name of the column containing sequences (inputs)')
     parser.add_argument('-y', '--target_col', dest='target_col', default='target', type=str, required=False,
                         help='Name of the column containing sequences (inputs)')
@@ -69,8 +75,6 @@ def args_parser():
                              'For example, to add 2 features Rank and Similarity, do: -ef Rank Similarity')
     parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=False,
                         help='Whether to add pseudo sequence to the model (true/false)')
-    parser.add_argument('-ps', '--pseudo_seq_col', dest='pseudo_seq_col', default='pseudoseq', type=str, required=False,
-                        help='Name of the column containing the MHC pseudo-sequences')
     parser.add_argument('-add_pfr', '--add_pfr', dest='add_pfr', type=str2bool, default=False,
                         help='Whether to add fixed-size (3) mean peptide flanking regions to the model (true/false)')
     parser.add_argument('-add_fr_len', '--add_fr_len', dest='add_fr_len', type=str2bool, default=False,
@@ -92,33 +96,12 @@ def args_parser():
     """
     Neural Net & Encoding args 
     """
-    """
-        Models args 
-        """
-    parser.add_argument('-model_folder', type=str, required=False, default=None,
-                        help='Path to the folder containing both the checkpoint and json file. ' \
-                             'If used, -pt_file and -json_file are not required and will attempt to read the .pt and .json from the provided directory')
-    parser.add_argument('-pt_file', type=str, required=False,
-                        default=None, help='Path to the checkpoint file to reload the VAE model')
-    parser.add_argument('-json_file', type=str, required=False,
-                        default=None, help='Path to the json file to reload the VAE model')
 
-    parser.add_argument('-ws', '--window_size', dest='window_size', type=int, default=6, required=False,
-                        help='Window size for sub-mers selection (default = 6)')
-    parser.add_argument('-efbn', '--batchnorm_ef', dest='batchnorm_ef',
-                        default=False, type=str2bool,
-                        help='Whether to add BatchNorm to the EF layer, (default = False)')
-    parser.add_argument('-efdo', '--dropout_ef', dest='dropout_ef',
-                        default=0.0, type=float,
-                        help='Whether to add DropOut to the EF layer (p in float e[0,1], default = 0.0)')
-    parser.add_argument('-add_hl', '--add_hidden_layer', dest='add_hidden_layer', type=str2bool, required=False,
-                        default=False, help='Whether to add a second hidden layer (True/False)')
-    parser.add_argument('-nh2', '--n_hidden_2', dest='n_hidden_2', required=False, default=10,
-                        type=int, help='Number of hidden units for the additional second hidden layer (default = 10)')
     """
     Training hyperparameters & args
     """
-    parser.add_argument('-br', '--burn_in', dest='burn_in', required=False, type=int, default=None,
+    # Shouldn't need burn-in when resuming training
+    parser.add_argument('-br', '--burn_in', dest='burn_in', required=False, type=int, default=0,
                         help='Burn-in period (in int) to align motifs to P0. Disabled by default')
     parser.add_argument('-lr', '--learning_rate', dest='lr', type=float, default=1e-4, required=False,
                         help='Learning rate for the optimizer')
@@ -184,11 +167,7 @@ def main():
     # tmpvals = train_df[tmp].values
     test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
 
-    # Def params so it's ✨tidy✨, using get_class_initcode to get the keys needed to init a class
-    # Here UglyWorkAround exist to give the __init__ code to dataset because I'm currently using @profile
-    dataset_keys = get_class_initcode_keys(UglyWorkAround, args)
-    dataset_params = {k: args[k] for k in dataset_keys}
-    optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
+    # Loading model and their params
     # Define dimensions for extra features added
     pseudoseq_dim = 680 if args['add_pseudo_sequence'] else 0
     feat_dim = 0
@@ -211,14 +190,22 @@ def main():
             json_file = next(
                 filter(lambda x: x.startswith('checkpoint') and x.endswith('.json'), os.listdir(args['model_folder'])))
 
-            model = load_model_full(args['model_folder'] + checkpoint_file, args['model_folder'] + json_file,
-                                    extra_dict=extra_dict)
+            model, model_params = load_model_full(args['model_folder'] + checkpoint_file,
+                                                 args['model_folder'] + json_file,
+                                                 extra_dict=extra_dict, return_json=True)
         except:
-            print(args['model_folder'], os.listdir(args['model_folder']))
+            print(args['model_folder'], '\n', os.listdir(args['model_folder']))
             raise ValueError(f'\n\n\nCouldn\'t load your files!! at {args["model_folder"]}\n\n\n')
     else:
-        model = load_model_full(args['pt_file'], args['json_file'],
-                                extra_dict=extra_dict)
+        model, model_params = load_model_full(args['pt_file'], args['json_file'],
+                                             extra_dict=extra_dict, return_json=True)
+    args.update(model_params)
+
+    # Def params, using get_class_initcode to get the keys needed to init a class
+    # Here UglyWorkAround exist to give the __init__ code to dataset because I'm currently using @profile
+    dataset_keys = get_class_initcode_keys(UglyWorkAround, args)
+    dataset_params = {k: args[k] for k in dataset_keys}
+    optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
 
     model.to(device)
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
@@ -226,7 +213,7 @@ def main():
     optimizer = optim.Adam(model.parameters(), **optim_params)
     if args['on_the_fly']:
         # TODO Quick workaround
-        dataset_params.pop('pseudo_seq_col')
+        # dataset_params.pop('pseudo_seq_col')
         train_dataset = NNAlignDataset(train_df, **dataset_params)
         valid_dataset = NNAlignDataset(valid_df, **dataset_params)
         test_dataset = NNAlignDataset(test_df, **dataset_params)

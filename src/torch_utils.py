@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
 import json
+from src.models import *
 
 ACT_DICT = {'SELU': nn.SELU(), 'ReLU': nn.ReLU(),
             'LeakyReLU': nn.LeakyReLU(), 'ELU': nn.ELU()}
@@ -53,7 +54,7 @@ def load_model_full(checkpoint_filename, json_filename, dir_path=None, return_js
         else:
             if dict_kwargs[k] != v:
                 dict_kwargs[k] = v
-            
+
     assert 'constructor' in dict_kwargs.keys(), f'No constructor class name provided in the dict_kwargs keys! {dict_kwargs.keys()}'
     constructor = dict_kwargs.pop('constructor')
     if 'activation' in dict_kwargs:
@@ -219,7 +220,8 @@ def load_checkpoint(model, filename: str, dir_path: str = None, verbose=True):
     if dir_path is not None:
         filename = os.path.join(dir_path, filename)
     try:
-        checkpoint = torch.load(filename)
+        device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
+        checkpoint = torch.load(filename, map_location=device)
         if 'best' in checkpoint.keys():
             best = checkpoint.pop('best')
             if verbose:

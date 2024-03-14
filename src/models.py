@@ -336,7 +336,7 @@ class NNAlignEFSinglePass(NetParent):
     """
 
     def __init__(self, n_hidden, n_hidden_2, window_size,
-                 activation, feat_dim=0, pseudoseq_dim=0, batchnorm=False,
+                 activation=nn.ReLU(), feat_dim=0, pseudoseq_dim=0, batchnorm=False,
                  dropout=0.0, standardize=False,
                  add_hidden_layer=False):
         super(NNAlignEFSinglePass, self).__init__()

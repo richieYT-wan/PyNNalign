@@ -46,7 +46,7 @@ def args_parser():
     #       and what to use with -x, -y, -max_len, etc.
     parser.add_argument('-kf', '--fold', dest='fold', required=False, type=int, default=None,
                         help='If added, will split the input file into the train/valid for kcv')
-    parser.add_argument('-x', '--seq_col', dest='seq_col', default='Sequence', type=str, required=False,
+    parser.add_argument('-x', '--seq_col', dest='seq_col', default='sequence', type=str, required=False,
                         help='Name of the column containing sequences (inputs)')
     parser.add_argument('-y', '--target_col', dest='target_col', default='target', type=str, required=False,
                         help='Name of the column containing sequences (inputs)')
@@ -63,8 +63,8 @@ def args_parser():
                              'For example, to add 2 features Rank and Similarity, do: -ef Rank Similarity')
     parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=False,
                         help='Whether to add pseudo sequence to the model (true/false)')
-    parser.add_argument('-ps', '--pseudo_seq_col', dest='pseudo_seq_col', default='pseudoseq', type=str, required=False,
-                        help='Name of the column containing the MHC pseudo-sequences')
+    # parser.add_argument('-ps', '--pseudo_seq_col', dest='pseudo_seq_col', default='pseudoseq', type=str, required=False,
+    #                     help='Name of the column containing the MHC pseudo-sequences')
     parser.add_argument('-add_pfr', '--add_pfr', dest='add_pfr', type=str2bool, default=False,
                         help='Whether to add fixed-size (3) mean peptide flanking regions to the model (true/false)')
     parser.add_argument('-add_fr_len', '--add_fr_len', dest='add_fr_len', type=str2bool, default=False,
@@ -188,6 +188,7 @@ def main():
     model_keys = get_class_initcode_keys(NNAlignEFSinglePass, args)
     # Here UglyWorkAround exist to give the __init__ code to dataset because I'm currently using @profile
     dataset_keys = get_class_initcode_keys(UglyWorkAround, args)
+    args['on_the_fly']=True
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
