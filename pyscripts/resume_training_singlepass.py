@@ -13,7 +13,7 @@ from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
     get_class_initcode_keys
-from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device
+from src.torch_utils import load_model_full, load_checkpoint, save_model_full, get_available_device
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
@@ -25,6 +25,7 @@ import seaborn as sns
 import argparse
 
 
+
 def args_parser():
     parser = argparse.ArgumentParser(description='Script to train and evaluate a NNAlign model ')
     """
@@ -32,6 +33,12 @@ def args_parser():
     """
     parser.add_argument('-cuda', dest='cuda', required=False, type=str2bool, default=False,
                         help='Whether to activate Cuda. If true, will check if any gpu is available.')
+    parser.add_argument('-model_folder', dest='model_folder', type=str, required=True,
+                        help='Path to the directory containing BOTH THE JSON AND THE CHECKPOINT.PT')
+    parser.add_argument('-pt', dest='pt_file', type=str, required=False,
+                        help='Full path to a specific checkpoint.pt file')
+    parser.add_argument('-json', dest='json_file', type=str, required=False,
+                        help='Full path to a specific checkpoint.json file')
     parser.add_argument('-trf', '--train_file', dest='train_file', required=True, type=str,
                         default='../data/aligned_icore/230530_cedar_aligned.csv',
                         help='filename of the train input file')
@@ -86,14 +93,17 @@ def args_parser():
     """
     Neural Net & Encoding args 
     """
-    parser.add_argument('-nh', '--n_hidden', dest='n_hidden', required=True,
-                        type=int, help='Number of hidden units')
-    parser.add_argument('-std', '--standardize', dest='standardize', type=str2bool, required=True,
-                        help='Whether to include standardization (True/False)')
-    parser.add_argument('-bn', '--batchnorm', dest='batchnorm', type=str2bool, required=True,
-                        help='Whether to add BatchNorm to the model (True/False)')
-    parser.add_argument('-do', '--dropout', dest='dropout', type=float, default=0.0, required=False,
-                        help='Whether to add DropOut to the model (p in float e[0,1], default = 0.0)')
+    """
+        Models args 
+        """
+    parser.add_argument('-model_folder', type=str, required=False, default=None,
+                        help='Path to the folder containing both the checkpoint and json file. ' \
+                             'If used, -pt_file and -json_file are not required and will attempt to read the .pt and .json from the provided directory')
+    parser.add_argument('-pt_file', type=str, required=False,
+                        default=None, help='Path to the checkpoint file to reload the VAE model')
+    parser.add_argument('-json_file', type=str, required=False,
+                        default=None, help='Path to the json file to reload the VAE model')
+
     parser.add_argument('-ws', '--window_size', dest='window_size', type=int, default=6, required=False,
                         help='Window size for sub-mers selection (default = 6)')
     parser.add_argument('-efbn', '--batchnorm_ef', dest='batchnorm_ef',
@@ -128,13 +138,6 @@ def args_parser():
     return parser.parse_args()
 
 
-"""
-Using this script now as a way to run the train and test in a single file because it is easier to deal with due to the random
-unique ID and k-fold crossvalidation process. I could rewrite some bashscript to move all the resulting folders somewhere, 
-then ls that somewhere and iterate through each of the folders to reload each model & run individually in each script, but here 
-we can do this instead.
-"""
-
 
 def main():
     start = dt.now()
@@ -156,8 +159,7 @@ def main():
     kf = 'XX' if args["fold"] is None else args['fold']
     rid = args['random_id'] if (args['random_id'] is not None and args['random_id'] != '') \
         else get_random_id() if (args['random_id'] == '' or args['random_id'] is None) else args['random_id']
-    unique_filename = f'{args["out"]}{connector}KFold_{kf}_{get_datetime_string()}_{rid}'
-
+    unique_filename = f'resumed_{args["out"]}{connector}KFold_{kf}_{get_datetime_string()}_{rid}'
     checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
     outdir = os.path.join('../output/', unique_filename) + '/'
     mkdirs(outdir)
@@ -185,25 +187,38 @@ def main():
     test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
 
     # Def params so it's ✨tidy✨, using get_class_initcode to get the keys needed to init a class
-    model_keys = get_class_initcode_keys(NNAlignEFSinglePass, args)
     # Here UglyWorkAround exist to give the __init__ code to dataset because I'm currently using @profile
     dataset_keys = get_class_initcode_keys(UglyWorkAround, args)
-    model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # Define dimensions for extra features added
-    model_params['pseudoseq_dim'] = 680 if args['add_pseudo_sequence'] else 0
-    model_params['feat_dim'] = 0
+    pseudoseq_dim = 680 if args['add_pseudo_sequence'] else 0
+    feat_dim = 0
     if args['add_pfr']:
-        model_params['feat_dim'] += 40
+        feat_dim += 40
     if args['add_fr_len']:
-        model_params['feat_dim'] += 4
+        feat_dim += 4
     if args['add_pep_len']:
         max_clip = args['max_clip'] if args['max_clip'] is not None else args['max_len']
         min_clip = args['min_clip'] if args['min_clip'] is not None else df[args['seq_col']].apply(len).min()
-        model_params['feat_dim'] += max_clip - min_clip + 2
+        feat_dim += max_clip - min_clip + 2
 
-    model = NNAlignEFSinglePass(activation=nn.ReLU(), **model_params)
+    if args['model_folder'] is not None:
+        try:
+            checkpoint_file = next(
+                filter(lambda x: x.startswith('checkpoint') and x.endswith('.pt'), os.listdir(args['model_folder'])))
+            json_file = next(
+                filter(lambda x: x.startswith('checkpoint') and x.endswith('.json'), os.listdir(args['model_folder'])))
+            json_file['feat_dim'] = feat_dim
+
+            model = load_model_full(args['model_folder'] + checkpoint_file, args['model_folder'] + json_file)
+        except:
+            print(args['model_folder'], os.listdir(args['model_folder']))
+            raise ValueError(f'\n\n\nCouldn\'t load your files!! at {args["model_folder"]}\n\n\n')
+    else:
+        model = load_model_full(args['pt_file'], args['json_file'])
+    model = NNAlignEFSinglePass(activation=nn.ReLU(), feat_dim=feat_dim,
+                                pseudoseq_dim=pseudoseq_dim, **model_params)
     model.to(device)
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')
