@@ -18,7 +18,6 @@ from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
 from src.datasets import get_NNAlign_dataloaderEFSinglePass
-from src.data_processing import encode_batch, encode_batch_weighted, PFR_calculation, FR_lengths, pep_len_1hot
 from matplotlib import pyplot as plt
 import seaborn as sns
 
@@ -97,7 +96,8 @@ df = pd.read_csv(args_dict['train_file'])
 
 # Define the model parameters
 model = NNAlignEFSinglePass(activation = nn.ReLU(), extrafeat_dim = args_dict['ef_dim'], indel = False,
-                            n_hidden = args_dict['n_hidden'], n_hidden_2= args_dict['n_hidden_2'], window_size = args_dict['window_size'],
+                            n_hidden = args_dict['n_hidden'], n_hidden_2= args_dict['n_hidden_2'],
+                            window_size = args_dict['window_size'],
                             batchnorm = args_dict['batchnorm'], dropout = args_dict['dropout'],
                             standardize = args_dict['standardize'], add_hidden_layer = args_dict['add_hidden_layer'])
 
