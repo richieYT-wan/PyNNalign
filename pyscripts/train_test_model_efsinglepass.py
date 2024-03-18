@@ -211,7 +211,6 @@ def main():
     optimizer = optim.Adam(model.parameters(), **optim_params)
     if args['on_the_fly']:
         # TODO Quick workaround
-        dataset_params.pop('pseudo_seq_col')
         train_dataset = NNAlignDataset(train_df, **dataset_params)
         valid_dataset = NNAlignDataset(valid_df, **dataset_params)
         test_dataset = NNAlignDataset(test_df, **dataset_params)
