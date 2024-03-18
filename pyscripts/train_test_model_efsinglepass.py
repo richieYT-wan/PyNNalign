@@ -18,6 +18,7 @@ from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
 from src.datasets import NNAlignDatasetEFSinglePass, UglyWorkAround, NNAlignDataset
+import numpy as np
 from matplotlib import pyplot as plt
 import tracemalloc
 import seaborn as sns
@@ -40,8 +41,8 @@ def args_parser():
                         help='filename of the test input file')
     parser.add_argument('-o', '--out', dest='out', required=False,
                         type=str, default='', help='Additional output name')
-    parser.add_argument('-s', '--split', dest='split', required=False, type=int,
-                        default=5, help=('How to split the train/test data (test size=1/X)'))
+    parser.add_argument('-tts', '--split', dest='split', required=False, type=int,
+                        default=5, help='Train Test Split ; How to split the train/test data (test size=1/X) if kf is None')
     # TODO: Carlos: here, use None for kf because the data is already split. I'll let you figure out how to call the columns
     #       and what to use with -x, -y, -max_len, etc.
     parser.add_argument('-kf', '--fold', dest='fold', required=False, type=int, default=None,
@@ -77,7 +78,6 @@ def args_parser():
                         help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
     parser.add_argument('-indel', '--indel', dest='indel', type=str2bool, default=False,
                         help='Whether to add insertions/deletions')
-
     # TODO: Deprecate on_the_fly and set it as default behaviour in datasets (remove old behaviour)
     parser.add_argument('-otf', '--on_the_fly', dest='on_the_fly', type=str2bool, default=True,
                         help='Do MHC expansion on the fly vs saving everything in memory.'
@@ -141,6 +141,7 @@ def main():
     tracemalloc.start()
     # I like dictionary for args :-)
     args = vars(args_parser())
+
     # Cuda activation
     if torch.cuda.is_available() and args['cuda']:
         device = get_available_device()
@@ -165,8 +166,8 @@ def main():
     if args['debug']:
         df = df.sample(min(5000, len(df)), random_state=13)
     tmp = args['seq_col']
-    # Filtering from training set
 
+    # Filtering from training set
     test_df = pd.read_csv(args['test_file'])
 
     if args['fold'] is not None:
@@ -178,6 +179,8 @@ def main():
         unique_filename = f'kcv_{dfname}_f{fold:02}_{unique_filename}'
         checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
     else:
+        torch.manual_seed(0)
+        np.random.set_state(0)
         train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
 
     # Quick hotfix because i don't know why this query/eval thing suddenly changed and stopped working

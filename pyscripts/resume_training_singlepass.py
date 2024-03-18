@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 import os, sys
@@ -53,8 +54,8 @@ def args_parser():
                         help='filename of the test input file')
     parser.add_argument('-o', '--out', dest='out', required=False,
                         type=str, default='', help='Additional output name')
-    parser.add_argument('-s', '--split', dest='split', required=False, type=int,
-                        default=5, help='How to split the train/test data (test size=1/X)')
+    parser.add_argument('-tts', '--split', dest='split', required=False, type=int,
+                        default=5, help='Train Test Split ; How to split the train/test data (test size=1/X) if kf is None')
     parser.add_argument('-kf', '--fold', dest='fold', required=False, type=int, default=None,
                         help='If added, will split the input file into the train/valid for kcv')
     # Dataset parameters
@@ -161,6 +162,8 @@ def main():
         unique_filename = f'kcv_{dfname}_f{fold:02}_{unique_filename}'
         checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
     else:
+        torch.manual_seed(0)
+        np.random.set_state(0)
         train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
 
     # Quick hotfix because i don't know why this query/eval thing suddenly changed and stopped working
