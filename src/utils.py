@@ -13,6 +13,16 @@ import string
 from datetime import datetime as dt
 
 
+
+def make_filename(args):
+    connector = '' if args["out"] == '' else '_'
+    kf = '-1' if args["fold"] is None else args['fold']
+    rid = args['random_id'] if (args['random_id'] is not None and args['random_id'] != '') \
+        else get_random_id() if (args['random_id'] == '' or args['random_id'] is None) else args['random_id']
+
+    unique_filename = f'{get_datetime_string()}_{args["out"]}{connector}KFold_{kf}_{rid}'
+    return unique_filename, kf, rid, connector
+
 def epoch_counter(model, criterion):
     if hasattr(model, 'counter') and hasattr(model, 'increment_counter'):
         model.increment_counter()
@@ -77,13 +87,17 @@ def get_datetime_string():
     return dt.now().strftime("%y%m%d_%H%M")
 
 
+
 def get_random_id(length=6):
+    # LETTERx1_DIGITx1_RANDOMx(len-2)
     first_character = ''.join(
-        secrets.choice(string.digits) for _ in range(2))  # Generate a random digit for the first character
+        secrets.choice(string.ascii_letters) for _ in range(1))
+    second_character = ''.join(secrets.choice(string.ascii_letters) for _ in range(1))
+    # Generate a random digit for the first character
     remaining_characters = ''.join(
         secrets.choice(string.ascii_letters + string.digits) for _ in
         range(length - 2))  # Generate L-2 random characters
-    random_string = first_character + remaining_characters
+    random_string = first_character + second_character + remaining_characters
     return random_string
 
 

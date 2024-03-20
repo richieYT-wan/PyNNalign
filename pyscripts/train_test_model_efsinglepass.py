@@ -12,7 +12,7 @@ from torch import nn
 from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
-    get_class_initcode_keys
+    get_class_initcode_keys, make_filename
 from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
@@ -153,11 +153,7 @@ def main():
             'max_clip'], "args['min_clip'] should be smaller than args['max_clip'] for adding pep lens" \
                          f"Got (min, max) = ({args['min_clip'], args['max_clip']} instead"
     # File-saving stuff
-    connector = '' if args["out"] == '' else '_'
-    kf = 'XX' if args["fold"] is None else args['fold']
-    rid = args['random_id'] if (args['random_id'] is not None and args['random_id'] != '') \
-        else get_random_id() if (args['random_id'] == '' or args['random_id'] is None) else args['random_id']
-    unique_filename = f'{args["out"]}{connector}KFold_{kf}_{get_datetime_string()}_{rid}'
+    unique_filename, kf, rid, connector = make_filename(args)
 
     checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
     outdir = os.path.join('../output/', unique_filename) + '/'
