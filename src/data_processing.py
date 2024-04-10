@@ -318,6 +318,42 @@ def batch_insertion_deletion(sequences, max_len=13, encoding='BL50LO', pad_scale
          for
          seq in sequences])
 
+def get_indel_windows_with_structure(sequence, structural_info, window_size):
+    length = len(sequence)
+    indel_windows = []
+    adjusted_structural_infos = []
+
+    # Insertion for sequences shorter than the window size
+    if length < window_size:
+        for i in range(window_size):
+            indel_windows.append(sequence[:i] + '-' + sequence[i:])
+            # For each '-' insertion in sequence, insert a [0, 0, 0, 0, 0] in the corresponding position in structural_info
+            adjusted_struct_info = structural_info[:i] + [[0, 0, 0, 0, 0]] + structural_info[i:]
+            adjusted_structural_infos.append(adjusted_struct_info[:window_size])  # Ensure it matches the window_size
+        # Handle the case where the entire window is an insertion
+        indel_windows.append('-' * window_size)
+        adjusted_structural_infos.append([[0, 0, 0, 0, 0]] * window_size)
+
+    # Replicate sequence for sequences equal to the window size
+    elif length == window_size:
+        indel_windows.append(sequence)
+        adjusted_structural_infos.append(structural_info)
+        # Pad with '-' up to window_size + 1, replicating the structural info with zeros
+        while len(indel_windows) < (window_size + 1):
+            indel_windows.append('-' * window_size)
+            adjusted_structural_infos.append([[0, 0, 0, 0, 0]] * window_size)
+
+    # Deletion for sequences longer than the window size
+    else:
+        del_len = length - window_size
+        for i in range(length - del_len + 1):
+            indel_windows.append(sequence[:i] + sequence[i + del_len:])
+            # Adjust structural_info similarly to sequence adjustments
+            adjusted_structural_infos.append(structural_info[:i] + structural_info[i + del_len:])
+
+    return indel_windows, adjusted_structural_infos
+
+
 
 def create_indel_mask(length, window_size):
     mask = torch.zeros(1, window_size + 1, 1)
@@ -336,6 +372,104 @@ def create_indel_mask(length, window_size):
 def batch_indel_mask(lengths, window_size):
     return torch.cat([create_indel_mask(length, window_size) for length in lengths], dim=0)
 
+def encode_with_structural_info(sequence, structural_info, max_len=None, encoding='onehot', pad_scale=None):
+    """
+    Encodes a single peptide into a matrix, using 'onehot' or 'blosum',
+    and includes structural information (rsa, p_H, p_E, p_C, disorder score) for each amino acid.
+
+    - sequence: The amino acid sequence of the peptide.
+    - structural_info: A list of lists, where each sub-list contains the structural features [rsa, p_H, p_E, p_C, disorder]
+                       for the corresponding position in the sequence.
+    - max_len: The maximum length to pad the sequences to.
+    - encoding: The method of encoding, 'onehot' by default.
+    - pad_scale: The scale of padding, applied differently based on the encoding.
+    """
+
+    # Encode the sequence using the desired encoding method.
+    encoded_sequence = encode(sequence, max_len, encoding, pad_scale)  # Assume this returns a tensor of shape [max_len, 20]
+    encoded_sequence = encoded_sequence / 5
+    # Ensure structural_info matches the length of the sequence, padding if necessary.
+    if max_len is not None and max_len > len(sequence):
+        diff = max_len - len(sequence)
+        structural_info.extend([[0]*5] * diff)  # Pad structural information with zeros for positions beyond the sequence length.
+
+    # Convert the structural information to a tensor and concatenate it with the encoded sequence.
+    structural_features_tensor = torch.tensor(structural_info, dtype=torch.float32)
+    # Ensure the structural tensor matches the shape requirements.
+    if structural_features_tensor.ndim == 1:
+        structural_features_tensor = structural_features_tensor.unsqueeze(0)  # Add a dimension if it's a flat tensor.
+
+    encoded_with_structural_info = torch.cat([encoded_sequence, structural_features_tensor], dim=1)
+
+    return encoded_with_structural_info
+
+def get_structural_info_for_peptide(protein_id, peptide_sequence, protein_fasta_dict, structural_info_dict):
+    protein_sequence = protein_fasta_dict[protein_id]
+    start_pos = protein_sequence.find(peptide_sequence) + 1  # 1-indexed position
+    if start_pos == 0:  # Sequence not found
+        return None
+    
+    # Extract structural information for each position in the peptide
+    peptide_structural_info = []
+    for pos in range(start_pos, start_pos + len(peptide_sequence)):
+        structural_info = structural_info_dict.get(protein_id, {}).get(pos, [0, 0, 0, 0, 0])  # Default to [0,0,0,0,0] if not found
+        peptide_structural_info.append(structural_info)
+    
+    return peptide_structural_info
+
+def parse_fasta(file_path):
+    fasta_data = {}
+    with open(file_path, 'r') as fasta_file:
+        current_id = None
+        current_sequence = ""
+        for line in fasta_file:
+            if line.startswith(">"):
+                if current_id is not None:
+                    fasta_data[current_id] = current_sequence
+                # Split the line and check if it has at least two elements after splitting
+                split_line = line.strip().split("|")
+                if len(split_line) > 1:
+                    current_id = split_line[1]  # Extracting only the unique protein ID
+                else:
+                    current_id = None  # Or handle the case differently, as needed
+                current_sequence = ""
+            else:
+                current_sequence += line.strip()
+        # Add the last entry
+        if current_id is not None:
+            fasta_data[current_id] = current_sequence
+    return fasta_data
+
+def load_structural_data(filename):
+    structural_data = {}
+    with open(filename, 'r') as file:
+        next(file)  # Skip header
+        for line in file:
+            # Splitting only the first part on '>', then separating the rest based on commas
+            first_part, rest = line.strip().split('>', 1)[1].split(',', 1)
+            # Adjusted to extract the protein ID assuming the format "sp_PROTEINID_..."
+            protein_id = first_part.split('_')[1]  # Extracting the protein ID
+            
+            # Now, we split the rest of the line for the actual data fields
+            parts = rest.split(',')
+            # Counting from the end to adjust indices for features
+            try:
+                # Assuming 'seq_pos' is still correctly placed after splitting the first part
+                seq_pos = int(parts[-19])  # The first numerical part is still expected to be sequence position
+                rsa = float(parts[-18])  # 'rsa' adjusted to count from the end
+                pq3_H = float(parts[-15])  # Adjusting indices for p[q3_H], p[q3_E], p[q3_C], counting from the end
+                pq3_E = float(parts[-14])
+                pq3_C = float(parts[-13])
+                disorder = float(parts[-1])  # 'disorder' is confirmed to be the last element
+                features = [rsa, pq3_H, pq3_E, pq3_C, disorder]
+            except ValueError as e:
+                print(f"Error parsing line: {line.strip()}\n{e}")
+                continue
+
+            if protein_id not in structural_data:
+                structural_data[protein_id] = {}
+            structural_data[protein_id][seq_pos] = features
+    return structural_data
 
 ####################################################
 #     OLD Here stuff for extra AA bulging out:     #
