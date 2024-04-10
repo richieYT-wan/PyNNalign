@@ -338,9 +338,12 @@ class NNAlignEFSinglePass(NetParent):
     def __init__(self, n_hidden, n_hidden_2, window_size,
                  activation=nn.ReLU(), feat_dim=0, pseudoseq_dim=0, batchnorm=False,
                  dropout=0.0, standardize=False,
-                 add_hidden_layer=False):
+                 add_hidden_layer=False, add_structure = False):
         super(NNAlignEFSinglePass, self).__init__()
-        self.matrix_dim = 20
+        if add_structure:
+            self.matrix_dim = 25
+        else:
+            self.matrix_dim = 20
         self.window_size = window_size
         self.n_hidden = n_hidden
         self.n_hidden_2 = n_hidden_2
