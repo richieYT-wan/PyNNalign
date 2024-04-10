@@ -40,9 +40,9 @@ def args_parser():
     parser.add_argument('-tef', '--test_file', dest='test_file', required=True, type=str,
                         default='../data/aligned_icore/230530_prime_aligned.csv',
                         help='filename of the test input file')
-    parser.add_argument('-struc', '--structure_file', dest='structure_file', required=True, type=str,
+    parser.add_argument('-struc', '--structure_file', dest='structure_file', required=False, type=str,
                     help='Path to the structure file')
-    parser.add_argument('-fasta', '--fasta_file', dest='fasta_file', required=True, type=str,
+    parser.add_argument('-fasta', '--fasta_file', dest='fasta_file', required=False, type=str,
                     help='Path to the FASTA file')
     parser.add_argument('-o', '--out', dest='out', required=False,
                         type=str, default='', help='Additional output name')
