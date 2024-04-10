@@ -18,6 +18,7 @@ from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
 from src.datasets import NNAlignDatasetEFSinglePass, UglyWorkAround, NNAlignDataset
+from src.data_processing import parse_fasta, load_structural_data
 import numpy as np
 from matplotlib import pyplot as plt
 import tracemalloc
@@ -39,6 +40,10 @@ def args_parser():
     parser.add_argument('-tef', '--test_file', dest='test_file', required=True, type=str,
                         default='../data/aligned_icore/230530_prime_aligned.csv',
                         help='filename of the test input file')
+    parser.add_argument('-struc', '--structure_file', dest='structure_file', required=True, type=str,
+                    help='Path to the structure file')
+    parser.add_argument('-fasta', '--fasta_file', dest='fasta_file', required=True, type=str,
+                    help='Path to the FASTA file')
     parser.add_argument('-o', '--out', dest='out', required=False,
                         type=str, default='', help='Additional output name')
     parser.add_argument('-tts', '--split', dest='split', required=False, type=int,
@@ -82,6 +87,8 @@ def args_parser():
     parser.add_argument('-otf', '--on_the_fly', dest='on_the_fly', type=str2bool, default=True,
                         help='Do MHC expansion on the fly vs saving everything in memory.'
                              'Now True by default, to be deprecated ')
+    parser.add_argument('-add_str', '--add_structure', dest='add_structure', type=str2bool, default=False,
+                        help='Whether to add structural data to the model (true/false)')
 
     """
     Neural Net & Encoding args 
@@ -134,7 +141,6 @@ unique ID and k-fold crossvalidation process. I could rewrite some bashscript to
 then ls that somewhere and iterate through each of the folders to reload each model & run individually in each script, but here 
 we can do this instead.
 """
-
 
 def main():
     start = dt.now()
@@ -191,6 +197,11 @@ def main():
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
+    if args['add_structure']:
+        structural_data = load_structural_data(args['structure_file'])
+        fasta_data = parse_fasta(args['fasta_file'])
+        dataset_params['structural_data'] = structural_data
+        dataset_params['fasta_data'] = fasta_data
     # Define dimensions for extra features added
     model_params['pseudoseq_dim'] = 680 if args['add_pseudo_sequence'] else 0
     model_params['feat_dim'] = 0
@@ -208,6 +219,7 @@ def main():
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
+    #print(dataset_keys)
     if args['on_the_fly']:
         # TODO Quick workaround
         train_dataset = NNAlignDataset(train_df, **dataset_params)
