@@ -2,8 +2,8 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
-from src.data_processing import PSEUDOSEQDICT, encode, encode_batch
-from src.data_processing import batch_insertion_deletion, batch_indel_mask,\
+from src.data_processing import PSEUDOSEQDICT, encode, encode_batch, get_structural_info_for_peptide, encode_with_structural_info
+from src.data_processing import get_indel_windows_with_structure, batch_insertion_deletion, batch_indel_mask,\
     get_indel_windows, get_pfr_values, get_fr_lengths, get_pep_len_onehot
 from memory_profiler import profile
 from datetime import datetime as dt
@@ -41,7 +41,9 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
                  max_clip=None, burn_in=None):
         # start = dt.now()
         super(NNAlignDatasetEFSinglePass, self).__init__()
-        # Encoding stuff
+
+        # Compile encoded sequences into a batch tensor
+        
         if feature_cols is None:
             feature_cols = []
         # Filter out sequences longer than max_len
@@ -185,13 +187,15 @@ class NNAlignDataset(SuperDataset):
     """
 
     #@profile
-    def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+    def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, fasta_data: str = None, structural_data: str = None, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
-                 add_pfr=False, add_fr_len=False, add_pep_len=False, min_clip=None, max_clip=None, burn_in=None):
+                 add_pfr=False, add_fr_len=False, add_pep_len=False, min_clip=None, max_clip=None, burn_in=None, add_structure = False):
+
         # start = dt.now()
         super(NNAlignDataset, self).__init__()
         # Encoding stuff
+
         if feature_cols is None:
             feature_cols = []
         # Filter out sequences longer than max_len
@@ -201,24 +205,66 @@ class NNAlignDataset(SuperDataset):
         # Then, if indel is False, filter out sequences shorter than windowsize (ex: 8mers for WS=9)
         if not indel:
             df = df.query('len>=@window_size')
+        if not add_structure:
+            matrix_dim = 20
+            x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
+        if add_structure:
+            matrix_dim = 25
+            encoded_sequences = []    
+            for index, row in df.iterrows():
+                peptide_sequence = row[seq_col]
+                protein_id = row['protein_id']
+                structural_info = get_structural_info_for_peptide(protein_id, peptide_sequence, fasta_data, structural_data)
+                encoded_sequence = encode_with_structural_info(peptide_sequence, structural_info, max_len, encoding, pad_scale)
+                encoded_sequences.append(encoded_sequence)
 
-        matrix_dim = 20
+            x = torch.stack(encoded_sequences)
+        #print(x.shape)
+        #print(x)
         # query_time = dt.now()
-        x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
         y = torch.from_numpy(df[target_col].values).float().view(-1, 1)
-        # encode_time = dt.now()
+        # encode_time = dt.now()    
         # Creating the mask to allow selection of kmers without padding
         len_tensor = torch.from_numpy(df['len'].values)
+        #print(len_tensor.shape)
         x_mask = len_tensor - window_size
+        #print(x_mask.shape)
         range_tensor = torch.arange(max_len - window_size + 1).unsqueeze(0).repeat(len(x), 1)
         # Mask for Kmers + padding
         x_mask = (range_tensor <= x_mask.unsqueeze(1)).float().unsqueeze(-1)
+    
+
         # Expand the kmers windows for base sequence without indels
         x = x.unfold(1, window_size, 1).transpose(2, 3) \
             .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim)
         # Creating indels window and mask
         if indel:
-            x_indel = batch_insertion_deletion(df[seq_col], max_len, encoding, pad_scale, window_size)
+            if add_structure:
+                sequence_groups = []
+                for index, row in df.iterrows():
+                    peptide_sequence = row[seq_col]
+                    protein_id = row['protein_id']
+                    # Assume get_structural_info_for_peptide returns the needed structural info
+                    structural_info = get_structural_info_for_peptide(protein_id, peptide_sequence, fasta_data, structural_data)
+                    
+                    # Generate indel windows for the sequence and adjust structural info accordingly
+                    indel_windows, adjusted_structural_infos = get_indel_windows_with_structure(peptide_sequence, structural_info, window_size)
+
+                    # Temporary list to store encoded windows for the current sequence
+                    temp_encoded_sequences = []
+                    for window_sequence, window_structural_info in zip(indel_windows, adjusted_structural_infos):
+                        encoded_sequence = encode_with_structural_info(window_sequence, window_structural_info, max_len, encoding, pad_scale)
+                        temp_encoded_sequences.append(encoded_sequence)
+
+                    
+                    sequence_tensor = torch.stack(temp_encoded_sequences)
+                    sequence_groups.append(sequence_tensor)
+
+                
+                x_indel = torch.stack(sequence_groups)
+            else:
+                x_indel = batch_insertion_deletion(df[seq_col], max_len, encoding, pad_scale, window_size)
+
             # remove padding from indel windows
             x_indel = x_indel[:, :, :window_size, :]
             indel_mask = batch_indel_mask(len_tensor, window_size)
@@ -281,7 +327,8 @@ class NNAlignDataset(SuperDataset):
         self.max_len = max_len
         self.seq_col = seq_col
         self.window_size = window_size
-
+        #print(x)
+        #print(x.shape) 
     def __len__(self):
         return self.len
 
@@ -339,11 +386,11 @@ def _get_indel_burnin_mask_batch(sequences, window_size, alphabet='ILVMFYW'):
 
 class UglyWorkAround(SuperDataset):
 
-    def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
+    def __init__(self, df: pd.DataFrame, fasta_data: str, structural_data: str, max_len: int, window_size: int, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
                  pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False, add_pep_len=False, add_z=True,
-                 burn_in=None):
+                 burn_in=None, add_structure = False):
         super(UglyWorkAround, self).__init__()
 
 
