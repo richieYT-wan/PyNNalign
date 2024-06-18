@@ -125,27 +125,7 @@ class NNAlignDatasetEFSinglePass(SuperDataset):
         self.max_len = max_len
         self.seq_col = seq_col
         self.window_size = window_size
-        # elapsed_query = query_time - start
-        # elapsed_encode = encode_time - start
-        # elapsed_kmer = kmer_time - start
-        # elapsed_ps = ps_time - start
-        # elapsed_pfr = pfr_time - start
-        # elapsed_pfrlen = pfr_len_time - start
-        # elapsed_peplen = peplen_time - start
-        # elapsed_query = divmod(elapsed_query.seconds, 60)
-        # print('elapsed_query', f'{elapsed_query[0]} minutes {elapsed_query[1]} secs')
-        # elapsed_encode = divmod(elapsed_encode.seconds, 60)
-        # print('elapsed_encode', f'{elapsed_encode[0]} minutes {elapsed_encode[1]} secs')
-        # elapsed_kmer = divmod(elapsed_kmer.seconds, 60)
-        # print('elapsed_kmer', f'{elapsed_kmer[0]} minutes {elapsed_kmer[1]} secs')
-        # elapsed_ps = divmod(elapsed_ps.seconds, 60)
-        # print('elapsed_ps', f'{elapsed_ps[0]} minutes {elapsed_ps[1]} secs')
-        # elapsed_pfr = divmod(elapsed_pfr.seconds, 60)
-        # print('elapsed_pfr', f'{elapsed_pfr[0]} minutes {elapsed_pfr[1]} secs')
-        # elapsed_pfrlen = divmod(elapsed_pfrlen.seconds, 60)
-        # print('elapsed_pfrlen', f'{elapsed_pfrlen[0]} minutes {elapsed_pfrlen[1]} secs')
-        # elapsed_peplen = divmod(elapsed_peplen.seconds, 60)
-        # print('elapsed_peplen', f'{elapsed_peplen[0]} minutes {elapsed_peplen[1]} secs')
+
 
     def __len__(self):
         return self.len
