@@ -13,15 +13,15 @@ import string
 from datetime import datetime as dt
 
 
-
 def make_filename(args):
     connector = '' if args["out"] == '' else '_'
     kf = '-1' if args["fold"] is None else args['fold']
     rid = args['random_id'] if (args['random_id'] is not None and args['random_id'] != '') \
         else get_random_id() if (args['random_id'] == '' or args['random_id'] is None) else args['random_id']
-
-    unique_filename = f'{get_datetime_string()}_{args["out"]}{connector}KFold_{kf}_{rid}'
+    unique_filename = f'{args["out"]}{connector}KFold_{kf}_{get_datetime_string()}_{rid}'
+    # unique_filename = f'{get_datetime_string()}_{args["out"]}{connector}KFold_{kf}_{rid}'
     return unique_filename, kf, rid, connector
+
 
 def epoch_counter(model, criterion):
     if hasattr(model, 'counter') and hasattr(model, 'increment_counter'):
@@ -85,7 +85,6 @@ def plot_loss_aucs(train_losses, valid_losses, train_aucs, valid_aucs,
 
 def get_datetime_string():
     return dt.now().strftime("%y%m%d_%H%M")
-
 
 
 def get_random_id(length=6):

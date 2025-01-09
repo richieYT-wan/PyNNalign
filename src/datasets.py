@@ -307,8 +307,7 @@ class NNAlignDataset(SuperDataset):
         self.max_len = max_len
         self.seq_col = seq_col
         self.window_size = window_size
-        #print(x)
-        #print(x.shape) 
+
     def __len__(self):
         return self.len
 
@@ -325,7 +324,6 @@ class NNAlignDataset(SuperDataset):
         if self.burn_in_flag:
             if self.extra_features_flag:
                 # Do the HLA pseudoseq return on the fly instead of pre-expanding and saving
-                x_pseudoseq = self.pseudoseq_tensormap[self.hla_tag[idx]]
                 return self.x_tensor[idx], self.burn_in_mask[idx], self.pseudoseq_tensormap[self.hla_tag[idx]], self.y[idx]
             else:
                 # 2
@@ -334,7 +332,6 @@ class NNAlignDataset(SuperDataset):
             if self.extra_features_flag:
                 # 3
                 # Do the HLA pseudoseq return on the fly instead of pre-expanding and saving
-                x_pseudoseq = self.pseudoseq_tensormap[self.hla_tag[idx]]
                 return self.x_tensor[idx], self.x_mask[idx], self.pseudoseq_tensormap[self.hla_tag[idx]], self.y[idx]
             else:
                 # 1
@@ -360,34 +357,3 @@ def _get_indel_burnin_mask(seq, window_size, alphabet='ILVMFYW'):
 
 def _get_indel_burnin_mask_batch(sequences, window_size, alphabet='ILVMFYW'):
     return torch.stack([_get_indel_burnin_mask(x, window_size, alphabet) for x in sequences])
-
-
-# Stupid shit for memory profiler
-
-class UglyWorkAround(SuperDataset):
-
-    def __init__(self, df: pd.DataFrame, fasta_data: str, structural_data: str, max_len: int, window_size: int, encoding: str = 'onehot',
-                 seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
-                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
-                 pseudo_seq_col: str = 'pseudoseq', add_pfr=False, add_fr_len=False, add_pep_len=False, add_z=True,
-                 burn_in=None, add_structure = False):
-        super(UglyWorkAround, self).__init__()
-
-
-# OLD DEPRECATED CODE
-# @profile
-def get_NNAlign_dataloaderEFSinglePass(df: pd.DataFrame, max_len: int, window_size: int, encoding: str = 'onehot',
-                                       seq_col: str = 'Peptide', target_col: str = 'agg_label', pad_scale: float = None,
-                                       indel: bool = False, burnin_alphabet: str = 'ILVMFYW', feature_cols: list = None,
-                                       batch_size=64, sampler=torch.utils.data.RandomSampler, return_dataset=True,
-                                       add_pseudo_sequence=False, pseudo_seq_col: str = 'pseudoseq', add_pfr=False,
-                                       add_fr_len=False, add_pep_len=False):
-    dataset = NNAlignDatasetEFSinglePass(df, max_len, window_size, encoding, seq_col, target_col, pad_scale, indel,
-                                         burnin_alphabet, feature_cols, add_pseudo_sequence, pseudo_seq_col, add_pfr,
-                                         add_fr_len, add_pep_len)
-    # TODO NEW COLLATE FN ON THE FLY FOR KMERS AND MHC
-    dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler(dataset))
-    if return_dataset:
-        return dataloader, dataset
-    else:
-        return dataloader

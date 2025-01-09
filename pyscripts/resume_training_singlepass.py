@@ -18,7 +18,7 @@ from src.torch_utils import load_model_full, load_checkpoint, save_model_full, g
 from src.models import NNAlignEFSinglePass
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
-from src.datasets import NNAlignDatasetEFSinglePass, UglyWorkAround, NNAlignDataset
+from src.datasets import NNAlignDatasetEFSinglePass, NNAlignDataset
 from matplotlib import pyplot as plt
 import tracemalloc
 import seaborn as sns
@@ -202,7 +202,7 @@ def main():
 
     # Def params, using get_class_initcode to get the keys needed to init a class
     # Here UglyWorkAround exist to give the __init__ code to dataset because I'm currently using @profile
-    dataset_keys = get_class_initcode_keys(UglyWorkAround, args)
+    dataset_keys = get_class_initcode_keys(NNAlignDatasetEFSinglePass, args)
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
 
