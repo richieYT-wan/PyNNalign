@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Base command without the parameters that will change
-base_command="python train_test_model_efsinglepass.py -trf ../data/mhc1_el_subsample/mhc1_el_1M_structure.csv -tef ../data/mhc1_el_subsample/test_structure.csv -ml 13 -ws 9 -pad -20 -y target -x sequence -std False -bn False -nh 64 -br 10 -otf True -cuda True -bs 1024 -ne 350 -wd 0 -add_ps True -indel True --add_pfr True --add_fr_len True --add_pep_len True --add_structure False"
+base_command="python train_test_model_efsinglepass.py -trf ../data/mhc1_el_subsample/mhc1_el_1M_structure.csv -tef ../data/mhc1_el_subsample/test_structure.csv -ml 13 -ws 9 -pad -20 -y target -x sequence -std False -bn False -nh 64 -br 10 -otf True -cuda True -bs 1024 -ne 300 -wd 0 -add_ps True -indel True --add_pfr True --add_fr_len True --add_pep_len True --add_structure False -lr 1e-5"
 
 # Parameters to vary
 add_str_values=(True False)
