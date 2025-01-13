@@ -18,8 +18,10 @@ for add_str in "${add_str_values[@]}"; do
     # Create a script file for this job
     script_name="job_${output_name}_kf${kf}.sh"
     echo "#!/bin/bash" > $script_name
-    echo "source /home/projects/vaccine/people/pasbes/PyNNalign/myenv/bin/activate" >> $script_name
-    echo "cd /home/projects/vaccine/people/pasbes/PyNNalign/pyscripts" >> $script_name
+    echo "source /home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh" >> $script_name
+    echo "source activate cuda" >> $script_name
+    echo "source /home/projects/vaccine/people/yatwan/PyNNalign/myenv/bin/activate" >> $script_name
+    echo "cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts" >> $script_name
     echo "$command" >> $script_name
       
     # Submit the job script to qsub

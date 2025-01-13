@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import torch
 import torch.nn.functional as F
@@ -170,7 +171,7 @@ class NNAlignDataset(SuperDataset):
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, fasta_data: str = None, structural_data: str = None, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
                  burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
-                 add_pfr=False, add_fr_len=False, add_pep_len=False, min_clip=None, max_clip=None, burn_in=None, add_structure = False):
+                 add_pfr=False, add_fr_len=False, add_pep_len=False, min_clip=None, max_clip=None, burn_in=None, add_structure = False, add_mean_structure=False):
 
         # start = dt.now()
         super(NNAlignDataset, self).__init__()
@@ -301,6 +302,14 @@ class NNAlignDataset(SuperDataset):
             self.x_tensor = torch.cat([self.x_tensor, x_pep_len], dim=2)
             # peplen_time = dt.now()
 
+        if add_mean_structure:
+            struct_cols = ['rsa','pq3_H', 'pq3_E', 'pq3_C', 'disorder']
+            x_structs = torch.cat([torch.tensor(df[col].apply(lambda x: np.mean([float(z) for z in x.split(',')])).values).unsqueeze(1) for col in struct_cols], dim=1)
+            # Expand and tile to cat on dim 2
+            x_structs = x_structs.unsqueeze(1).tile(self.x_tensor.shape[1], 1)
+            self.x_tensor = torch.cat([self.x_tensor, x_structs], dim=2)
+
+        self.x_tensor = self.x_tensor.float()
         # Saving df in case it's needed
         self.df = df
         self.len = len(self.x_tensor)
@@ -323,6 +332,8 @@ class NNAlignDataset(SuperDataset):
         """
         if self.burn_in_flag:
             if self.extra_features_flag:
+                # TODO : Bad implementation ; the extra_features x_feats that is used in the models
+                #        is actually just the pseudo sequence ; the other features (pep_len, pfr, fr, are just added to the x_tensor)
                 # Do the HLA pseudoseq return on the fly instead of pre-expanding and saving
                 return self.x_tensor[idx], self.burn_in_mask[idx], self.pseudoseq_tensormap[self.hla_tag[idx]], self.y[idx]
             else:

@@ -204,6 +204,7 @@ def main():
 
     # print(f'Extra-features dimensions: {extrafeat_dim}')
 
+    # TODO: Check here if this is supposed to really be MSE and not BCE ??
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')
 

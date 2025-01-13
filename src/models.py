@@ -333,12 +333,13 @@ class NNAlignSinglePass(NetParent):
 class NNAlignEFSinglePass(NetParent):
     """
     NNAlign implementation with a single forward pass where best score selection + indexing is done in one pass.
+
     """
 
     def __init__(self, n_hidden, n_hidden_2, window_size,
                  activation=nn.ReLU(), feat_dim=0, pseudoseq_dim=0, batchnorm=False,
                  dropout=0.0, standardize=False,
-                 add_hidden_layer=False, add_structure = False):
+                 add_hidden_layer=False, add_structure=False):
         super(NNAlignEFSinglePass, self).__init__()
         if add_structure:
             self.matrix_dim = 25
@@ -363,7 +364,8 @@ class NNAlignEFSinglePass(NetParent):
             self.bn1 = nn.BatchNorm1d(n_hidden)
         self.dropout = nn.Dropout(p=dropout)
         self.act = activation
-        self.standardizer_sequence = StandardizerSequence(n_feats=(self.matrix_dim*window_size)+feat_dim) if standardize else StdBypass()
+        self.standardizer_sequence = StandardizerSequence(
+            n_feats=(self.matrix_dim * window_size) + feat_dim) if standardize else StdBypass()
         # For mhc pseudosequences, extrafeat_dim would be 680 (34x20, flattened)
         self.standardizer_features = StandardizerFeatures(n_feats=self.pseudoseq_dim) if standardize else StdBypass()
 
@@ -500,6 +502,203 @@ class NNAlignEFSinglePass(NetParent):
             # Additionally run sigmoid on z so that it returns proba in range [0, 1]
             z = torch.gather(z, 1, max_idx).squeeze(1)
             return z, max_idx
+
+
+class NNAlignEFTwoStage(NetParent):
+    """
+    NNAlign implementation with a single forward pass where best score selection + indexing is done in one pass.
+    TODO : Here this model has a "two-stage" behaviour with a first stage doing the core selection (up to z = torch.gather(argmax(z)...))
+           Then, the second stage is concatenating to the structural features and running one additional layer for the output
+    """
+
+    def __init__(self, n_hidden, n_hidden_2, window_size,
+                 activation=nn.ReLU(), feat_dim=0, pseudoseq_dim=0, batchnorm=False,
+                 dropout=0.0, standardize=False,
+                 add_hidden_layer=False, add_structure=False, add_mean_structure=False):
+        super(NNAlignEFTwoStage, self).__init__()
+        if add_structure:
+            self.matrix_dim = 25
+        else:
+            self.matrix_dim = 20
+        self.window_size = window_size
+        self.n_hidden = n_hidden
+        self.n_hidden_2 = n_hidden_2
+        self.feat_dim = feat_dim
+        self.pseudoseq_dim = pseudoseq_dim
+        self.add_hidden_layer = add_hidden_layer
+        self.add_mean_structure = add_mean_structure
+        # Input layer
+        self.in_layer = nn.Linear(self.window_size * self.matrix_dim + feat_dim + pseudoseq_dim, n_hidden)
+        # Additional hidden layer if use_second_hidden_layer is True
+        if add_hidden_layer:
+            self.hidden_layer = nn.Linear(n_hidden, n_hidden_2)
+            self.out_layer = nn.Linear(n_hidden_2, 1)
+        else:
+            self.out_layer = nn.Linear(n_hidden, 1)
+        self.batchnorm = batchnorm
+        if batchnorm:
+            self.bn1 = nn.BatchNorm1d(n_hidden)
+        self.dropout = nn.Dropout(p=dropout)
+        self.act = activation
+        self.standardizer_sequence = StandardizerSequence(
+            n_feats=(self.matrix_dim * window_size) + feat_dim) if standardize else StdBypass()
+        # For mhc pseudosequences, extrafeat_dim would be 680 (34x20, flattened)
+        self.standardizer_features = StandardizerFeatures(n_feats=self.pseudoseq_dim) if standardize else StdBypass()
+        self.standardizer_structures = StandardizerFeatures(n_feats=5) if (
+                    standardize and add_mean_structure) else StdBypass()
+        self.final_layer = nn.Linear(6, 1)  # 5 mean struct features + 1 core max score = 6
+
+    def fit_standardizer(self, x_tensor, x_mask, x_feats=None):
+        assert self.training, 'Must be in training mode to fit!'
+        with torch.no_grad():
+            if self.add_mean_structure:
+                x_struct = x_tensor[:, 0, -5:].squeeze(1)
+                self.standardizer_structures.fit(x_struct)
+                x_tensor = x_tensor[:, ::-5]
+
+            self.standardizer_sequence.fit(x_tensor, x_mask)
+            if x_feats is not None:
+                self.standardizer_features.fit(self.reshape_features(x_tensor, x_feats))
+
+    @staticmethod
+    def reshape_features(x_tensor, x_feats):
+        """
+        ON THE FLY PART
+        Reshapes and repeats the feature tensors in order to concatenate them to the x_tensor
+        This is to "duplicate" MHC pseudosequences on the fly ; Reshapes x_feats into x_tensor's shape
+        """
+        return x_feats.unsqueeze(1).repeat(1, x_tensor.shape[1], 1)
+
+    def forward(self, x_tensor: torch.Tensor, x_mask: torch.tensor, x_feats: torch.tensor = None):
+
+        """
+        Single forward pass for layers + best score selection without w/o grad
+        Here the final activation is a sigmoid because we are training on BA data with values in [0,1] and using MSE
+        Args:
+            x_mask:
+            x_tensor:
+
+        Returns:
+
+        """
+        # FIRST FORWARD PASS: best scoring selection, with no grad
+
+        # Here concatenate whatever extra features (like the flattened MHC pseudosequence)
+        with torch.no_grad():
+            # TODO : Here, it's a two-stage model ; Unsafe but quick way to add the features is to split from x_feat instead of re-writing code
+            #        Assumes that the mean structural features are 5 dimensions added at the end of the x_feat vector (x_feats[:, -5:]) and extract here
+            if self.add_mean_structure:
+                # Extract the structure tensor and resqueeze
+                x_struct = x_tensor[:, 0, -5:].squeeze(1)
+                x_struct = self.standardizer_structures(x_struct)
+                # Extract x_tensor and preserve the windows
+                x_tensor = x_tensor[:, :, :-5]
+
+            x_tensor = self.standardizer_sequence(x_tensor)
+
+            if x_feats is not None:
+                # Take out the structural data part
+                # x_struct = x_feats[:, -5:]
+                # Takes the flattened x_features tensor and repeats it for each icore
+                # x_feats = x_feats[:, :-5]
+                x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
+                x_tensor = torch.cat([x_tensor, x_feats], dim=2)
+
+        z = self.in_layer(x_tensor)
+        # Flip dimensions to allow for batchnorm then flip back
+        if self.batchnorm:
+            z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
+                .view(-1, x_tensor.shape[1], self.n_hidden)
+        z = self.dropout(z)
+        z = self.act(z)
+        # Additional hidden layer
+        if self.add_hidden_layer:
+            z = self.hidden_layer(z)
+            z = self.act(z)
+            z = self.out_layer(z)
+        else:
+            z = self.out_layer(z)  # Out Layer for prediction
+
+        # NNAlign selecting the max score here
+        with torch.no_grad():
+            # Here, use sigmoid to set values to 0,1 before masking
+            # only for index selection, Z will be returned as logits
+            max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
+
+        z = torch.gather(z, 1, max_idx).squeeze(1)  # Indexing the best submers ; Removed sigmoid here
+        z = torch.cat([z, x_struct], dim=1)
+        z = F.sigmoid(self.final_layer(z))  # Moved the sigmoid to here ; TODO : Check if it should be sigmoid+MSELoss or logits + BCE loss??
+        return z
+
+    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
+        """Works like forward but also returns the index (for the motif selection/return)
+
+        This should be done with torch no_grad as this shouldn't be used during/for training
+        Also here does the sigmoid to return scores within [0, 1] on Z
+        Args:
+            x_tensor: torch.Tensor, the input tensor (i.e. encoded sequences)
+            x_mask: torch.Tensor, to mask padded positions
+        Returns:
+            z: torch.Tensor, the best scoring K-mer for each of the input in X
+            max_idx: torch.Tensor, the best indices corresponding to the best K-mer,
+                     used to find the predicted core
+        """
+        z, max_idx = self.predict_logits(x_tensor, x_mask, x_feats)
+        z = F.sigmoid(z)  # Moved the sigmoid to here ; TODO : Check if it should be sigmoid+MSELoss or logits + BCE loss??
+        return z, max_idx
+
+    def predict_logits(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
+        """ QOL method to return the predictions without Sigmoid + return the indices
+        To be used elsewhere down the line (in EF model)
+
+        Args:
+            x_tensor:
+            x_mask:
+
+        Returns:
+
+        """
+        with torch.no_grad():
+            if self.add_mean_structure:
+                # Extract the structure tensor and resqueeze
+                x_struct = x_tensor[:, 0, -5:].squeeze(1)
+                x_struct = self.standardizer_structures(x_struct)
+                # Extract x_tensor and preserve the windows
+                x_tensor = x_tensor[:, :, :-5]
+
+            x_tensor = self.standardizer_sequence(x_tensor)
+
+            if x_feats is not None:
+                # Take out the structural data part
+                # x_struct = x_feats[:, -5:]
+                # Takes the flattened x_features tensor and repeats it for each icore
+                # x_feats = x_feats[:, :-5]
+                x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
+                x_tensor = torch.cat([x_tensor, x_feats], dim=2)
+
+            z = self.in_layer(x_tensor)
+            if self.batchnorm:
+                z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
+                    .view(-1, x_tensor.shape[1], self.n_hidden)
+            z = self.act(self.dropout(z))
+            # Additional hidden layer
+            if self.add_hidden_layer:
+                z = self.hidden_layer(z)
+                z = self.act(z)
+                z = self.out_layer(z)
+            else:
+                z = self.out_layer(z)  # Out Layer for prediction
+            # Do the same trick where the padded positions are removed prior to selecting index
+            max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
+
+            # Additionally run sigmoid on z so that it returns proba in range [0, 1]
+            z = torch.gather(z, 1, max_idx).squeeze(1)  # Indexing the best submers ; Removed sigmoid here
+            z = torch.cat([z, x_struct], dim=1)
+            z = self.final_layer(z)  # Moved the sigmoid to here ;
+            return z, max_idx
+
+
+# OLD MODELS TO IGNORE; Here for compatibility reasons for the moment.
 
 
 class NNAlign(NetParent):

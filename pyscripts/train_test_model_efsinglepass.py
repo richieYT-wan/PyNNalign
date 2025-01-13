@@ -14,7 +14,7 @@ from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
     get_class_initcode_keys, make_filename
 from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device
-from src.models import NNAlignEFSinglePass
+from src.models import NNAlignEFSinglePass, NNAlignEFTwoStage
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
 from src.datasets import NNAlignDatasetEFSinglePass, NNAlignDataset
@@ -89,7 +89,10 @@ def args_parser():
                              'Now True by default, to be deprecated ')
     parser.add_argument('-add_str', '--add_structure', dest='add_structure', type=str2bool, default=False,
                         help='Whether to add structural data to the model (true/false)')
-
+    parser.add_argument('-add_mean_str', '--add_mean_structure', dest='add_mean_structure', type=str2bool, default=False,
+                        help='Whether to add mean structural data to the model (true/false)')
+    parser.add_argument('-two_stage', '--two_stage', dest='two_stage', type=str2bool, default=False,
+                        help='Use 2stage model (for add_mean_structure)')
     """
     Neural Net & Encoding args 
     """
@@ -147,7 +150,9 @@ def main():
     tracemalloc.start()
     # I like dictionary for args :-)
     args = vars(args_parser())
-
+    if not (args['add_mean_structure'] and args['two_stage']):
+        print(f'add_mean_structure, two-stage model must both be active! Currently: {args["add_mean_structure"], args["two_stage"]};\n(set --add_mean_structure True --two_stage True instead!)')
+        sys.exit(1)
     # Cuda activation
     if torch.cuda.is_available() and args['cuda']:
         device = get_available_device()
@@ -189,10 +194,12 @@ def main():
     # tmpvals = train_df[tmp].values
     test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
 
+    MODELCLASS = NNAlignEFTwoStage if args['two_stage'] else NNAlignEFSinglePass
+    DATASETCLASS = NNAlignDataset if args['on_the_fly'] else NNAlignDatasetEFSinglePass
     # Def params so it's ✨tidy✨, using get_class_initcode to get the keys needed to init a class
-    model_keys = get_class_initcode_keys(NNAlignEFSinglePass, args)
+    model_keys = get_class_initcode_keys(MODELCLASS, args)
     # Here UglyWorkAround exist to give the __init__ code to dataset because I'm currently using @profile
-    dataset_keys = get_class_initcode_keys(NNAlignDatasetEFSinglePass, args)
+    dataset_keys = get_class_initcode_keys(DATASETCLASS, args)
     args['on_the_fly']=True
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
@@ -213,25 +220,28 @@ def main():
         max_clip = args['max_clip'] if args['max_clip'] is not None else args['max_len']
         min_clip = args['min_clip'] if args['min_clip'] is not None else df[args['seq_col']].apply(len).min()
         model_params['feat_dim'] += max_clip - min_clip + 2
+    model_params['feat_dim'] = int(model_params['feat_dim'])
 
-    model = NNAlignEFSinglePass(activation=nn.ReLU(), **model_params)
+    # if args['add_mean_structure']:
+    #     model_params['feat_dim'] += 5 # TODO : THIS IS FOR OLD MODEL WHERE STRUCT ARE APPENDED TO INPUT X_TENSOR
+
+    model = MODELCLASS(activation=nn.ReLU(), **model_params)
     model.to(device)
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
     criterion = nn.MSELoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), **optim_params)
-    #print(dataset_keys)
-    if args['on_the_fly']:
-        # TODO Quick workaround
-        train_dataset = NNAlignDataset(train_df, **dataset_params)
-        valid_dataset = NNAlignDataset(valid_df, **dataset_params)
-        test_dataset = NNAlignDataset(test_df, **dataset_params)
-        _, dataset_peak = tracemalloc.get_traced_memory()
-
-    else:
-        train_dataset = NNAlignDatasetEFSinglePass(train_df, **dataset_params)
-        valid_dataset = NNAlignDatasetEFSinglePass(valid_df, **dataset_params)
-        test_dataset = NNAlignDatasetEFSinglePass(test_df, **dataset_params)
-        _, dataset_peak = tracemalloc.get_traced_memory()
+    # if args['on_the_fly']:
+    # TODO Quick workaround
+    train_dataset = DATASETCLASS(train_df, **dataset_params)
+    valid_dataset = DATASETCLASS(valid_df, **dataset_params)
+    test_dataset = DATASETCLASS(test_df, **dataset_params)
+    _, dataset_peak = tracemalloc.get_traced_memory()
+    #
+    # else:
+    #     train_dataset = NNAlignDatasetEFSinglePass(train_df, **dataset_params)
+    #     valid_dataset = NNAlignDatasetEFSinglePass(valid_df, **dataset_params)
+    #     test_dataset = NNAlignDatasetEFSinglePass(test_df, **dataset_params)
+    #     _, dataset_peak = tracemalloc.get_traced_memory()
 
     train_loader = train_dataset.get_dataloader(batch_size=args['batch_size'], sampler=RandomSampler)
     valid_loader = valid_dataset.get_dataloader(batch_size=args['batch_size'] * 2, sampler=SequentialSampler)
