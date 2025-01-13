@@ -182,7 +182,7 @@ def main():
         checkpoint_filename = f'checkpoint_best_{unique_filename}.pt'
     else:
         torch.manual_seed(0)
-        np.random.set_state(0)
+        np.random.seed(0)
         train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
 
     # Quick hotfix because i don't know why this query/eval thing suddenly changed and stopped working
