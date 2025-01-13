@@ -150,7 +150,7 @@ def main():
     tracemalloc.start()
     # I like dictionary for args :-)
     args = vars(args_parser())
-    if not (args['add_mean_structure'] and args['two_stage']):
+    if (args['add_mean_structure'] and not args['two_stage']) or  (not args['add_mean_structure'] and args['two_stage']):
         print(f'add_mean_structure, two-stage model must both be active! Currently: {args["add_mean_structure"], args["two_stage"]};\n(set --add_mean_structure True --two_stage True instead!)')
         sys.exit(1)
     # Cuda activation
