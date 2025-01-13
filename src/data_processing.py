@@ -239,7 +239,7 @@ def get_pfr_values(sequences, max_len, window_size, indel=False):
     pfrs = torch.cat([(repeats * before_mask).mean(dim=2),
                       (repeats * after_mask).mean(dim=2)], dim=2)
     if indel:
-        pfrs = torch.cat([pfrs, torch.zeros(len(pfrs), window_size+1, pfrs.shape[-1])], dim=1)
+        pfrs = torch.cat([pfrs, torch.zeros(len(pfrs), window_size + 1, pfrs.shape[-1])], dim=1)
     return pfrs
 
 
@@ -263,7 +263,7 @@ def get_fr_lengths(len_tensor, max_len, window_size, indel=False):
     fr_lengths_after[:, :, 1] = 1 - fr_lengths_after[:, :, 1]
     fr_lengths = torch.cat([fr_lengths_before, fr_lengths_after], dim=2)
     if indel:
-        fr_lengths = torch.cat([fr_lengths, torch.zeros(len(fr_lengths), window_size+1, fr_lengths.shape[-1])], dim=1)
+        fr_lengths = torch.cat([fr_lengths, torch.zeros(len(fr_lengths), window_size + 1, fr_lengths.shape[-1])], dim=1)
     return fr_lengths
 
 
@@ -318,6 +318,7 @@ def batch_insertion_deletion(sequences, max_len=13, encoding='BL50LO', pad_scale
          for
          seq in sequences])
 
+
 def get_indel_windows_with_structure(sequence, structural_info, window_size):
     length = len(sequence)
     indel_windows = []
@@ -354,7 +355,6 @@ def get_indel_windows_with_structure(sequence, structural_info, window_size):
     return indel_windows, adjusted_structural_infos
 
 
-
 def create_indel_mask(length, window_size):
     mask = torch.zeros(1, window_size + 1, 1)
     if length < window_size:
@@ -372,6 +372,7 @@ def create_indel_mask(length, window_size):
 def batch_indel_mask(lengths, window_size):
     return torch.cat([create_indel_mask(length, window_size) for length in lengths], dim=0)
 
+
 def encode_with_structural_info(sequence, structural_info, max_len=None, encoding='onehot', pad_scale=None):
     """
     Encodes a single peptide into a matrix, using 'onehot' or 'blosum',
@@ -386,12 +387,14 @@ def encode_with_structural_info(sequence, structural_info, max_len=None, encodin
     """
 
     # Encode the sequence using the desired encoding method.
-    encoded_sequence = encode(sequence, max_len, encoding, pad_scale)  # Assume this returns a tensor of shape [max_len, 20]
+    encoded_sequence = encode(sequence, max_len, encoding,
+                              pad_scale)  # Assume this returns a tensor of shape [max_len, 20]
     encoded_sequence = encoded_sequence / 5
     # Ensure structural_info matches the length of the sequence, padding if necessary.
     if max_len is not None and max_len > len(sequence):
         diff = max_len - len(sequence)
-        structural_info.extend([[0]*5] * diff)  # Pad structural information with zeros for positions beyond the sequence length.
+        structural_info.extend(
+            [[0] * 5] * diff)  # Pad structural information with zeros for positions beyond the sequence length.
 
     # Convert the structural information to a tensor and concatenate it with the encoded sequence.
     structural_features_tensor = torch.tensor(structural_info, dtype=torch.float32)
@@ -403,19 +406,22 @@ def encode_with_structural_info(sequence, structural_info, max_len=None, encodin
 
     return encoded_with_structural_info
 
+
 def get_structural_info_for_peptide(protein_id, peptide_sequence, protein_fasta_dict, structural_info_dict):
     protein_sequence = protein_fasta_dict[protein_id]
     start_pos = protein_sequence.find(peptide_sequence) + 1  # 1-indexed position
     if start_pos == 0:  # Sequence not found
         return None
-    
+
     # Extract structural information for each position in the peptide
     peptide_structural_info = []
     for pos in range(start_pos, start_pos + len(peptide_sequence)):
-        structural_info = structural_info_dict.get(protein_id, {}).get(pos, [0, 0, 0, 0, 0])  # Default to [0,0,0,0,0] if not found
+        structural_info = structural_info_dict.get(protein_id, {}).get(pos, [0, 0, 0, 0,
+                                                                             0])  # Default to [0,0,0,0,0] if not found
         peptide_structural_info.append(structural_info)
-    
+
     return peptide_structural_info
+
 
 def parse_fasta(file_path):
     fasta_data = {}
@@ -440,6 +446,7 @@ def parse_fasta(file_path):
             fasta_data[current_id] = current_sequence
     return fasta_data
 
+
 def load_structural_data(filename):
     structural_data = {}
     with open(filename, 'r') as file:
@@ -449,7 +456,7 @@ def load_structural_data(filename):
             first_part, rest = line.strip().split('>', 1)[1].split(',', 1)
             # Adjusted to extract the protein ID assuming the format "sp_PROTEINID_..."
             protein_id = first_part.split('_')[1]  # Extracting the protein ID
-            
+
             # Now, we split the rest of the line for the actual data fields
             parts = rest.split(',')
             # Counting from the end to adjust indices for features
@@ -470,6 +477,7 @@ def load_structural_data(filename):
                 structural_data[protein_id] = {}
             structural_data[protein_id][seq_pos] = features
     return structural_data
+
 
 ####################################################
 #     OLD Here stuff for extra AA bulging out:     #
@@ -553,7 +561,6 @@ def batch_find_extra_aa(core_seqs, icore_seqs):
     mapped = list(map(find_extra_aa, core_seqs, icore_seqs))
     encoded, lens = np.array([x[0] for x in mapped]), np.array([x[1] for x in mapped])
     return encoded, lens
-
 
 # old pfr carlos code
 

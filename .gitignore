@@ -277,3 +277,7 @@ output/time_benchmark/
 output/carlos_experiments/
 data/mhc1_el_subsample/mhc1_el_2p5M.csv
 
+data/mhc1_el_subsample/test_structure.csv
+data/mhc1_el_subsample/shuffled_structural_data.csv
+data/mhc1_el_subsample/mhc1_el_1M_structure.csv
+data/mhc1_el_subsample/structural_data.csv

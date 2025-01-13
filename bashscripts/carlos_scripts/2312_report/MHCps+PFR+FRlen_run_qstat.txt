@@ -1,0 +1,73 @@
+Job Id: 47932190
+    Job_Name = 231212_MHCps+PFR+FRlen
+    Job_Owner = cadsal@g-12-l0002.eth.cla
+    resources_used.cput = 631:49:32
+    resources_used.energy_used = 0
+    resources_used.mem = 5319612kb
+    resources_used.vmem = 22073080kb
+    resources_used.walltime = 16:29:11
+    job_state = C
+    queue = batch
+    server = moab.eth.cla
+    Checkpoint = u
+    ctime = Thu Dec 14 09:51:38 2023
+    Error_Path = g-12-l0002:/home/projects/vaccine/people/cadsal/NNAlign_Speci
+	alCourse/PyNNalign/bashscripts/2312_report/231212_MHCps+PFR+FRlen.err
+    exec_host = g-02-c0134/0-39
+    Hold_Types = n
+    Join_Path = n
+    Keep_Files = n
+    Mail_Points = a
+    mtime = Fri Dec 15 03:09:39 2023
+    Output_Path = g-12-l0002:/home/projects/vaccine/people/cadsal/NNAlign_Spec
+	ialCourse/PyNNalign/bashscripts/2312_report/231212_MHCps+PFR+FRlen.log
+	
+    Priority = 0
+    qtime = Thu Dec 14 09:51:38 2023
+    Rerunable = True
+    Resource_List.nodes = 1:ppn=40
+    Resource_List.mem = 50gb
+    Resource_List.walltime = 80:00:00
+    Resource_List.nodect = 1
+    session_id = 10597
+    Variable_List = PBS_O_QUEUE=batch,PBS_O_HOME=/home/people/cadsal,
+	PBS_O_LOGNAME=cadsal,
+	PBS_O_PATH=/services/tools/anaconda3/4.4.0/bin:/services/tools/anacon
+	da3/4.4.0/condabin:/usr/local/bin:/usr/local/sbin:/usr/lib64/qt-3.3/bi
+	n:/cm/local/apps/environment-modules/4.2.1//bin:/opt/moab/bin:/usr/loc
+	al/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/sbin:/cm/local/ap
+	ps/environment-modules/4.2.1/bin:/opt/thinlinc/bin:/home/people/cadsal
+	/.local/bin:/home/people/cadsal/bin,PBS_O_MAIL=/var/spool/mail/cadsal,
+	PBS_O_SHELL=/bin/bash,PBS_O_LANG=en_US.utf-8,
+	PBS_O_WORKDIR=/home/projects/vaccine/people/cadsal/NNAlign_SpecialCou
+	rse/PyNNalign/bashscripts/2312_report,
+	PBS_O_HOST=g-12-l0002.cm.cluster,PBS_O_SERVER=moab
+    euser = cadsal
+    egroup = cadsal
+    queue_type = E
+    etime = Thu Dec 14 09:51:38 2023
+    exit_status = 0
+    submit_args = 231212_NNAlign_MHCps+PFR+FRlen.sh
+    start_time = Thu Dec 14 10:40:27 2023
+    start_count = 1
+    fault_tolerant = False
+    comp_time = Fri Dec 15 03:09:39 2023
+    job_radix = 0
+    total_runtime = 59352.651705
+    submit_host = g-12-l0002.cm.cluster
+    init_work_dir = /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse
+	/PyNNalign/bashscripts/2312_report
+    request_version = 1
+    req_information.task_count.0 = 1
+    req_information.lprocs.0 = 40
+    req_information.total_memory.0 = 52428800kb
+    req_information.memory.0 = 52428800kb
+    req_information.thread_usage_policy.0 = allowthreads
+    req_information.hostlist.0 = g-02-c0134:ppn=40
+    req_information.task_usage.0.task.0.cpu_list = 0-39
+    req_information.task_usage.0.task.0.mem_list = 0-1
+    req_information.task_usage.0.task.0.cores = 0
+    req_information.task_usage.0.task.0.threads = 40
+    req_information.task_usage.0.task.0.host = g-02-c0134
+    copy_on_rerun = False
+

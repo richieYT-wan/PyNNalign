@@ -1,0 +1,33 @@
+#!/bin/bash
+
+### Job name (comment out the next line to get the name of the script used as the job name)
+#PBS -N 231212_PyNNAlign_nofeat
+### Number of nodes
+#PBS -l nodes=1:ppn=40
+### Memory
+#PBS -l mem=50gb
+### Requesting time - format is <days>:<hours>:<minutes>:<seconds> (here, 1 hour)
+#PBS -l walltime=80:00:00
+
+
+#PBS -e 231212_nofeatures.err
+#PBS -o 231212_nofeatures.log
+
+# Load anaconda modules
+module load tools
+module load anaconda3/4.4.0
+
+# Change the directory
+cd /home/projects/vaccine/people/cadsal/NNAlign_SpecialCourse/PyNNalign/pyscripts
+pwd
+
+echo \"Starting PyScript\"
+
+for i in {1..5};
+do
+    echo "Running iteration ${i}"
+    python3 ./train_test_model_efsinglepass.py -trf ../data/carlos/train_all5_correct.txt -tef ../data/carlos/short_random_peptides_fakemhc.txt -ml 37 -nh 60 -std f -bn False -efnh 5 -o CSL_report_nofeatures -x Sequence -y BA -enc BL50LO -add_ps False -ws 9 -add_pfr False -add_fr_len False -add_pep_len False -add_hl False -wd 1e-4 -bs 64 -br 10 -kf ${i}
+    echo "Iteration $i completed"
+done
+
+echo "Script finished"
