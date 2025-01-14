@@ -356,6 +356,8 @@ class NNAlignEFSinglePass(NetParent):
         # Additional hidden layer if use_second_hidden_layer is True
         if add_hidden_layer:
             self.hidden_layer = nn.Linear(n_hidden, n_hidden_2)
+            if batchnorm:
+                self.bnh = nn.BatchNorm1d(n_hidden_2)
             self.out_layer = nn.Linear(n_hidden_2, 1)
         else:
             self.out_layer = nn.Linear(n_hidden, 1)
@@ -397,6 +399,73 @@ class NNAlignEFSinglePass(NetParent):
         Returns:
 
         """
+        z, _ = self.nnalign_logits(x_tensor, x_mask, x_feats)
+        return F.sigmoid(z)
+
+    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
+        """Works like forward but also returns the index (for the motif selection/return)
+
+        This should be done with torch no_grad as this shouldn't be used during/for training
+        Also here does the sigmoid to return scores within [0, 1] on Z
+        Args:
+            x_tensor: torch.Tensor, the input tensor (i.e. encoded sequences)
+            x_mask: torch.Tensor, to mask padded positions
+        Returns:
+            z: torch.Tensor, the best scoring K-mer for each of the input in X
+            max_idx: torch.Tensor, the best indices corresponding to the best K-mer,
+                     used to find the predicted core
+        """
+        with torch.no_grad():
+            z, max_idx = self.nnalign_logits(x_tensor, x_mask, x_feats)
+            return F.sigmoid(z), max_idx
+
+    def nnalign_logits(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
+        """ QOL method to return the predictions without Sigmoid + return the indices
+        To be used elsewhere down the line (in EF model)
+
+        Args:
+            x_tensor:
+            x_mask:
+
+        Returns:
+
+        """
+        # No grad for the standardizer operations
+        with torch.no_grad():
+            x_tensor = self.standardizer_sequence(x_tensor)
+            if x_feats is not None:
+                # Takes the flattened x_features tensor and repeats it for each icore
+                x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
+                x_tensor = torch.cat([x_tensor, x_feats], dim=2)
+
+        # Runs input layer and batchnorm if true, order: Layer -> BN -> DO -> ReLU
+        z = self.in_layer(x_tensor)
+        if self.batchnorm:
+            z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
+                .view(-1, x_tensor.shape[1], self.n_hidden)
+        z = self.act(self.dropout(z))
+        # Additional hidden layer
+        if self.add_hidden_layer:
+            z = self.hidden_layer(z)
+            if self.batchnorm:
+                z = self.bnh(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden_2)) \
+                    .view(-1, x_tensor.shape[1], self.n_hidden_2)
+            z = self.act(self.dropout(z))
+            z = self.out_layer(z)
+        else:
+            z = self.out_layer(z)  # Out Layer for prediction
+
+        # NNAlign selecting the max score here
+        with torch.no_grad():
+            # Here, use sigmoid to set values to 0,1 before masking
+            # only for index selection, Z will be returned as logits
+            # Do the same trick where the padded positions are removed prior to selecting index
+            max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
+        # Additionally run sigmoid on z so that it returns proba in range [0, 1]
+        z = torch.gather(z, 1, max_idx).squeeze(1)
+        return z, max_idx
+
+    def __old_forward(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
         # FIRST FORWARD PASS: best scoring selection, with no grad
 
         # Here concatenate whatever extra features (like the flattened MHC pseudosequence)
@@ -431,78 +500,6 @@ class NNAlignEFSinglePass(NetParent):
         z = F.sigmoid(torch.gather(z, 1, max_idx).squeeze(1))  # Indexing the best submers
         return z
 
-    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
-        """Works like forward but also returns the index (for the motif selection/return)
-
-        This should be done with torch no_grad as this shouldn't be used during/for training
-        Also here does the sigmoid to return scores within [0, 1] on Z
-        Args:
-            x_tensor: torch.Tensor, the input tensor (i.e. encoded sequences)
-            x_mask: torch.Tensor, to mask padded positions
-        Returns:
-            z: torch.Tensor, the best scoring K-mer for each of the input in X
-            max_idx: torch.Tensor, the best indices corresponding to the best K-mer,
-                     used to find the predicted core
-        """
-        with torch.no_grad():
-            x_tensor = self.standardizer_sequence(x_tensor)
-            if x_feats is not None:
-                # Takes the flattened x_features tensor and repeats it for each icore
-                x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
-                x_tensor = torch.cat([x_tensor, x_feats], dim=2)
-            z = self.in_layer(x_tensor)
-            if self.batchnorm:
-                z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
-                    .view(-1, x_tensor.shape[1], self.n_hidden)
-            z = self.act(self.dropout(z))
-            # Additional hidden layer
-            if self.add_hidden_layer:
-                z = self.hidden_layer(z)
-                z = self.act(z)
-                z = self.out_layer(z)
-            else:
-                z = self.out_layer(z)  # Out Layer for prediction
-            # Do the same trick where the padded positions are removed prior to selecting index
-            max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
-            # Additionally run sigmoid on z so that it returns proba in range [0, 1]
-            z = F.sigmoid(torch.gather(z, 1, max_idx).squeeze(1))
-            return z, max_idx
-
-    def predict_logits(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
-        """ QOL method to return the predictions without Sigmoid + return the indices
-        To be used elsewhere down the line (in EF model)
-
-        Args:
-            x_tensor:
-            x_mask:
-
-        Returns:
-
-        """
-        with torch.no_grad():
-            x_tensor = self.standardizer_sequence(x_tensor)
-            if x_feats is not None:
-                # Takes the flattened x_features tensor and repeats it for each icore
-                x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
-                x_tensor = torch.cat([x_tensor, x_feats], dim=2)
-            z = self.in_layer(x_tensor)
-            if self.batchnorm:
-                z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
-                    .view(-1, x_tensor.shape[1], self.n_hidden)
-            z = self.act(self.dropout(z))
-            # Additional hidden layer
-            if self.add_hidden_layer:
-                z = self.hidden_layer(z)
-                z = self.act(z)
-                z = self.out_layer(z)
-            else:
-                z = self.out_layer(z)  # Out Layer for prediction
-            # Do the same trick where the padded positions are removed prior to selecting index
-            max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
-            # Additionally run sigmoid on z so that it returns proba in range [0, 1]
-            z = torch.gather(z, 1, max_idx).squeeze(1)
-            return z, max_idx
-
 
 class NNAlignEFTwoStage(NetParent):
     """
@@ -532,6 +529,8 @@ class NNAlignEFTwoStage(NetParent):
         # Additional hidden layer if use_second_hidden_layer is True
         if add_hidden_layer:
             self.hidden_layer = nn.Linear(n_hidden, n_hidden_2)
+            if batchnorm:
+                self.bnh = nn.BatchNorm1d(n_hidden_2)
             self.out_layer = nn.Linear(n_hidden_2, 1)
         else:
             self.out_layer = nn.Linear(n_hidden, 1)
@@ -545,7 +544,7 @@ class NNAlignEFTwoStage(NetParent):
         # For mhc pseudosequences, extrafeat_dim would be 680 (34x20, flattened)
         self.standardizer_features = StandardizerFeatures(n_feats=self.pseudoseq_dim) if standardize else StdBypass()
         self.standardizer_structures = StandardizerFeatures(n_feats=5) if (
-                    standardize and add_mean_structure) else StdBypass()
+                standardize and add_mean_structure) else StdBypass()
         self.final_layer = nn.Linear(6, 1)  # 5 mean struct features + 1 core max score = 6
 
     def fit_standardizer(self, x_tensor, x_mask, x_feats=None):
@@ -581,9 +580,93 @@ class NNAlignEFTwoStage(NetParent):
         Returns:
 
         """
-        # FIRST FORWARD PASS: best scoring selection, with no grad
+        # Doesn't return the max_idx in forward
+        z, _ = self.nnalign_logits(x_tensor, x_mask, x_feats)
+        return F.sigmoid(z)
 
+    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
+        """Works like forward but also returns the index (for the motif selection/return)
+
+        This should be done with torch no_grad as this shouldn't be used during/for training
+        Also here does the sigmoid to return scores within [0, 1] on Z
+        Args:
+            x_tensor: torch.Tensor, the input tensor (i.e. encoded sequences)
+            x_mask: torch.Tensor, to mask padded positions
+        Returns:
+            z: torch.Tensor, the best scoring K-mer for each of the input in X
+            max_idx: torch.Tensor, the best indices corresponding to the best K-mer,
+                     used to find the predicted core
+        """
+        with torch.no_grad():
+            z, max_idx = self.nnalign_logits(x_tensor, x_mask, x_feats)
+            return F.sigmoid(z), max_idx
+
+    def nnalign_logits(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
+        """ QOL method to return the predictions without Sigmoid + return the indices
+        To be used elsewhere down the line (in EF model)
+
+        Args:
+            x_tensor:
+            x_mask:
+
+        Returns:
+
+        """
+        # No gradient for the standardizer operations
         # Here concatenate whatever extra features (like the flattened MHC pseudosequence)
+        with torch.no_grad():
+            # TODO : Here, it's a two-stage model ; Unsafe but quick way to add the features is to split from x_feat instead of re-writing code
+            #        Assumes that the mean structural features are 5 dimensions added at the end of the x_feat vector (x_feats[:, -5:]) and extract here
+            if self.add_mean_structure:
+                # Extract the structure tensor and resqueeze
+                x_struct = x_tensor[:, 0, -5:].squeeze(1)
+                x_struct = self.standardizer_structures(x_struct)
+                # Extract x_tensor and preserve the windows
+                x_tensor = x_tensor[:, :, :-5]
+
+            x_tensor = self.standardizer_sequence(x_tensor)
+
+            if x_feats is not None:
+                # Take out the structural data part
+                # x_struct = x_feats[:, -5:]
+                # Takes the flattened x_features tensor and repeats it for each icore
+                # x_feats = x_feats[:, :-5]
+                x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
+                x_tensor = torch.cat([x_tensor, x_feats], dim=2)
+        # First stage : standard NNAlign, Layer -> BN -> DO -> ReLU
+        z = self.in_layer(x_tensor)
+        # Flip dimensions to allow for batchnorm then flip back
+        if self.batchnorm:
+            z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
+                .view(-1, x_tensor.shape[1], self.n_hidden)
+        z = self.dropout(z)
+        z = self.act(z)
+        # Additional hidden layer if used
+        if self.add_hidden_layer:
+            z = self.hidden_layer(z)
+            if self.batchnorm:
+                z = self.bnh(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden_2)) \
+                    .view(-1, x_tensor.shape[1], self.n_hidden_2)
+            z = self.dropout(z)
+            z = self.act(z)
+            z = self.out_layer(z)
+        else:
+            z = self.out_layer(z)  # Out Layer for prediction
+
+        # NNAlign selecting the max score here
+        with torch.no_grad():
+            # Here, use sigmoid to set values to 0,1 before masking
+            # only for index selection, Z will be returned as logits
+            # TODO: Sigmoid here is not really necessary since we take argmax anyways?
+            max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
+
+        # Second stage, cat z and struture and run one more layer
+        z = torch.gather(z, 1, max_idx).squeeze(1)  # Indexing the best submers ; Removed sigmoid here
+        z = torch.cat([z, x_struct], dim=1)
+        z = self.final_layer(z) # Here z are logits
+        return z, max_idx
+
+    def __old_forward(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
         with torch.no_grad():
             # TODO : Here, it's a two-stage model ; Unsafe but quick way to add the features is to split from x_feat instead of re-writing code
             #        Assumes that the mean structural features are 5 dimensions added at the end of the x_feat vector (x_feats[:, -5:]) and extract here
@@ -614,6 +697,10 @@ class NNAlignEFTwoStage(NetParent):
         # Additional hidden layer
         if self.add_hidden_layer:
             z = self.hidden_layer(z)
+            if self.batchnorm:
+                z = self.bnh(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden_2)) \
+                    .view(-1, x_tensor.shape[1], self.n_hidden_2)
+            z = self.dropout(z)
             z = self.act(z)
             z = self.out_layer(z)
         else:
@@ -623,80 +710,14 @@ class NNAlignEFTwoStage(NetParent):
         with torch.no_grad():
             # Here, use sigmoid to set values to 0,1 before masking
             # only for index selection, Z will be returned as logits
+            # TODO: Sigmoid here is not really necessary since we take argmax anyways?
             max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
 
         z = torch.gather(z, 1, max_idx).squeeze(1)  # Indexing the best submers ; Removed sigmoid here
         z = torch.cat([z, x_struct], dim=1)
-        z = F.sigmoid(self.final_layer(z))  # Moved the sigmoid to here ; TODO : Check if it should be sigmoid+MSELoss or logits + BCE loss??
+        z = F.sigmoid(self.final_layer(
+            z))  # Moved the sigmoid to here ; TODO : Check if it should be sigmoid+MSELoss or logits + BCE loss??
         return z
-
-    def predict(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
-        """Works like forward but also returns the index (for the motif selection/return)
-
-        This should be done with torch no_grad as this shouldn't be used during/for training
-        Also here does the sigmoid to return scores within [0, 1] on Z
-        Args:
-            x_tensor: torch.Tensor, the input tensor (i.e. encoded sequences)
-            x_mask: torch.Tensor, to mask padded positions
-        Returns:
-            z: torch.Tensor, the best scoring K-mer for each of the input in X
-            max_idx: torch.Tensor, the best indices corresponding to the best K-mer,
-                     used to find the predicted core
-        """
-        z, max_idx = self.predict_logits(x_tensor, x_mask, x_feats)
-        z = F.sigmoid(z)  # Moved the sigmoid to here ; TODO : Check if it should be sigmoid+MSELoss or logits + BCE loss??
-        return z, max_idx
-
-    def predict_logits(self, x_tensor: torch.Tensor, x_mask: torch.Tensor, x_feats=None):
-        """ QOL method to return the predictions without Sigmoid + return the indices
-        To be used elsewhere down the line (in EF model)
-
-        Args:
-            x_tensor:
-            x_mask:
-
-        Returns:
-
-        """
-        with torch.no_grad():
-            if self.add_mean_structure:
-                # Extract the structure tensor and resqueeze
-                x_struct = x_tensor[:, 0, -5:].squeeze(1)
-                x_struct = self.standardizer_structures(x_struct)
-                # Extract x_tensor and preserve the windows
-                x_tensor = x_tensor[:, :, :-5]
-
-            x_tensor = self.standardizer_sequence(x_tensor)
-
-            if x_feats is not None:
-                # Take out the structural data part
-                # x_struct = x_feats[:, -5:]
-                # Takes the flattened x_features tensor and repeats it for each icore
-                # x_feats = x_feats[:, :-5]
-                x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
-                x_tensor = torch.cat([x_tensor, x_feats], dim=2)
-
-            z = self.in_layer(x_tensor)
-            if self.batchnorm:
-                z = self.bn1(z.view(x_tensor.shape[0] * x_tensor.shape[1], self.n_hidden)) \
-                    .view(-1, x_tensor.shape[1], self.n_hidden)
-            z = self.act(self.dropout(z))
-            # Additional hidden layer
-            if self.add_hidden_layer:
-                z = self.hidden_layer(z)
-                z = self.act(z)
-                z = self.out_layer(z)
-            else:
-                z = self.out_layer(z)  # Out Layer for prediction
-            # Do the same trick where the padded positions are removed prior to selecting index
-            max_idx = torch.mul(F.sigmoid(z), x_mask).argmax(dim=1).unsqueeze(1)
-
-            # Additionally run sigmoid on z so that it returns proba in range [0, 1]
-            z = torch.gather(z, 1, max_idx).squeeze(1)  # Indexing the best submers ; Removed sigmoid here
-            z = torch.cat([z, x_struct], dim=1)
-            z = self.final_layer(z)  # Moved the sigmoid to here ;
-            return z, max_idx
-
 
 # OLD MODELS TO IGNORE; Here for compatibility reasons for the moment.
 

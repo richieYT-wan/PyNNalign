@@ -137,7 +137,8 @@ def eval_model_step(model, criterion, valid_loader):
     valid_loss /= len(valid_loader.dataset)
     return valid_loss, valid_metrics
 
-#@profile
+
+# @profile
 def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
     assert type(dataloader.sampler) == torch.utils.data.SequentialSampler, \
         'Test/Valid loader MUST use SequentialSampler!'
@@ -168,7 +169,8 @@ def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
     df['motif'] = df.apply(get_motif, seq_col=seq_col, window_size=window_size, max_len=max_len, axis=1)
     return df
 
-#@profile
+
+# @profile
 def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dataset, train_loader, valid_loader,
                      checkpoint_filename, outdir, burn_in: int = None, std: bool = False):
     """ Trains and validates a model over n_epochs, then reloads the best checkpoint
@@ -197,7 +199,8 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
         best_val_auc
     """
     if std == True:
-        if any([(hasattr(child, 'standardizer_sequence') or hasattr(child, 'ef_standardizer')) for child in [model.children()]+[model]]):
+        if any([(hasattr(child, 'standardizer_sequence') or hasattr(child, 'ef_standardizer')) for child in
+                [model.children()] + [model]]):
             # TODO: Not sure about this workaround (works the same as in above with *data & pop(-1))
             # xs = train_dataset[:][:-1]
             # TODO: Is there a better way? --> Currently this is a workaround to deal with the pseudoseq on the fly
@@ -234,27 +237,27 @@ def train_eval_loops(n_epochs, tolerance, model, criterion, optimizer, train_dat
         train_losses.append(train_loss)
         valid_losses.append(valid_loss)
 
-        if (n_epochs)>10:
+        if (n_epochs) > 10:
             if e % (n_epochs // 10) == 0:
                 tqdm.write(f'\nEpoch {e}: train loss, AUC:\t{train_loss:.4f},\t{train_metric["auc"]:.3f}')
                 tqdm.write(f'Epoch {e}: valid loss, AUC:\t{valid_loss:.4f},\t{valid_metric["auc"]:.3f}')
 
         # Doesn't allow saving the very first model as sometimes it gets stuck in a random state that has good
         # performance for whatever reasons
-        loss_condition = valid_loss<=best_val_loss+tolerance
-        perf_condition = valid_metric['auc']>=best_val_auc
+        loss_condition = valid_loss <= best_val_loss + tolerance
+        perf_condition = valid_metric['auc'] >= best_val_auc
         # and ((valid_loss <= best_val_loss + tolerance and valid_metric['auc'] > best_val_auc) or valid_metric['auc'] > best_val_auc):
-        if e>1 and loss_condition and perf_condition:
+        if e > 1 and loss_condition and perf_condition:
             best_epoch = e
             best_val_loss = valid_loss
             best_val_auc = valid_metric['auc']
-            savedict = {'epoch':e, 'valid_loss':valid_loss}
+            savedict = {'epoch': e, 'valid_loss': valid_loss}
             savedict.update(valid_metric)
             save_checkpoint(model, filename=checkpoint_filename, dir_path=outdir, best_dict=savedict)
 
         if e in intervals:
             fn = f'epoch_{e}_interval_' + checkpoint_filename
-            savedict = {'epoch': e, 'valid_loss':valid_loss}
+            savedict = {'epoch': e, 'valid_loss': valid_loss}
             savedict.update(valid_metric)
             save_checkpoint(model, filename=fn, dir_path=outdir, best_dict=savedict)
 
