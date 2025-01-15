@@ -139,7 +139,7 @@ def eval_model_step(model, criterion, valid_loader):
 
 
 # @profile
-def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
+def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader, verbose=False):
     assert type(dataloader.sampler) == torch.utils.data.SequentialSampler, \
         'Test/Valid loader MUST use SequentialSampler!'
     assert hasattr(dataset, 'df'), 'Not DF found for this dataset!'
@@ -149,9 +149,10 @@ def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader):
     # idx_batches = make_chunks(indices, batch_size)
     predictions, best_indices, ys = [], [], []
     # HERE, MUST ENSURE WE USE
+    dl = tqdm(dataloader, desc='Batches', keep=False, position=0) if verbose else dataloader
     with torch.no_grad():
         # Same workaround as above
-        for batch in dataloader:
+        for batch in dl:
             batch = [x.to(model.device) for x in batch]
             y = batch.pop(-1)
             preds, core_idx = model.predict(*batch)

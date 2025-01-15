@@ -83,6 +83,7 @@ def main():
     unique_filename, kf, rid, connector = make_filename(args)
     outdir = os.path.join('../output/', unique_filename) + '/'
     mkdirs(outdir)
+    print('Reading df')
     test_df = pd.read_csv(args['test_file'])
 
     if not args['model_folder'].endswith('/'):args['model_folder']=args['model_folder']+'/'
@@ -115,13 +116,13 @@ def main():
     for model in models:
         model.to(device)
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
-
+    print('Getting dataset')
     test_dataset = NNAlignDataset(test_df, **dataset_params)
     _, dataset_peak = tracemalloc.get_traced_memory()
     test_loader = test_dataset.get_dataloader(batch_size=params['batch_size'] * 2, sampler=SequentialSampler)
-
+    print('Running predictions')
     # Test set
-    test_preds = pd.concat([predict_model(model, test_dataset, test_loader).assign(model_n=i) for i, model in enumerate(models)])
+    test_preds = pd.concat([predict_model(model, test_dataset, test_loader, verbose=True).assign(model_n=i) for i, model in enumerate(models)])
     # test_loss, test_metrics = eval_model_step(model, criterion, test_loader)
     print('Saving test predictions from best model')
     test_fn = os.path.basename(args['test_file']).split('.')[0]
