@@ -1,4 +1,5 @@
 import argparse
+import glob
 import os
 import pickle
 import pandas as pd
@@ -12,6 +13,8 @@ import secrets
 import string
 from datetime import datetime as dt
 
+from src.torch_utils import load_json
+
 
 def make_filename(args):
     connector = '' if args["out"] == '' else '_'
@@ -21,6 +24,60 @@ def make_filename(args):
     unique_filename = f'{args["out"]}{connector}KFold_{kf}_{get_datetime_string()}_{rid}'
     # unique_filename = f'{get_datetime_string()}_{args["out"]}{connector}KFold_{kf}_{rid}'
     return unique_filename, kf, rid, connector
+
+
+def find_args(folder_path):
+    if not folder_path.endswith('/'): folder_path= folder_path+'/'
+    try:
+        run_json = glob.glob(f'{folder_path}*run_parameters*.json')[0]
+        params = load_json(run_json)
+    except (IndexError, ValueError) as e:
+        args_txt = glob.glob(f'{folder_path}*args*.txt')[0]
+        params = read_args_txt(args_txt)
+    return params
+
+
+def read_args_txt(txtfile):
+    """
+        Another horrible QOL function that I'm gonna use to re-read the files
+    """
+    with open(txtfile, 'r') as f:
+        ls = f.readlines()[3:]
+        ls = ls[:ls.index('#' * 100 + '\n')]
+        ls = [x.strip('\n') for x in ls]
+
+    return {k: get_type(v) for (k, v) in [x.split(': ') for x in ls]}
+
+
+def get_type(value):
+    """
+    HORRIBLE QOL FUNCTION that I'm gonna use now
+    Args:
+        value (str): The value as a string.
+
+    Returns:
+        The value converted to its appropriate type.
+    """
+    # Check for None
+    if value == "None":
+        return None
+    # Check for boolean values
+    if value == "True":
+        return True
+    if value == "False":
+        return False
+    # Check for integer
+    try:
+        return int(value)
+    except ValueError:
+        pass
+    # Check for float
+    try:
+        return float(value)
+    except ValueError:
+        pass
+    # Default: return as string
+    return value
 
 
 def epoch_counter(model, criterion):

@@ -11,13 +11,13 @@ from sklearn.model_selection import train_test_split
 from matplotlib import pyplot as plt
 import tracemalloc
 import seaborn as sns
-from glob import glob
+import glob
 import argparse
 module_path = os.path.abspath(os.path.join('..'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
-    get_class_initcode_keys, make_filename
+    get_class_initcode_keys, make_filename, find_args
 from src.torch_utils import load_model_full, load_checkpoint, save_model_full, get_available_device
 from src.models import NNAlignEFSinglePass, NNAlignEFTwoStage
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
@@ -135,8 +135,10 @@ def main():
     mkdirs(outdir)
     test_df = pd.read_csv(args['test_file'])
 
-
-    # Loading model and their params
+    if not args['model_folder'].endswith('/'):args['model_folder']=args['model_folder']+'/'
+    # reload params
+    params = find_args(args['model_folder'])
+    models_pts = glob.glob(f'{args["model_folder"]}*.pt')
     # Define dimensions for extra features added
     pseudoseq_dim = 680 if args['add_pseudo_sequence'] else 0
     feat_dim = 0
