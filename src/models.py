@@ -627,10 +627,6 @@ class NNAlignEFTwoStage(NetParent):
             x_tensor = self.standardizer_sequence(x_tensor)
 
             if x_feats is not None:
-                # Take out the structural data part
-                # x_struct = x_feats[:, -5:]
-                # Takes the flattened x_features tensor and repeats it for each icore
-                # x_feats = x_feats[:, :-5]
                 x_feats = self.standardizer_features(self.reshape_features(x_tensor, x_feats))
                 x_tensor = torch.cat([x_tensor, x_feats], dim=2)
         # First stage : standard NNAlign, Layer -> BN -> DO -> ReLU
