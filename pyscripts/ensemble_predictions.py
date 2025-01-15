@@ -87,26 +87,7 @@ def args_parser():
     parser.add_argument('-otf', '--on_the_fly', dest='on_the_fly', type=str2bool, default=True,
                         help='Do MHC expansion on the fly vs saving everything in memory.'
                              'Now True by default, to be deprecated ')
-    """
-    Neural Net & Encoding args 
-    """
 
-    """
-    Training hyperparameters & args
-    """
-    # Shouldn't need burn-in when resuming training
-    parser.add_argument('-br', '--burn_in', dest='burn_in', required=False, type=int, default=0,
-                        help='Burn-in period (in int) to align motifs to P0. Disabled by default')
-    parser.add_argument('-lr', '--learning_rate', dest='lr', type=float, default=1e-4, required=False,
-                        help='Learning rate for the optimizer')
-    parser.add_argument('-wd', '--weight_decay', dest='weight_decay', type=float, default=1e-4, required=False,
-                        help='Weight decay for the optimizer')  # try 1e-3, 1e-4, 1e-6
-    parser.add_argument('-bs', '--batch_size', dest='batch_size', type=int, default=128, required=False,
-                        help='Batch size for mini-batch optimization')  # try 32, 64, 256
-    parser.add_argument('-ne', '--n_epochs', dest='n_epochs', type=int, default=500, required=False,
-                        help='Number of epochs to train')
-    parser.add_argument('-tol', '--tolerance', dest='tolerance', type=float, default=1e-5, required=False,
-                        help='Tolerance for loss variation to log best model')
     parser.add_argument('-rid', '--random_id', dest='random_id', type=str, default=None,
                         help='Adding a random ID taken from a batchscript that will start all crossvalidation folds. Default = ""')
     parser.add_argument('-debug', dest='debug', type=str2bool, default=False,
@@ -138,61 +119,44 @@ def main():
     if not args['model_folder'].endswith('/'):args['model_folder']=args['model_folder']+'/'
     # reload params
     params = find_args(args['model_folder'])
-    models_pts = glob.glob(f'{args["model_folder"]}*.pt')
-    # Define dimensions for extra features added
-    pseudoseq_dim = 680 if args['add_pseudo_sequence'] else 0
-    feat_dim = 0
 
-    if args['add_pfr']:
+    # Define dimensions for extra features added
+    pseudoseq_dim = 680 if params['add_pseudo_sequence'] else 0
+    feat_dim = 0
+    if params['add_pfr']:
         feat_dim += 40
-    if args['add_fr_len']:
+    if params['add_fr_len']:
         feat_dim += 4
-    if args['add_pep_len']:
-        max_clip = args['max_clip'] if args['max_clip'] is not None else args['max_len']
-        min_clip = args['min_clip'] if args['min_clip'] is not None else test_df[args['seq_col']].apply(len).min()
+    if params['add_pep_len']:
+        max_clip = params['max_clip'] if params['max_clip'] is not None else params['max_len']
+        min_clip = params['min_clip'] if params['min_clip'] is not None else test_df[params['seq_col']].apply(len).min()
         feat_dim += max_clip - min_clip + 2
 
     # TODO:  Hotfix:
     extra_dict = {'pseudoseq_dim': pseudoseq_dim, 'feat_dim': feat_dim}
-    if args['model_folder'] is not None:
-        try:
-            checkpoint_file = next(
-                filter(lambda x: x.startswith('checkpoint') and x.endswith('.pt'), os.listdir(args['model_folder'])))
-            json_file = next(
-                filter(lambda x: x.startswith('checkpoint') and x.endswith('.json'), os.listdir(args['model_folder'])))
 
-            model, model_params = load_model_full(args['model_folder'] + checkpoint_file,
-                                                 args['model_folder'] + json_file,
-                                                 extra_dict=extra_dict, return_json=True)
-        except:
-            print(args['model_folder'], '\n', os.listdir(args['model_folder']))
-            raise ValueError(f'\n\n\nCouldn\'t load your files!! at {args["model_folder"]}\n\n\n')
-    else:
-        model, model_params = load_model_full(args['pt_file'], args['json_file'],
-                                             extra_dict=extra_dict, return_json=True)
-    args.update(model_params)
+    model_json = glob.glob(f'{args["model_folder"]}*JSON_kwargs*.json')
+    models_pts = sorted(glob.glob(f'{args["model_folder"]}*.pt'))
+    assert len(models_pts)>0 and len(model_json)>0, f'No models found! JSON: {model_json}, .pts: {models_pts}'
+    models = [load_model_full(pt_file, model_json, extra_dict=extra_dict, return_json=False) for pt_file in models_pts]
 
-    # Def params, using get_class_initcode to get the keys needed to init a class
-    # Here UglyWorkAround exist to give the __init__ code to dataset because I'm currently using @profile
-    dataset_keys = get_class_initcode_keys(NNAlignDataset, args)
+    dataset_keys = get_class_initcode_keys(NNAlignDataset, params)
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
 
-    model.to(device)
+    models = [model.to(device).eval() for model in models]
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
-    criterion = nn.MSELoss(reduction='mean')
-    optimizer = optim.Adam(model.parameters(), **optim_params)
-    test_dataset = NNAlignDatasetEFSinglePass(test_df, **dataset_params)
+
+    test_dataset = NNAlignDataset(test_df, **dataset_params)
     _, dataset_peak = tracemalloc.get_traced_memory()
     test_loader = test_dataset.get_dataloader(batch_size=args['batch_size'] * 2, sampler=SequentialSampler)
-    # Training loop & train/valid results
 
     # Test set
-    test_preds = predict_model(model, test_dataset, test_loader)
+    test_preds = pd.concat([predict_model(model, test_dataset, test_loader).assign(model_n=i) for i,model in enumerate(models)])
     # test_loss, test_metrics = eval_model_step(model, criterion, test_loader)
     print('Saving test predictions from best model')
     test_fn = os.path.basename(args['test_file']).split('.')[0]
-    test_preds.to_csv(f'{outdir}test_predictions_{test_fn}_{unique_filename}.csv', index=False)
+    test_preds.to_csv(f'{outdir}test_predictions_CONCAT_{test_fn}_{unique_filename}.csv', index=False)
     tracemalloc.stop()
 
     end = dt.now()
