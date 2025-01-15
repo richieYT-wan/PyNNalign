@@ -60,34 +60,6 @@ def args_parser():
                         help='Name of the column containing sequences (inputs)')
     parser.add_argument('-enc', '--encoding', dest='encoding', type=str, default='BL50LO', required=False,
                         help='Which encoding to use: onehot, BL50L0, BL62LO, BL62FREQ (default = BL50LO)')
-    parser.add_argument('-ml', '--max_len', dest='max_len', type=int, required=True,
-                        help='Maximum sequence length admitted ;' \
-                             'Sequences longer than max_len will be removed from the datasets')
-    parser.add_argument('-pad', '--pad_scale', dest='pad_scale', type=float, default=None, required=False,
-                        help='Number with which to pad the inputs if needed; ' \
-                             'Default behaviour is 0 if onehot, -12 is BLOSUM')
-    parser.add_argument('-fc', '--feature_cols', dest='feature_cols', nargs='+', required=False,
-                        help='Name of columns (str) to use as extra features, space separated.' \
-                             'For example, to add 2 features Rank and Similarity, do: -ef Rank Similarity')
-    parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=False,
-                        help='Whether to add pseudo sequence to the model (true/false)')
-    parser.add_argument('-add_pfr', '--add_pfr', dest='add_pfr', type=str2bool, default=False,
-                        help='Whether to add fixed-size (3) mean peptide flanking regions to the model (true/false)')
-    parser.add_argument('-add_fr_len', '--add_fr_len', dest='add_fr_len', type=str2bool, default=False,
-                        help='Whether to add length of the flanking regions of each motif to the model (true/false)')
-    parser.add_argument('-add_pep_len', '--add_pep_len', dest='add_pep_len', type=str2bool, default=False,
-                        help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
-    parser.add_argument('-min_clip', '--min_clip', dest='min_clip', type=int, default=None,
-                        help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
-    parser.add_argument('-max_clip', '--max_clip', dest='max_clip', type=int, default=None,
-                        help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
-    parser.add_argument('-indel', '--indel', dest='indel', type=str2bool, default=False,
-                        help='Whether to add insertions/deletions')
-    # TODO: Deprecate on_the_fly and set it as default behaviour in datasets (remove old behaviour)
-    parser.add_argument('-otf', '--on_the_fly', dest='on_the_fly', type=str2bool, default=True,
-                        help='Do MHC expansion on the fly vs saving everything in memory.'
-                             'Now True by default, to be deprecated ')
-
     parser.add_argument('-rid', '--random_id', dest='random_id', type=str, default=None,
                         help='Adding a random ID taken from a batchscript that will start all crossvalidation folds. Default = ""')
     parser.add_argument('-debug', dest='debug', type=str2bool, default=False,
@@ -106,10 +78,7 @@ def main():
     else:
         device = torch.device('cpu')
     print("Using : {}".format(device))
-    if args['min_clip'] is not None and args['max_clip'] is not None and args['add_pep_len']:
-        assert args['min_clip'] < args[
-            'max_clip'], "args['min_clip'] should be smaller than args['max_clip'] for adding pep lens" \
-                         f"Got (min, max) = ({args['min_clip'], args['max_clip']} instead"
+
     # File-saving stuff
     unique_filename, kf, rid, connector = make_filename(args)
     outdir = os.path.join('../output/', unique_filename) + '/'
@@ -135,24 +104,24 @@ def main():
     # TODO:  Hotfix:
     extra_dict = {'pseudoseq_dim': pseudoseq_dim, 'feat_dim': feat_dim}
 
-    model_json = glob.glob(f'{args["model_folder"]}*JSON_kwargs*.json')
+    model_json = glob.glob(f'{args["model_folder"]}*JSON_kwargs*.json')[0]
     models_pts = sorted(glob.glob(f'{args["model_folder"]}*.pt'))
     assert len(models_pts)>0 and len(model_json)>0, f'No models found! JSON: {model_json}, .pts: {models_pts}'
-    models = [load_model_full(pt_file, model_json, extra_dict=extra_dict, return_json=False) for pt_file in models_pts]
+    models = [load_model_full(pt_file, model_json, extra_dict=extra_dict, return_json=False).eval() for pt_file in models_pts]
 
     dataset_keys = get_class_initcode_keys(NNAlignDataset, params)
-    dataset_params = {k: args[k] for k in dataset_keys}
-    optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
+    dataset_params = {k: params[k] for k in dataset_keys}
 
-    models = [model.to(device).eval() for model in models]
+    for model in models:
+        model.to(device)
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
 
     test_dataset = NNAlignDataset(test_df, **dataset_params)
     _, dataset_peak = tracemalloc.get_traced_memory()
-    test_loader = test_dataset.get_dataloader(batch_size=args['batch_size'] * 2, sampler=SequentialSampler)
+    test_loader = test_dataset.get_dataloader(batch_size=params['batch_size'] * 2, sampler=SequentialSampler)
 
     # Test set
-    test_preds = pd.concat([predict_model(model, test_dataset, test_loader).assign(model_n=i) for i,model in enumerate(models)])
+    test_preds = pd.concat([predict_model(model, test_dataset, test_loader).assign(model_n=i) for i, model in enumerate(models)])
     # test_loss, test_metrics = eval_model_step(model, criterion, test_loader)
     print('Saving test predictions from best model')
     test_fn = os.path.basename(args['test_file']).split('.')[0]

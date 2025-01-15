@@ -1,0 +1,53 @@
+####################################################################################################
+#                                          PARAMETERS
+####################################################################################################
+cuda: True
+train_file: ../data/mhc1_el_subsample/mhc1_el_1M_structure.csv
+test_file: ../data/mhc1_el_subsample/test_structure.csv
+structure_file: None
+fasta_file: None
+out: BNDOextraLayer_Add_Mean_Structure_False
+split: 5
+fold: 0
+seq_col: sequence
+target_col: target
+encoding: BL50LO
+max_len: 13
+pad_scale: -20.0
+feature_cols: None
+add_pseudo_sequence: True
+add_pfr: True
+add_fr_len: True
+add_pep_len: True
+min_clip: None
+max_clip: None
+indel: True
+on_the_fly: True
+add_structure: False
+add_mean_structure: False
+two_stage: False
+n_hidden: 64
+standardize: False
+batchnorm: True
+dropout: 0.25
+window_size: 9
+batchnorm_ef: False
+dropout_ef: 0.0
+add_hidden_layer: True
+n_hidden_2: 32
+burn_in: 10
+lr: 5e-05
+weight_decay: 0.0
+batch_size: 1024
+n_epochs: 300
+tolerance: 1e-05
+random_id: TxD85
+debug: False
+####################################################################################################
+#                                          VALID-TEST
+####################################################################################################
+Best valid epoch: 152
+Best valid loss: 0.013925258809924125
+Best valid auc: 0.9853
+Test file: ../data/mhc1_el_subsample/test_structure.csv
+Elapsed time: 151 minutes 29 seconds.

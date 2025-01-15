@@ -1,0 +1,1 @@
+{"add_structure": false, "n_hidden": 64, "standardize": false, "batchnorm": true, "dropout": 0.25, "window_size": 9, "add_hidden_layer": true, "n_hidden_2": 32, "pseudoseq_dim": 680, "feat_dim": 51, "constructor": "NNAlignEFSinglePass"}

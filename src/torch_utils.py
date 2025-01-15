@@ -1,11 +1,5 @@
-import os, sys
-import pickle
-from .utils import mkdirs
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch import optim
-import json
+import os
+from src.utils import mkdirs, load_json, save_json
 from src.models import *
 
 ACT_DICT = {'SELU': nn.SELU(), 'ReLU': nn.ReLU(),
@@ -100,48 +94,6 @@ def save_model_full(model, checkpoint_filename='checkpoint.pt', dir_path='./', v
     print(
         f'Model weights saved at {os.path.abspath(os.path.join(dir_path, checkpoint_filename))} ' \
         f'and JSON at {os.path.abspath(os.path.join(dir_path, json_filename))}')
-
-
-def load_json(filename, dir_path=None):
-    """
-    Loads a dictionary from a .json file and returns it
-    Args:
-        filename:
-
-    Returns:
-        dict_kwargs: A dictionary containing the kwargs necessary to instantiate a given model
-    """
-    if dir_path is not None:
-        filename = os.path.join(dir_path, filename)
-    with open(filename, 'r') as json_file:
-        dict_kwargs = json.load(json_file)
-    return dict_kwargs
-
-
-def save_json(dict_kwargs, filename, dir_path='./'):
-    """
-    Saves a dictionary to a .json file
-    When saving a model, should try to ensure that the model's constructor // class name exists
-    Args:
-        dict_kwargs:
-        filename:
-        dir_path:
-
-    Returns:
-
-    """
-    savepath = os.path.join(dir_path, filename)
-    for k in dict_kwargs:
-        if type(dict_kwargs[k]) == dict:
-            for l in dict_kwargs[k]:
-                if issubclass(type(dict_kwargs[k][l]), nn.Module):
-                    dict_kwargs[k][l] = dict_kwargs[k][l].__class__.__name__
-        if issubclass(type(dict_kwargs[k]), nn.Module):
-            dict_kwargs[k] = dict_kwargs[k].__class__.__name__
-    # Write the dictionary to a JSON file
-    with open(savepath, 'w') as json_file:
-        json.dump(dict_kwargs, json_file)
-    print(f"JSON data has been written to {savepath}")
 
 
 def set_mode(models_dict, mode='eval'):

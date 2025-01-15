@@ -1,5 +1,6 @@
 import argparse
 import glob
+import json
 import os
 import pickle
 import pandas as pd
@@ -13,7 +14,7 @@ import secrets
 import string
 from datetime import datetime as dt
 
-from src.torch_utils import load_json
+from torch import nn
 
 
 def make_filename(args):
@@ -305,3 +306,45 @@ def get_plot_corr(df, cols, which='spearman', title='', figsize=(13, 12.5), pale
                 cmap=palette, vmax=1, vmin=-1, annot=True, square=True, annot_kws={'weight': 'semibold'})
     a.set_xticklabels(a.get_xticklabels(), rotation=30, fontweight='semibold')
     a.set_yticklabels(a.get_yticklabels(), fontweight='semibold')
+
+
+def load_json(filename, dir_path=None):
+    """
+    Loads a dictionary from a .json file and returns it
+    Args:
+        filename:
+
+    Returns:
+        dict_kwargs: A dictionary containing the kwargs necessary to instantiate a given model
+    """
+    if dir_path is not None:
+        filename = os.path.join(dir_path, filename)
+    with open(filename, 'r') as json_file:
+        dict_kwargs = json.load(json_file)
+    return dict_kwargs
+
+
+def save_json(dict_kwargs, filename, dir_path='./'):
+    """
+    Saves a dictionary to a .json file
+    When saving a model, should try to ensure that the model's constructor // class name exists
+    Args:
+        dict_kwargs:
+        filename:
+        dir_path:
+
+    Returns:
+
+    """
+    savepath = os.path.join(dir_path, filename)
+    for k in dict_kwargs:
+        if type(dict_kwargs[k]) == dict:
+            for l in dict_kwargs[k]:
+                if issubclass(type(dict_kwargs[k][l]), nn.Module):
+                    dict_kwargs[k][l] = dict_kwargs[k][l].__class__.__name__
+        if issubclass(type(dict_kwargs[k]), nn.Module):
+            dict_kwargs[k] = dict_kwargs[k].__class__.__name__
+    # Write the dictionary to a JSON file
+    with open(savepath, 'w') as json_file:
+        json.dump(dict_kwargs, json_file)
+    print(f"JSON data has been written to {savepath}")

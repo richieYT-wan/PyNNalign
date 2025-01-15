@@ -12,8 +12,8 @@ from torch import nn
 from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
-    get_class_initcode_keys, make_filename
-from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device, save_json
+    get_class_initcode_keys, make_filename, save_json
+from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device
 from src.models import NNAlignEFSinglePass, NNAlignEFTwoStage
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
