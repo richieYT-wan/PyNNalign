@@ -13,7 +13,7 @@ from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
 from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
     get_class_initcode_keys, make_filename
-from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device
+from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device, save_json
 from src.models import NNAlignEFSinglePass, NNAlignEFTwoStage
 from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
@@ -299,6 +299,7 @@ def main():
         # file.write(f"Test AUC: {test_metrics['auc']}\n")
         file.write(f"Elapsed time: {elapsed[0]} minutes {elapsed[1]} seconds.")
     save_model_full(model, checkpoint_filename, outdir, dict_kwargs=model_params)
+    save_json(args, f'run_parameters_{unique_filename}.json', outdir)
 
     print(f"dataset_peak memory usage: {dataset_peak / (1024 ** 2):.2f} MB")
     print(f"traineval_peak memory usage: {traineval_peak / (1024 ** 2):.2f} MB")
