@@ -149,7 +149,7 @@ def predict_model(model, dataset, dataloader: torch.utils.data.DataLoader, verbo
     # idx_batches = make_chunks(indices, batch_size)
     predictions, best_indices, ys = [], [], []
     # HERE, MUST ENSURE WE USE
-    dl = tqdm(dataloader, desc='Batches', keep=False, position=0) if verbose else dataloader
+    dl = tqdm(dataloader, desc='Batches', position=0) if verbose else dataloader
     with torch.no_grad():
         # Same workaround as above
         for batch in dl:
