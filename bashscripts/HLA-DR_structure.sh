@@ -18,11 +18,7 @@ for kf in {0..4};do
   echo "source activate cuda" >> $script_name
   echo "cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts" >> $script_name
   echo "$command" >> $script_name
-
-#  # Submit the job script to qsub
-#  qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=20:00:00 $script_name"
-#  echo "Submitting job: $script_name"
-#  eval $qsub_command
+done
 
 # 2 Add per position structure (variant 1)
 rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
@@ -36,12 +32,7 @@ for kf in {0..4};do
   echo "source activate cuda" >> $script_name
   echo "cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts" >> $script_name
   echo "$command" >> $script_name
-
-#  # Submit the job script to qsub
-#  qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=20:00:00 $script_name"
-#  echo "Submitting job: $script_name"
-#  eval $qsub_command
-
+done
 # 3 Add mean structure values (variant 2)
 
 rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
@@ -54,8 +45,4 @@ for kf in {0..4};do
   echo "source activate cuda" >> $script_name
   echo "cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts" >> $script_name
   echo "$command" >> $script_name
-
-#  # Submit the job script to qsub
-#  qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=20:00:00 $script_name"
-#  echo "Submitting job: $script_name"
-#  eval $qsub_command
+done
