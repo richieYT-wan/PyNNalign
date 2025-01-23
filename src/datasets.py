@@ -3,7 +3,8 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
-from src.data_processing import PSEUDOSEQDICT, encode, encode_batch, get_structural_info_for_peptide, encode_with_structural_info
+from src.data_processing import PSEUDOSEQDICT, encode, encode_batch, get_structural_info_for_peptide, \
+    encode_with_structural_info, get_structure_tensor, batch_indel_indices, gather_with_repeated_value_tensor
 from src.data_processing import get_indel_windows_with_structure, batch_insertion_deletion, batch_indel_mask,\
     get_indel_windows, get_pfr_values, get_fr_lengths, get_pep_len_onehot
 from memory_profiler import profile
@@ -186,25 +187,26 @@ class NNAlignDataset(SuperDataset):
         # Then, if indel is False, filter out sequences shorter than windowsize (ex: 8mers for WS=9)
         if not indel:
             df = df.query('len>=@window_size')
-        if not add_structure:
-            matrix_dim = 20
-            x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
-        if add_structure:
-            matrix_dim = 25
-            encoded_sequences = []    
-            for index, row in df.iterrows():
-                peptide_sequence = row[seq_col]
-                protein_id = row['protein_id']
-                structural_info = get_structural_info_for_peptide(protein_id, peptide_sequence, fasta_data, structural_data)
-                encoded_sequence = encode_with_structural_info(peptide_sequence, structural_info, max_len, encoding, pad_scale)
-                encoded_sequences.append(encoded_sequence)
 
-            x = torch.stack(encoded_sequences)
-        #print(x.shape)
-        #print(x)
-        # query_time = dt.now()
+        struct_cols = ['rsa','pq3_H', 'pq3_E', 'pq3_C', 'disorder']
+        matrix_dim = 25 if add_structure else 20
+
+        x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
+        if add_structure:
+            x_structure = get_structure_tensor(df, struct_cols, max_len, pad_scale=-1)
+            x = torch.cat([x, x_structure], dim=-1)
+        # TODO : Old Pablo code to refactor // remove
+        # if add_structure:
+        #     encoded_sequences = []
+        #     for index, row in df.iterrows():
+        #         peptide_sequence = row[seq_col]
+        #         protein_id = row['protein_id']
+        #         structural_info = get_structural_info_for_peptide(protein_id, peptide_sequence, fasta_data, structural_data)
+        #         encoded_sequence = encode_with_structural_info(peptide_sequence, structural_info, max_len, encoding, pad_scale)
+        #         encoded_sequences.append(encoded_sequence)
+        #     x = torch.stack(encoded_sequences)
+
         y = torch.from_numpy(df[target_col].values).float().view(-1, 1)
-        # encode_time = dt.now()    
         # Creating the mask to allow selection of kmers without padding
         len_tensor = torch.from_numpy(df['len'].values)
         #print(len_tensor.shape)
@@ -213,41 +215,54 @@ class NNAlignDataset(SuperDataset):
         range_tensor = torch.arange(max_len - window_size + 1).unsqueeze(0).repeat(len(x), 1)
         # Mask for Kmers + padding
         x_mask = (range_tensor <= x_mask.unsqueeze(1)).float().unsqueeze(-1)
-    
-
         # Expand the kmers windows for base sequence without indels
+        # BEFORE UNFOLDING : SHAPE = (N, max_len, matrix_dim)
+        # AFTER UNFOLDING : SHAPE = (N, max_len-window_size+1, window_size, matrix_dim), where (max_len-window_size+1) is the number of "cores" possible
         x = x.unfold(1, window_size, 1).transpose(2, 3) \
             .reshape(len(x), max_len - window_size + 1, window_size, matrix_dim)
+
         # Creating indels window and mask
         if indel:
-            if add_structure:
-                sequence_groups = []
-                for index, row in df.iterrows():
-                    peptide_sequence = row[seq_col]
-                    protein_id = row['protein_id']
-                    # Assume get_structural_info_for_peptide returns the needed structural info
-                    structural_info = get_structural_info_for_peptide(protein_id, peptide_sequence, fasta_data, structural_data)
-                    
-                    # Generate indel windows for the sequence and adjust structural info accordingly
-                    indel_windows, adjusted_structural_infos = get_indel_windows_with_structure(peptide_sequence, structural_info, window_size)
-
-                    # Temporary list to store encoded windows for the current sequence
-                    temp_encoded_sequences = []
-                    for window_sequence, window_structural_info in zip(indel_windows, adjusted_structural_infos):
-                        encoded_sequence = encode_with_structural_info(window_sequence, window_structural_info, max_len, encoding, pad_scale)
-                        temp_encoded_sequences.append(encoded_sequence)
-
-                    
-                    sequence_tensor = torch.stack(temp_encoded_sequences)
-                    sequence_groups.append(sequence_tensor)
-
-                
-                x_indel = torch.stack(sequence_groups)
-            else:
-                x_indel = batch_insertion_deletion(df[seq_col], max_len, encoding, pad_scale, window_size)
-
+            x_indel = batch_insertion_deletion(df[seq_col], max_len, encoding, pad_scale, window_size)
             # remove padding from indel windows
             x_indel = x_indel[:, :, :window_size, :]
+            # x_indel has shape (N, n_indel_windows, window_size, matrix_dim) where n_indel_windows = window_size+1
+
+            if add_structure:
+                # Get the indices vector corresponding to what amino acid is present in which indel window, with -1 for insertions
+                x_indel_indices = batch_indel_indices(len_tensor, window_size)
+                # Expand and gather-index the x_structure vector to extract the corresponding values
+                gathered_structure = gather_with_repeated_value_tensor(x_structure, x_indel_indices)
+                # Concatenate along last (feature) dimension
+                x_indel = torch.cat([x_indel, gathered_structure], dim=-1)
+
+            # TODO : Old Pablo code to refactor // remove
+            # if add_structure:
+            #     sequence_groups = []
+            #     for index, row in df.iterrows():
+            #         peptide_sequence = row[seq_col]
+            #         protein_id = row['protein_id']
+            #         # Assume get_structural_info_for_peptide returns the needed structural info
+            #         structural_info = get_structural_info_for_peptide(protein_id, peptide_sequence, fasta_data, structural_data)
+            #
+            #         # Generate indel windows for the sequence and adjust structural info accordingly
+            #         indel_windows, adjusted_structural_infos = get_indel_windows_with_structure(peptide_sequence, structural_info, window_size)
+            #
+            #         # Temporary list to store encoded windows for the current sequence
+            #         temp_encoded_sequences = []
+            #         for window_sequence, window_structural_info in zip(indel_windows, adjusted_structural_infos):
+            #             encoded_sequence = encode_with_structural_info(window_sequence, window_structural_info, max_len, encoding, pad_scale)
+            #             temp_encoded_sequences.append(encoded_sequence)
+            #
+            #
+            #         sequence_tensor = torch.stack(temp_encoded_sequences)
+            #         sequence_groups.append(sequence_tensor)
+            #
+            #
+            #     x_indel = torch.stack(sequence_groups)
+            # else:
+            #     x_indel = batch_insertion_deletion(df[seq_col], max_len, encoding, pad_scale, window_size)
+            # Create and append mask to select which cores are valid
             indel_mask = batch_indel_mask(len_tensor, window_size)
             x = torch.cat([x, x_indel], dim=1)
             x_mask = torch.cat([x_mask, indel_mask], dim=1)
@@ -265,6 +280,7 @@ class NNAlignDataset(SuperDataset):
         self.burn_in_flag = False
 
         # Expand and unfold the sub kmers and the target to match the shape ; contiguous to allow for view operations
+        # This will have shape (N, N_total_windows, max_len * matrix_dim)
         self.x_tensor = x.flatten(2, 3).contiguous()
         self.x_mask = x_mask
 
@@ -283,7 +299,9 @@ class NNAlignDataset(SuperDataset):
             self.pseudoseq_tensormap = {k: encode(v, 34, encoding, pad_scale).flatten(start_dim=0) for k, v
                                         in
                                         PSEUDOSEQDICT.items()}
-            self.hla_tag = df['HLA'].values
+            # todo remove this bad hotfix
+            hla_col = 'HLA' if 'HLA' in df.columns else 'MHC' if 'MHC' in df.columns else None
+            self.hla_tag = df[hla_col].values
             self.extra_features_flag = True
             # ps_time = dt.now()
         if add_pfr:
@@ -303,7 +321,6 @@ class NNAlignDataset(SuperDataset):
             # peplen_time = dt.now()
 
         if add_mean_structure:
-            struct_cols = ['rsa','pq3_H', 'pq3_E', 'pq3_C', 'disorder']
             x_structs = torch.cat([torch.tensor(df[col].apply(lambda x: np.mean([float(z) for z in x.split(',')])).values).unsqueeze(1) for col in struct_cols], dim=1)
             # Expand and tile to cat on dim 2
             x_structs = x_structs.unsqueeze(1).tile(self.x_tensor.shape[1], 1)

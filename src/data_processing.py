@@ -157,6 +157,23 @@ def onehot_batch_decode(onehot_sequences):
     return np.stack([onehot_decode(x) for x in onehot_sequences])
 
 
+def single_structure_vector(st, max_len=None, pad_scale=-1):
+    # this version is for a single tensor in string form ('v1,v2,v3,...,vn'),
+    # the st is a single string to be split with (',')
+    tensor = torch.tensor([float(x) for x in st.split(',')])
+    max_len = len(tensor) if max_len is None else max_len
+    return F.pad(tensor, (0, max_len - len(tensor)), value=pad_scale)
+
+
+def batch_structure_vector(sts, max_len=None, pad_scale=-1):
+    return torch.stack([single_structure_vector(s, max_len, pad_scale) for s in sts])
+
+
+def get_structure_tensor(df, struct_cols, max_len=None, pad_scale=-1):
+    return torch.stack([batch_structure_vector(df[c].values, max_len, pad_scale) for c in struct_cols],
+                       dim=-1).float().contiguous()
+
+
 def _get_pfr_mask_after(l, max_len, window_size):
     """
         Gets the PFR lengths mask of the positions of PFR regions after the kmer
@@ -278,28 +295,22 @@ def get_pep_len_onehot(len_tensor, max_len, window_size, min_clip, max_clip, ind
 
 def get_indel_windows(sequence, window_size):
     """
-    From one sequence (string), expand into a list of available windows with either insertions or deletions
+    Expand a sequence into a list of available windows with either insertions or deletions.
     """
     length = len(sequence)
-    indel_windows = []
 
-    # Insertion for sequences shorter than the window size
     if length < window_size:
-        for i in range(window_size):
-            indel_windows.append(sequence[:i] + '-' + sequence[i:])
-        indel_windows.append('-' * window_size)
-        # Replicate sequence for sequences equal to the window size
-    elif length == window_size:
-        indel_windows.append(sequence)
-        while len(indel_windows) < (window_size + 1):
-            indel_windows.append('-' * window_size)
-            # Deletion for sequences longer than the window size
-    else:
-        del_len = length - window_size
-        for i in range(length - del_len + 1):
-            indel_windows.append(sequence[:i] + sequence[i + del_len:])
+        # Insertions: Add '-' at every possible position + fully '-' window
+        return [sequence[:i] + '-' + sequence[i:] for i in range(window_size)] + ['-' * window_size]
 
-    return indel_windows
+    elif length == window_size:
+        # Sequence itself + padded fully '-' windows
+        return [sequence] + ['-' * window_size] * window_size
+
+    else:
+        # Deletions: Remove 'del_len' characters at different positions
+        del_len = length - window_size
+        return [sequence[:i] + sequence[i + del_len:] for i in range(length - del_len + 1)]
 
 
 def do_insertion_deletion(sequence, max_len=13, encoding='BL50LO', pad_scale=-20, window_size=9):
@@ -317,6 +328,79 @@ def batch_insertion_deletion(sequences, max_len=13, encoding='BL50LO', pad_scale
         [do_insertion_deletion(seq, max_len=max_len, encoding=encoding, pad_scale=pad_scale, window_size=window_size)
          for
          seq in sequences])
+
+
+def get_indel_indices(length, window_size):
+    """
+    # --> Need to match the indel window indices and the structure values
+	# This is for deletion
+	# ex : indel window 0 is [5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+	# 	   indel window 1 is [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+	# 	   ......
+	# This is for insertion :
+	# 	   indel window 0 is [X, 0, 1, 2, 3, 4, 5, 6, 7, 8, ...]
+	# 	   indel window 1 is [0, X, 1, 2, 3, 4, 5, 6, 7, 8, ...]
+	# --> create a corresponding index tensor when creating the indel windows
+	# --> use it to index the structure tensor to create a subset --> stack at the end
+
+    Expand a sequence into a list of available windows with either insertions or deletions,
+    but return indices instead of actual sequence substrings.
+    Any '-' character is replaced with -1 as an index.
+    """
+    # length = len(sequence)
+    indices = list(range(length))  # Index list: [0, 1, 2, ..., length-1]
+
+    if length < window_size:
+        # Insertions: Insert -1 at each position
+        return torch.tensor([indices[:i] + [-1] + indices[i:] for i in range(window_size)] + [[-1] * window_size])
+
+    elif length == window_size:
+        # Just the indices of the sequence + padded fully '-1' windows
+        return torch.tensor([indices] + [[-1] * window_size] * window_size)
+
+    else:
+        # Deletions: Remove 'del_len' characters at different positions
+        del_len = length - window_size
+        return torch.tensor([indices[:i] + indices[i + del_len:] for i in range(length - del_len + 1)])
+
+
+def batch_indel_indices(lengths, window_size):
+    return torch.stack([get_indel_indices(length, window_size) for length in lengths])
+
+
+def gather_with_repeated_value_tensor(value_tensor, index_tensor):
+    """
+    Given:
+      - value_tensor: (N, max_len, 5) (structure)
+      - index_tensor: (N, window_size+1, window_size) (created with batch_indel_indices)
+
+    1. Expand value_tensor to shape (N, window_size+1, max_len, 5)
+       (by repeating along the new dimension)
+    2. Perform batch-wise indexing
+    3. Handle -1 values correctly by masking them after gathering.
+
+    Returns:
+      - Indexed tensor of shape (N, window_size+1, window_size, 5)
+    """
+
+    N, max_len, F = value_tensor.shape  # (N, max_len, 5)
+    _, Wp1, W = index_tensor.shape  # (N, window_size+1, window_size)
+
+    # Expand value_tensor: shape (N, 1, max_len, 5) → (N, Wp1, max_len, 5)
+    value_tensor_expanded = value_tensor.unsqueeze(1).expand(N, Wp1, max_len, F)
+
+    # Ensure -1 indices are replaced with 0 for safe indexing
+    index_tensor_safe = index_tensor.clone()
+    index_tensor_safe[index_tensor_safe == -1] = 0
+
+    # Perform batch-wise gathering
+    gathered = value_tensor_expanded[
+        torch.arange(N).view(N, 1, 1), torch.arange(Wp1).view(1, Wp1, 1), index_tensor_safe]
+
+    # Replace invalid positions with -1
+    gathered[index_tensor == -1] = -1
+
+    return gathered
 
 
 def get_indel_windows_with_structure(sequence, structural_info, window_size):

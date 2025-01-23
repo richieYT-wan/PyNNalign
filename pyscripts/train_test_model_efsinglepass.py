@@ -204,11 +204,11 @@ def main():
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
-    if args['add_structure']:
-        structural_data = load_structural_data(args['structure_file'])
-        fasta_data = parse_fasta(args['fasta_file'])
-        dataset_params['structural_data'] = structural_data
-        dataset_params['fasta_data'] = fasta_data
+    # if args['add_structure']:
+    #     structural_data = load_structural_data(args['structure_file'])
+    #     fasta_data = parse_fasta(args['fasta_file'])
+    #     dataset_params['structural_data'] = structural_data
+    #     dataset_params['fasta_data'] = fasta_data
     # Define dimensions for extra features added
     model_params['pseudoseq_dim'] = 680 if args['add_pseudo_sequence'] else 0
     model_params['feat_dim'] = 0
@@ -220,11 +220,13 @@ def main():
         max_clip = args['max_clip'] if args['max_clip'] is not None else args['max_len']
         min_clip = args['min_clip'] if args['min_clip'] is not None else df[args['seq_col']].apply(len).min()
         model_params['feat_dim'] += max_clip - min_clip + 2
+
+    # TODO : Here, this shouldn't be enabled because the structure features are directly concatenated to the encoded vectors
+    #        and model.feat_dim is for the extra features that are concatenated to the end of the flattened vector
+    # if args['add_structure']:
+    #     model_params['feat_dim'] += 5 #
+
     model_params['feat_dim'] = int(model_params['feat_dim'])
-
-    # if args['add_mean_structure']:
-    #     model_params['feat_dim'] += 5 # TODO : THIS IS FOR OLD MODEL WHERE STRUCT ARE APPENDED TO INPUT X_TENSOR
-
     model = MODELCLASS(activation=nn.ReLU(), **model_params)
     model.to(device)
     # Here changed the loss to MSE to train with sigmoid'd output values instead of labels
