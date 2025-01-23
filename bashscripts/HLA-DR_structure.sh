@@ -19,14 +19,15 @@ for kf in {0..4};do
   echo "cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts" >> $script_name
   echo "$command" >> $script_name
 
-  # Submit the job script to qsub
-  qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=20:00:00 $script_name"
-  echo "Submitting job: $script_name"
-  eval $qsub_command
+#  # Submit the job script to qsub
+#  qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=20:00:00 $script_name"
+#  echo "Submitting job: $script_name"
+#  eval $qsub_command
 
 # 2 Add per position structure (variant 1)
 rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 output_name="HLA_DR_PerPositionStructure"
+# shellcheck disable=SC1009
 for kf in {0..4};do
   script_name="job_${output_name}_kf${kf}.sh"
   command="$basecommand -kf $kf --add_structure True --add_mean_structure False --two_stage False -o $output_name -rid $rid"
@@ -36,10 +37,10 @@ for kf in {0..4};do
   echo "cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts" >> $script_name
   echo "$command" >> $script_name
 
-  # Submit the job script to qsub
-  qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=20:00:00 $script_name"
-  echo "Submitting job: $script_name"
-  eval $qsub_command
+#  # Submit the job script to qsub
+#  qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=20:00:00 $script_name"
+#  echo "Submitting job: $script_name"
+#  eval $qsub_command
 
 # 3 Add mean structure values (variant 2)
 
@@ -54,7 +55,7 @@ for kf in {0..4};do
   echo "cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts" >> $script_name
   echo "$command" >> $script_name
 
-  # Submit the job script to qsub
-  qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=20:00:00 $script_name"
-  echo "Submitting job: $script_name"
-  eval $qsub_command
+#  # Submit the job script to qsub
+#  qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=20:00:00 $script_name"
+#  echo "Submitting job: $script_name"
+#  eval $qsub_command
