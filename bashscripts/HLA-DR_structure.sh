@@ -12,7 +12,7 @@ rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 output_name="HLA_DR_baseline"
 for kf in {0..4};do
   script_name="job_${output_name}_kf${kf}.sh"
-  command="basecommand -kf $kf --add_structure False --add_mean_structure False --two_stage False -o $output_name -rid $rid"
+  command="$basecommand -kf $kf --add_structure False --add_mean_structure False --two_stage False -o $output_name -rid $rid"
   echo "#!/bin/bash" > $script_name
   echo "source /home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh" >> $script_name
   echo "source activate cuda" >> $script_name
@@ -29,7 +29,7 @@ rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 output_name="HLA_DR_PerPositionStructure"
 for kf in {0..4};do
   script_name="job_${output_name}_kf${kf}.sh"
-  command="basecommand -kf $kf --add_structure True --add_mean_structure False --two_stage False -o $output_name -rid $rid"
+  command="$basecommand -kf $kf --add_structure True --add_mean_structure False --two_stage False -o $output_name -rid $rid"
   echo "#!/bin/bash" > $script_name
   echo "source /home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh" >> $script_name
   echo "source activate cuda" >> $script_name
@@ -47,7 +47,7 @@ rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 output_name="HLA_DR_AddMeanStructure"
 for kf in {0..4};do
   script_name="job_${output_name}_kf${kf}.sh"
-  command="basecommand -kf $kf --add_structure False --add_mean_structure True --two_stage True -o $output_name -rid $rid"
+  command="$basecommand -kf $kf --add_structure False --add_mean_structure True --two_stage True -o $output_name -rid $rid"
   echo "#!/bin/bash" > $script_name
   echo "source /home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh" >> $script_name
   echo "source activate cuda" >> $script_name
