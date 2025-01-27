@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Base command without the parameters that will change
-TEF="../data/NetMHCII_EL_jonas/HLA_DR_500K_unseeen_sequence_test_set.csv"
+TEF="../data/NetMHCII_EL_jonas/HLA_DR_500K_unseen_sequence_test_set.csv"
 
 ####################################################################################################
 o1="HLA_DR_ensemble_preds_baseline_500k_unseen_testset"
