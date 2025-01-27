@@ -19,13 +19,13 @@ echo "cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts" >> $script_na
 echo "$command" >> $script_name
 # Submit the job script to qsub
 qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=16:00:00 $script_name"
-echo "Submitting job: $script_name"
+#echo "Submitting job: $script_name"
 #eval $qsub_command
 
 ####################################################################################################
 
 o2="HLA_DR_ensemble_preds_MeanStruct_500k_unseen_testset"
-c2="python3 ensemble_predictions.py -tef $TEF -model_folder ../models/HLA_DR_Baseline_NH64/ -o $o2"
+c2="python3 ensemble_predictions.py -tef $TEF -model_folder ../models/HLA_DR_MeanStruct_NH64/ -o $o2"
 # Generate a random ID for the job
 rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 # Construct the full command with varying parameters
@@ -41,7 +41,7 @@ echo "$command" >> $script_name
 # Submit the job script to qsub
 qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=16:00:00 $script_name"
 echo "Submitting job: $script_name"
-#eval $qsub_command
+eval $qsub_command
 
 ####################################################################################################
 
@@ -60,8 +60,8 @@ echo "cd /home/projects/vaccine/people/yatwan/PyNNalign/pyscripts" >> $script_na
 echo "$command" >> $script_name
 # Submit the job script to qsub
 qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=16:00:00 $script_name"
-echo "Submitting job: $script_name"
-eval $qsub_command
+#echo "Submitting job: $script_name"
+#eval $qsub_command
 
 echo "All tasks submitted."
 
