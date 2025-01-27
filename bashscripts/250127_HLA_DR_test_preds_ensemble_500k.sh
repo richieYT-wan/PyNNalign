@@ -9,7 +9,7 @@ c1="python3 ensemble_predictions.py -tef $TEF -model_folder ../models/HLA_DR_Bas
 # Generate a random ID for the job
 rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 # Construct the full command with varying parameters
-command="$c1 $rid"
+command="$c1 -rid $rid"
 # Create a script file for this job
 script_name="job_$o1.sh"
 echo "#!/bin/bash" > $script_name
@@ -29,7 +29,7 @@ c2="python3 ensemble_predictions.py -tef $TEF -model_folder ../models/HLA_DR_Bas
 # Generate a random ID for the job
 rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 # Construct the full command with varying parameters
-command="$c2 $rid"
+command="$c2 -rid $rid"
 
 # Create a script file for this job
 script_name="job_$o2.sh"
@@ -50,7 +50,7 @@ c3="python3 ensemble_predictions.py -tef $TEF -model_folder ../models/HLA_DR_Per
 # Generate a random ID for the job
 rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 # Construct the full command with varying parameters
-command="$c2 $rid"
+command="$c2 -rid $rid"
 # Create a script file for this job
 script_name="job_$o2.sh"
 echo "#!/bin/bash" > $script_name
