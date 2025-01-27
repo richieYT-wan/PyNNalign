@@ -326,7 +326,10 @@ class NNAlignDataset(SuperDataset):
             x_structs = x_structs.unsqueeze(1).tile(self.x_tensor.shape[1], 1)
             self.x_tensor = torch.cat([self.x_tensor, x_structs], dim=2)
 
+
         self.x_tensor = self.x_tensor.float()
+        if add_mean_structure or add_structure:
+            df.drop(struct_cols, inplace=True)
         # Saving df in case it's needed
         self.df = df
         self.len = len(self.x_tensor)

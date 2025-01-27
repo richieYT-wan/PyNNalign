@@ -192,6 +192,7 @@ def main():
 
     # Quick hotfix because i don't know why this query/eval thing suddenly changed and stopped working
     # tmpvals = train_df[tmp].values
+    # This
     test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
 
     MODELCLASS = NNAlignEFTwoStage if args['two_stage'] else NNAlignEFSinglePass
