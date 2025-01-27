@@ -20,7 +20,7 @@ echo "$command" >> $script_name
 # Submit the job script to qsub
 qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=16:00:00 $script_name"
 echo "Submitting job: $script_name"
-eval $qsub_command
+#eval $qsub_command
 
 ####################################################################################################
 
@@ -41,7 +41,7 @@ echo "$command" >> $script_name
 # Submit the job script to qsub
 qsub_command="qsub -W group_list=vaccine -A vaccine -m e -l nodes=1:ppn=40:gpus=1,mem=180gb,walltime=16:00:00 $script_name"
 echo "Submitting job: $script_name"
-eval $qsub_command
+#eval $qsub_command
 
 ####################################################################################################
 
@@ -50,9 +50,9 @@ c3="python3 ensemble_predictions.py -tef $TEF -model_folder ../models/HLA_DR_Per
 # Generate a random ID for the job
 rid=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 # Construct the full command with varying parameters
-command="$c2 -rid $rid"
+command="$c3 -rid $rid"
 # Create a script file for this job
-script_name="job_$o2.sh"
+script_name="job_$o3.sh"
 echo "#!/bin/bash" > $script_name
 echo "source /home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh" >> $script_name
 echo "source activate cuda" >> $script_name
