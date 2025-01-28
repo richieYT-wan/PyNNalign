@@ -282,3 +282,5 @@ data/mhc1_el_subsample/shuffled_structural_data.csv
 data/mhc1_el_subsample/mhc1_el_1M_structure.csv
 data/mhc1_el_subsample/structural_data.csv
 data/mhc1_el_subsample/subsampled_structural_data.fasta
+data/mhc1_el_subsample/250128_MHCI_EL_structure_test_100k.csv
+data/mhc1_el_subsample/250128_MHCI_EL_structure_train_900k.csv

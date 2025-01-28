@@ -190,10 +190,11 @@ def main():
         np.random.seed(0)
         train_df, valid_df = train_test_split(df, test_size=1 / args["split"])
 
+    # TODO : what to do with this ?
     # Quick hotfix because i don't know why this query/eval thing suddenly changed and stopped working
     # tmpvals = train_df[tmp].values
     # This
-    test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
+    # test_df = test_df.query(f'{tmp} not in @train_df.{tmp}.values')
 
     MODELCLASS = NNAlignEFTwoStage if args['two_stage'] else NNAlignEFSinglePass
     DATASETCLASS = NNAlignDataset if args['on_the_fly'] else NNAlignDatasetEFSinglePass
