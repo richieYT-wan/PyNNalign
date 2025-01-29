@@ -171,7 +171,9 @@ class NNAlignDataset(SuperDataset):
     #@profile
     def __init__(self, df: pd.DataFrame, max_len: int, window_size: int, fasta_data: str = None, structural_data: str = None, encoding: str = 'onehot',
                  seq_col: str = 'sequence', target_col: str = 'target', pad_scale: float = None, indel: bool = False,
-                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'], add_pseudo_sequence=False,
+                 burnin_alphabet: str = 'ILVMFYW', feature_cols: list = ['placeholder'],
+                 struct_cols = ['rsa','pq3_H', 'pq3_E', 'pq3_C', 'disorder'],
+                 add_pseudo_sequence=False,
                  add_pfr=False, add_fr_len=False, add_pep_len=False, min_clip=None, max_clip=None, burn_in=None, add_structure = False, add_mean_structure=False):
 
         # start = dt.now()
@@ -188,8 +190,7 @@ class NNAlignDataset(SuperDataset):
         if not indel:
             df = df.query('len>=@window_size')
 
-        struct_cols = ['rsa','pq3_H', 'pq3_E', 'pq3_C', 'disorder']
-        matrix_dim = 25 if add_structure else 20
+        matrix_dim = 20 + len(struct_cols) if add_structure else 20
 
         x = encode_batch(df[seq_col], max_len, encoding, pad_scale)
         if add_structure:

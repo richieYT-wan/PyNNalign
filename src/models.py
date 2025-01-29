@@ -336,21 +336,23 @@ class NNAlignEFSinglePass(NetParent):
 
     """
 
-    def __init__(self, n_hidden, n_hidden_2, window_size,
+    def __init__(self, n_hidden, n_hidden_2, window_size, matrix_dim=20,
                  activation=nn.ReLU(), feat_dim=0, pseudoseq_dim=0, batchnorm=False,
                  dropout=0.0, standardize=False,
                  add_hidden_layer=False, add_structure=False):
         super(NNAlignEFSinglePass, self).__init__()
-        if add_structure:
-            self.matrix_dim = 25
-        else:
-            self.matrix_dim = 20
+        # if add_structure:
+        #     self.matrix_dim = 25
+        # else:
+        #     self.matrix_dim = 20
+        self.matrix_dim = matrix_dim
         self.window_size = window_size
         self.n_hidden = n_hidden
         self.n_hidden_2 = n_hidden_2
         self.feat_dim = feat_dim
         self.pseudoseq_dim = pseudoseq_dim
         self.add_hidden_layer = add_hidden_layer
+        self.add_structure=add_structure
         # Input layer
         self.in_layer = nn.Linear(self.window_size * self.matrix_dim + feat_dim + pseudoseq_dim, n_hidden)
         # Additional hidden layer if use_second_hidden_layer is True
@@ -508,15 +510,12 @@ class NNAlignEFTwoStage(NetParent):
            Then, the second stage is concatenating to the structural features and running one additional layer for the output
     """
 
-    def __init__(self, n_hidden, n_hidden_2, window_size,
+    def __init__(self, n_hidden, n_hidden_2, window_size, matrix_dim=20,
                  activation=nn.ReLU(), feat_dim=0, pseudoseq_dim=0, batchnorm=False,
                  dropout=0.0, standardize=False,
                  add_hidden_layer=False, add_structure=False, add_mean_structure=False):
         super(NNAlignEFTwoStage, self).__init__()
-        if add_structure:
-            self.matrix_dim = 25
-        else:
-            self.matrix_dim = 20
+        self.matrix_dim = matrix_dim
         self.window_size = window_size
         self.n_hidden = n_hidden
         self.n_hidden_2 = n_hidden_2
@@ -524,6 +523,7 @@ class NNAlignEFTwoStage(NetParent):
         self.pseudoseq_dim = pseudoseq_dim
         self.add_hidden_layer = add_hidden_layer
         self.add_mean_structure = add_mean_structure
+        self.add_structure=add_structure
         # Input layer
         self.in_layer = nn.Linear(self.window_size * self.matrix_dim + feat_dim + pseudoseq_dim, n_hidden)
         # Additional hidden layer if use_second_hidden_layer is True

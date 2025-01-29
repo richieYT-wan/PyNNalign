@@ -41,13 +41,14 @@ def args_parser():
                         default='../data/aligned_icore/230530_prime_aligned.csv',
                         help='filename of the test input file')
     parser.add_argument('-struc', '--structure_file', dest='structure_file', required=False, type=str,
-                    help='Path to the structure file')
+                        help='Path to the structure file')
     parser.add_argument('-fasta', '--fasta_file', dest='fasta_file', required=False, type=str,
-                    help='Path to the FASTA file')
+                        help='Path to the FASTA file')
     parser.add_argument('-o', '--out', dest='out', required=False,
                         type=str, default='', help='Additional output name')
     parser.add_argument('-tts', '--split', dest='split', required=False, type=int,
-                        default=5, help='Train Test Split ; How to split the train/test data (test size=1/X) if kf is None')
+                        default=5,
+                        help='Train Test Split ; How to split the train/test data (test size=1/X) if kf is None')
     # TODO: Carlos: here, use None for kf because the data is already split. I'll let you figure out how to call the columns
     #       and what to use with -x, -y, -max_len, etc.
     parser.add_argument('-kf', '--fold', dest='fold', required=False, type=int, default=None,
@@ -89,22 +90,26 @@ def args_parser():
                              'Now True by default, to be deprecated ')
     parser.add_argument('-add_str', '--add_structure', dest='add_structure', type=str2bool, default=False,
                         help='Whether to add structural data to the model (true/false)')
-    parser.add_argument('-add_mean_str', '--add_mean_structure', dest='add_mean_structure', type=str2bool, default=False,
+    parser.add_argument('-add_mean_str', '--add_mean_structure', dest='add_mean_structure', type=str2bool,
+                        default=False,
                         help='Whether to add mean structural data to the model (true/false)')
     parser.add_argument('-two_stage', '--two_stage', dest='two_stage', type=str2bool, default=False,
                         help='Use 2stage model (for add_mean_structure)')
+    parser.add_argument('-scols', '--struct_cols', dest='struct_cols', nargs='+',
+                        default=['rsa', 'pq3_H', 'pq3_E', 'pq3_C', 'disorder'],
+                        help='List of columns to include in the structural features. ')
     """
     Neural Net & Encoding args 
     """
     parser.add_argument('-nh', '--n_hidden', dest='n_hidden', required=True,
                         type=int, help='Number of hidden units')
-    parser.add_argument('-std', '--standardize', dest='standardize', type=str2bool, required=True,
+    parser.add_argument('-std', '--standardize', dest='standardize', type=str2bool, default=False,required=False,
                         help='Whether to include standardization (True/False)')
-    parser.add_argument('-bn', '--batchnorm', dest='batchnorm', type=str2bool, required=True,
+    parser.add_argument('-bn', '--batchnorm', dest='batchnorm', type=str2bool, default=False, required=False,
                         help='Whether to add BatchNorm to the model (True/False)')
     parser.add_argument('-do', '--dropout', dest='dropout', type=float, default=0.0, required=False,
                         help='Whether to add DropOut to the model (p in float e[0,1], default = 0.0)')
-    parser.add_argument('-ws', '--window_size', dest='window_size', type=int, default=6, required=False,
+    parser.add_argument('-ws', '--window_size', dest='window_size', type=int, default=9, required=False,
                         help='Window size for sub-mers selection (default = 6)')
     parser.add_argument('-efbn', '--batchnorm_ef', dest='batchnorm_ef',
                         default=False, type=str2bool,
@@ -145,14 +150,20 @@ then ls that somewhere and iterate through each of the folders to reload each mo
 we can do this instead.
 """
 
+
 def main():
     start = dt.now()
     tracemalloc.start()
     # I like dictionary for args :-)
     args = vars(args_parser())
-    if (args['add_mean_structure'] and not args['two_stage']) or  (not args['add_mean_structure'] and args['two_stage']):
-        print(f'add_mean_structure, two-stage model must both be active! Currently: {args["add_mean_structure"], args["two_stage"]};\n(set --add_mean_structure True --two_stage True instead!)')
-        sys.exit(1)
+
+    if args['add_mean_structure'] and args['add_structure']:
+        raise ValueError("--add_mean_structure and --add_structrue can't both be True. Only one can be active at a time")
+    if args['add_mean_structure'] and len(args['struct_cols']) != 5:
+        raise ValueError(f"--add_mean_structure is set as True but using {len(args['struct_cols'])} structure columns. 5 columns are required for now (To be changed)")
+    if (args['add_mean_structure'] and not args['two_stage']) or (not args['add_mean_structure'] and args['two_stage']):
+        raise ValueError(
+            f'add_mean_structure, two-stage model must both be active! Currently: {args["add_mean_structure"], args["two_stage"]};\n(set --add_mean_structure True --two_stage True instead!)')
     # Cuda activation
     if torch.cuda.is_available() and args['cuda']:
         device = get_available_device()
@@ -202,7 +213,7 @@ def main():
     model_keys = get_class_initcode_keys(MODELCLASS, args)
     # Here UglyWorkAround exist to give the __init__ code to dataset because I'm currently using @profile
     dataset_keys = get_class_initcode_keys(DATASETCLASS, args)
-    args['on_the_fly']=True
+    args['on_the_fly'] = True
     model_params = {k: args[k] for k in model_keys}
     dataset_params = {k: args[k] for k in dataset_keys}
     optim_params = {'lr': args['lr'], 'weight_decay': args['weight_decay']}
@@ -214,6 +225,7 @@ def main():
     # Define dimensions for extra features added
     model_params['pseudoseq_dim'] = 680 if args['add_pseudo_sequence'] else 0
     model_params['feat_dim'] = 0
+    model_params['matrix_dim'] = 20 + len(args['struct_cols']) if args['add_structure'] else 20
     if args['add_pfr']:
         model_params['feat_dim'] += 40
     if args['add_fr_len']:
