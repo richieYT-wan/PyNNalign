@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-basecommand="python3 train_test_model_efsinglepass.py -trf ../data/mhc1_el_subsample/250128_MHCI_EL_structure_train_900k.csv -tef ../data/mhc1_el_subsample/250128_MHCI_EL_structure_test_100k.csv -ml 13 -ws 9 -pad -20 -y target -x sequence -std False -bn False -nh 64 -br 10 -otf True -cuda True -bs 1024 -ne 500 -wd 0 -add_ps True -indel True --add_pfr False --add_fr_len False --add_pep_len False -lr 5e-5"
+basecommand="python3 train_test_model_efsinglepass.py -trf ../data/mhc1_el_subsample/250128_MHCI_EL_structure_train_900k.csv -tef ../data/mhc1_el_subsample/250128_MHCI_EL_structure_test_100k.csv -ml 13 -ws 9 -pad -20 -y target -x sequence -std False -bn False -nh 64 -br 10 -otf True -cuda True -bs 1024 -ne 500 -wd 0 -add_ps True -indel True --add_pfr False --add_fr_len False --add_pep_len True -lr 5e-5"
 
 # Run 3 conditions :
 # add nothing (BASELINE)
