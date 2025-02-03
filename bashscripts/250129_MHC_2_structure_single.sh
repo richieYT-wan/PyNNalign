@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-basecommand="python3 train_test_model_efsinglepass.py -trf ../data/NetMHCII_EL_jonas/HLA_DR_subsample_all_partitions.csv -tef ../data/NetMHCII_EL_jonas/HLA_DR_notsampled_200k_selected_test_set.csv -ml 21 -ws 9 -pad -20 -y target -x sequence -std False -bn False -nh 64 -br 10 -otf True -cuda True -bs 1024 -ne 500 -wd 0 -add_ps True -indel True --add_pfr False --add_fr_len False --add_pep_len False -lr 5e-5 --add_structure True --add_mean_structure False"
+basecommand="python3 train_test_model_efsinglepass.py -trf ../data/NetMHCII_EL_jonas/HLA_DR_subsample_all_partitions_922k.csv -tef ../data/NetMHCII_EL_jonas/HLA_DR_500K_unseen_sequence_test_set.csv -ml 21 -ws 9 -pad -20 -y target -x sequence -std False -bn False -nh 64 -br 10 -otf True -cuda True -bs 1024 -ne 500 -wd 0 -add_ps True -indel True --add_pfr False --add_fr_len False --add_pep_len False -lr 5e-5 --add_structure True --add_mean_structure False"
 
 add_mean_str=(True False)
 add_pos_str=(True False)

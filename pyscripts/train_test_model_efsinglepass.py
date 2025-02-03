@@ -68,7 +68,7 @@ def args_parser():
     parser.add_argument('-fc', '--feature_cols', dest='feature_cols', nargs='+', required=False,
                         help='Name of columns (str) to use as extra features, space separated.' \
                              'For example, to add 2 features Rank and Similarity, do: -ef Rank Similarity')
-    parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=False,
+    parser.add_argument('-add_ps', '--add_pseudo_sequence', dest='add_pseudo_sequence', type=str2bool, default=True,
                         help='Whether to add pseudo sequence to the model (true/false)')
     # parser.add_argument('-ps', '--pseudo_seq_col', dest='pseudo_seq_col', default='pseudoseq', type=str, required=False,
     #                     help='Name of the column containing the MHC pseudo-sequences')
@@ -82,7 +82,7 @@ def args_parser():
                         help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
     parser.add_argument('-max_clip', '--max_clip', dest='max_clip', type=int, default=None,
                         help='Whether to add the peptide length encodings (as one-hot) to the model (true/false)')
-    parser.add_argument('-indel', '--indel', dest='indel', type=str2bool, default=False,
+    parser.add_argument('-indel', '--indel', dest='indel', type=str2bool, default=True,
                         help='Whether to add insertions/deletions')
     # TODO: Deprecate on_the_fly and set it as default behaviour in datasets (remove old behaviour)
     parser.add_argument('-otf', '--on_the_fly', dest='on_the_fly', type=str2bool, default=True,
