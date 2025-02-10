@@ -34,6 +34,8 @@ def args_parser():
     """
     parser.add_argument('-cuda', dest='cuda', required=False, type=str2bool, default=False,
                         help='Whether to activate Cuda. If true, will check if any gpu is available.')
+    parser.add_argument('-device', dest='device', required=False, default=None, type=str,
+                        help='Custom cuda device to use, default is None')
     parser.add_argument('-trf', '--train_file', dest='train_file', required=True, type=str,
                         default='../data/aligned_icore/230530_cedar_aligned.csv',
                         help='filename of the train input file')
@@ -166,7 +168,10 @@ def main():
             f'add_mean_structure, two-stage model must both be active! Currently: {args["add_mean_structure"], args["two_stage"]};\n(set --add_mean_structure True --two_stage True instead!)')
     # Cuda activation
     if torch.cuda.is_available() and args['cuda']:
-        device = get_available_device()
+        if args['device'] is None:
+            device = get_available_device()
+        else:
+            device = torch.device(args['device'])
     else:
         device = torch.device('cpu')
     print("Using : {}".format(device))
