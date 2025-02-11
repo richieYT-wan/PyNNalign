@@ -330,3 +330,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+/home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh
+/home/people/riwa/an
+aconda3/etc/profile.d/conda.sh
+
+
+/home/projects/vaccine/people/yatwan/
+/home/projects2/riwa/
