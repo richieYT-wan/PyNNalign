@@ -284,3 +284,5 @@ data/mhc1_el_subsample/structural_data.csv
 data/mhc1_el_subsample/subsampled_structural_data.fasta
 data/mhc1_el_subsample/250128_MHCI_EL_structure_test_100k.csv
 data/mhc1_el_subsample/250128_MHCI_EL_structure_train_900k.csv
+data/NetMHCII_EL_jonas/HLA_DR_500K_unseen_sequence_test_set.csv
+data/NetMHCII_EL_jonas/250130_MHCI_structure_test_79305_REFIXED_overlap.csv

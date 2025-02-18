@@ -1,30 +1,23 @@
 import pandas as pd
-from tqdm.auto import tqdm
 import os, sys
-
-module_path = os.path.abspath(os.path.join('..'))
-if module_path not in sys.path:
-    sys.path.append(module_path)
-
 import torch
 from torch import optim
 from torch import nn
 from torch.utils.data import SequentialSampler, RandomSampler
 from datetime import datetime as dt
-from src.utils import str2bool, pkl_dump, mkdirs, get_random_id, get_datetime_string, plot_loss_aucs, \
+import numpy as np
+import tracemalloc
+import argparse
+module_path = os.path.abspath(os.path.join('..'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+from src.utils import str2bool, pkl_dump, mkdirs, plot_loss_aucs, \
     get_class_initcode_keys, make_filename, save_json
-from src.torch_utils import save_checkpoint, load_checkpoint, save_model_full, get_available_device
+from src.torch_utils import load_checkpoint, save_model_full, get_available_device
 from src.models import NNAlignEFSinglePass, NNAlignEFTwoStage
-from src.train_eval import train_model_step, eval_model_step, predict_model, train_eval_loops
+from src.train_eval import predict_model, train_eval_loops
 from sklearn.model_selection import train_test_split
 from src.datasets import NNAlignDatasetEFSinglePass, NNAlignDataset
-from src.data_processing import parse_fasta, load_structural_data
-import numpy as np
-from matplotlib import pyplot as plt
-import tracemalloc
-import seaborn as sns
-
-import argparse
 
 
 def args_parser():
@@ -330,11 +323,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-/home/projects/vaccine/people/yatwan/anaconda3/etc/profile.d/conda.sh
-/home/people/riwa/an
-aconda3/etc/profile.d/conda.sh
-
-
-/home/projects/vaccine/people/yatwan/
-/home/projects2/riwa/
