@@ -1,0 +1,54 @@
+####################################################################################################
+#                                          PARAMETERS
+####################################################################################################
+cuda: True
+train_file: ../data/NetMHCII_EL_jonas/HLA_DR_subsample_all_partitions_922k.csv
+test_file: ../data/NetMHCII_EL_jonas/HLA_DR_500K_unseen_sequence_test_set.csv
+structure_file: None
+fasta_file: None
+out: RERUNS_FEB3_CORRECT_HYPERPARAMS-HLA_DR_PerPositionStructure
+split: 5
+fold: 0
+seq_col: sequence
+target_col: target
+encoding: BL50LO
+max_len: 21
+pad_scale: -20.0
+feature_cols: None
+add_pseudo_sequence: True
+add_pfr: True
+add_fr_len: True
+add_pep_len: True
+min_clip: None
+max_clip: None
+indel: False
+on_the_fly: True
+add_structure: True
+add_mean_structure: False
+two_stage: False
+struct_cols: ['rsa', 'pq3_H', 'pq3_E', 'pq3_C', 'disorder']
+n_hidden: 64
+standardize: False
+batchnorm: False
+dropout: 0.0
+window_size: 9
+batchnorm_ef: False
+dropout_ef: 0.0
+add_hidden_layer: False
+n_hidden_2: 10
+burn_in: 10
+lr: 5e-05
+weight_decay: 0.0
+batch_size: 1024
+n_epochs: 500
+tolerance: 1e-05
+random_id: IleIo
+debug: False
+####################################################################################################
+#                                          VALID-TEST
+####################################################################################################
+Best valid epoch: 156
+Best valid loss: 0.0417400096354113
+Best valid auc: 0.9334
+Test file: ../data/NetMHCII_EL_jonas/HLA_DR_500K_unseen_sequence_test_set.csv
+Elapsed time: 210 minutes 29 seconds.

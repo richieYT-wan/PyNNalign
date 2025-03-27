@@ -37,14 +37,11 @@ def args_parser():
     """
     parser.add_argument('-model_folder', type=str, required=False, default=None,
                         help='Path to the folder containing both the checkpoint and json file. ' \
-                             'If used, -pt_file and -json_file are not required and will attempt to read the .pt and .json from the provided directory')
-    parser.add_argument('-pt_file', type=str, required=False,
-                        default=None, help='Path to the checkpoint file to reload the VAE model')
-    parser.add_argument('-json_file', type=str, required=False,
-                        default=None, help='Path to the json file to reload the VAE model')
-    parser.add_argument('-kwargs_file', type=str, required=False,
-                        default=None, help='Path to the json kwargs file to reload the kwargs used during training')
-
+                             'Should contain the .pt for all 5 models and one json file')
+    # parser.add_argument('-pt_file', type=str, required=False,
+    #                     default=None, help='Path to the checkpoint file to reload the VAE model')
+    # parser.add_argument('-json_file', type=str, required=False,
+    #                     default=None, help='Path to the json file to reload the VAE model')
     # Data in/out
     parser.add_argument('-tef', '--test_file', dest='test_file', required=True, type=str,
                         default='../data/aligned_icore/230530_prime_aligned.csv',
